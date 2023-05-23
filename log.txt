@@ -1,0 +1,14 @@
+2023.05.20
+
+
+CHANGES: 
+- Change planning frequency to 10 Hz
+- Add moving cars  ->  Needs fake Prediction module
+- Add more lanes, add lane deciding logic
+- Add following/stopping mode, Lane Change mode
+
+- Add sensor models and state estimation module. 
+- finish planning in local coordinates. 
+- convert global coordinates to local.
+- convert back to global. 
+

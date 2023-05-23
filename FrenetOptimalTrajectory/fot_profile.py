@@ -80,7 +80,7 @@ print("=========================================================")
 # Also calculate a speedup ratio compared to the baseline,
 # which is single thread execution
 if args.full:
-    num_thread_upper_bound = 9
+    num_thread_upper_bound = 17
     full_times = []
     for i in range(1, num_thread_upper_bound):
         full_times.append(fot(False, False, i, False))

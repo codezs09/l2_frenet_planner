@@ -2,6 +2,7 @@ __pycache__/
 build/
 venv/
 dist/
+ref/
 *.egg-info/
 .idea/
 cmake-build-debug/

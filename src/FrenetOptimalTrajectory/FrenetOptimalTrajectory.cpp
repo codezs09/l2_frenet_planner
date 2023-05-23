@@ -167,8 +167,8 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
                 t += fot_hp->dt;
             }
 
-            // velocity keeping
-            tv = fot_ic->target_speed - fot_hp->d_t_s * fot_hp->n_s_sample;
+            // velocity keeping (only support velocity keeping mode)
+            tv = fot_ic->target_speed - fot_hp->d_t_s * fot_hp->n_s_sample; // tv: sampling speed
             while (tv <=
                    fot_ic->target_speed + fot_hp->d_t_s * fot_hp->n_s_sample) {
                 longitudinal_acceleration = 0;
@@ -182,7 +182,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
                 tfp->d_dd.assign(fp->d_dd.begin(), fp->d_dd.end());
                 tfp->d_ddd.assign(fp->d_ddd.begin(), fp->d_ddd.end());
                 QuarticPolynomial lon_qp = QuarticPolynomial(
-                    fot_ic->s0, fot_ic->c_speed, 0.0, tv, 0.0, ti);
+                    fot_ic->s0, fot_ic->c_speed, 0.0, tv, 0.0, ti); // 1. ic and ec lon_acc all zeros? 2. sampling time is same for both lat and lon? 
 
                 // longitudinal motion
                 for (double tp : tfp->t) {
@@ -191,7 +191,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
                     tfp->s_dd.push_back(lon_qp.calc_second_derivative(tp));
                     tfp->s_ddd.push_back(lon_qp.calc_third_derivative(tp));
                     longitudinal_acceleration +=
-                        abs(lon_qp.calc_second_derivative(tp));
+                        abs(lon_qp.calc_second_derivative(tp)); // if accumulated, then not fair under different ti sampling.
                     longitudinal_jerk += abs(lon_qp.calc_third_derivative(tp));
                 }
 

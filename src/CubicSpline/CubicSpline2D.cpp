@@ -121,6 +121,6 @@ bool CubicSpline2D::are_collinear(double x1, double y1, double x2, double y2,
     double x3, double y3) {
     double a = x1 * (y2 - y3) +
                x2 * (y3 - y1) +
-               x3 * (y1 - y2);
-    return a <= 0.01;
+               x3 * (y1 - y2);  // signed
+    return fabs(a) <= 0.01;
 }
