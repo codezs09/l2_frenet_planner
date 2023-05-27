@@ -16,8 +16,12 @@ struct FrenetInitialConditions {
     int nw;
     double *o_llx;
     double *o_lly;
+    double *o_lrx;
+    double *o_lry;
     double *o_urx;
     double *o_ury;
+    double *o_ulx;
+    double *o_uly;
     int no;
 };
 
