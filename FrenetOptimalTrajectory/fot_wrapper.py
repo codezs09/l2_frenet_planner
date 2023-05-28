@@ -1,50 +1,73 @@
 import numpy as np
 import os
+import sys
 
-from ctypes import c_double, c_int, POINTER, Structure, CDLL, byref
+sys.path.append("build/")
+import FotWrapper
+_to_frenet_initial_conditions = FotWrapper.to_frenet_initial_conditions
+_run_fot = FotWrapper.run_fot
 
-try:
-    from py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
-        FrenetReturnValues
-except:
-    from frenet_optimal_trajectory_planner.FrenetOptimalTrajectory \
-        .py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
-         FrenetReturnValues
+# from ctypes import c_double, c_int, POINTER, Structure, CDLL, byref
 
-try:
-    cdll = CDLL("build/libFrenetOptimalTrajectory.so")
-except:
-    cdll = CDLL("{}/dependencies/frenet_optimal_trajectory_planner/"
-                "build/libFrenetOptimalTrajectory.so".format(
-                    os.getenv("PYLOT_HOME")))
+# try:
+#     from py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
+#         FrenetReturnValues
+# except:
+#     from frenet_optimal_trajectory_planner.FrenetOptimalTrajectory \
+#         .py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
+#          FrenetReturnValues
 
-_c_double_p = POINTER(c_double)
+# try:
+#     cdll = CDLL("build/libFrenetOptimalTrajectory.so")
+# except:
+#     cdll = CDLL("{}/dependencies/frenet_optimal_trajectory_planner/"
+#                 "build/libFrenetOptimalTrajectory.so".format(
+#                     os.getenv("PYLOT_HOME")))
 
-# func / return type declarations for C++ run_fot
-_run_fot = cdll.run_fot
-_run_fot.argtypes = (
-    POINTER(FrenetInitialConditions),
-    POINTER(FrenetHyperparameters),
-    POINTER(FrenetReturnValues),
-)
-_run_fot.restype = None
+# _c_double_p = POINTER(c_double)
 
-# func / return type declarations for C++ to_frenet_initial_conditions
-_to_frenet_initial_conditions = cdll.to_frenet_initial_conditions
-_to_frenet_initial_conditions.restype = None
-_to_frenet_initial_conditions.argtypes = (c_double, c_double, c_double,
-                                          c_double, c_double, c_double,
-                                          _c_double_p, _c_double_p, c_int,
-                                          _c_double_p)
+# # func / return type declarations for C++ run_fot
+# _run_fot = cdll.run_fot
+# _run_fot.argtypes = (
+#     POINTER(FrenetInitialConditions),
+#     POINTER(FrenetHyperparameters),
+#     POINTER(FrenetReturnValues),
+# )
+# _run_fot.restype = None
+
+# # func / return type declarations for C++ to_frenet_initial_conditions
+# _to_frenet_initial_conditions = cdll.to_frenet_initial_conditions
+# _to_frenet_initial_conditions.restype = None
+# _to_frenet_initial_conditions.argtypes = (c_double, c_double, c_double,
+#                                           c_double, c_double, c_double,
+#                                           _c_double_p, _c_double_p, c_int,
+#                                           _c_double_p)
 
 
 def _parse_hyperparameters(hp):
-    return FrenetHyperparameters(
-        hp["max_speed"], hp["max_accel"], hp["max_curvature"],
-        hp["max_road_width_l"], hp["max_road_width_r"], hp["d_road_w"],
-        hp["dt"], hp["maxt"], hp["mint"], hp["d_t_s"], hp["n_s_sample"],
-        hp["obstacle_clearance"], hp["kd"], hp["kv"], hp["ka"], hp["kj"],
-        hp["kt"], hp["ko"], hp["klat"], hp["klon"], hp["num_threads"])
+    ans = FotWrapper.FrenetHyperparameters()
+    ans.max_speed = hp["max_speed"]
+    ans.max_accel = hp["max_accel"]
+    ans.max_curvature = hp["max_curvature"]
+    ans.max_road_width_l = hp["max_road_width_l"]
+    ans.max_road_width_r = hp["max_road_width_r"]
+    ans.d_road_w = hp["d_road_w"]
+    ans.dt = hp["dt"]
+    ans.maxt = hp["maxt"]
+    ans.mint = hp["mint"]
+    ans.d_t_s = hp["d_t_s"]
+    ans.n_s_sample = hp["n_s_sample"]
+    ans.obstacle_clearance = hp["obstacle_clearance"]
+    ans.kd = hp["kd"]
+    ans.kv = hp["kv"]
+    ans.ka = hp["ka"]
+    ans.kj = hp["kj"]
+    ans.kt = hp["kt"]
+    ans.ko = hp["ko"]
+    ans.klat = hp["klat"]
+    ans.klon = hp["klon"]
+    ans.num_threads = hp["num_threads"]
+    return ans
 
 
 def run_fot(initial_conditions, hyperparameters):
@@ -106,21 +129,22 @@ def run_fot(initial_conditions, hyperparameters):
     fot_hp = _parse_hyperparameters(hyperparameters)
 
     # initialize return values
-    fot_rv = FrenetReturnValues(0)
+    fot_rv = FotWrapper.FrenetReturnValues()
 
     # run the planner
     _run_fot(fot_initial_conditions, fot_hp, fot_rv)
 
-    x_path = np.array([fot_rv.x_path[i] for i in range(fot_rv.path_length)])
-    y_path = np.array([fot_rv.y_path[i] for i in range(fot_rv.path_length)])
-    speeds = np.array([fot_rv.speeds[i] for i in range(fot_rv.path_length)])
-    ix = np.array([fot_rv.ix[i] for i in range(fot_rv.path_length)])
-    iy = np.array([fot_rv.iy[i] for i in range(fot_rv.path_length)])
-    iyaw = np.array([fot_rv.iyaw[i] for i in range(fot_rv.path_length)])
-    d = np.array([fot_rv.d[i] for i in range(fot_rv.path_length)])
-    s = np.array([fot_rv.s[i] for i in range(fot_rv.path_length)])
-    speeds_x = np.array([fot_rv.speeds_x[i] for i in range(fot_rv.path_length)])
-    speeds_y = np.array([fot_rv.speeds_y[i] for i in range(fot_rv.path_length)])
+    path_length = fot_rv.path_length
+    x_path = np.array(fot_rv.x_path)
+    y_path = np.array(fot_rv.y_path)
+    speeds = np.array(fot_rv.speeds)
+    ix = np.array(fot_rv.ix)
+    iy = np.array(fot_rv.iy)
+    iyaw = np.array(fot_rv.iyaw)
+    d = np.array(fot_rv.d)
+    s = np.array(fot_rv.s)
+    speeds_x = np.array(fot_rv.speeds_x)
+    speeds_y = np.array(fot_rv.speeds_y)
     params = {
         "s": fot_rv.params[0],
         "s_d": fot_rv.params[1],
@@ -177,41 +201,38 @@ def to_frenet_initial_conditions(initial_conditions):
     y = pos[1].item()
     vx = vel[0].item()
     vy = vel[1].item()
-    wx = wp[:, 0].astype(np.float64)
-    wy = wp[:, 1].astype(np.float64)
-    o_llx = np.copy(obs[:, 0]).astype(np.float64)
-    o_lly = np.copy(obs[:, 1]).astype(np.float64)
-    o_urx = np.copy(obs[:, 2]).astype(np.float64)
-    o_ury = np.copy(obs[:, 3]).astype(np.float64)
+    wx = wp[:, 0]
+    wy = wp[:, 1]
+    o_llx = np.copy(obs[:, 0])
+    o_lly = np.copy(obs[:, 1])
+    o_urx = np.copy(obs[:, 2])
+    o_ury = np.copy(obs[:, 3])
     forward_speed = np.hypot(vx, vy).item()
 
     # construct return array and convert initial conditions
     misc = np.zeros(5)
-    _to_frenet_initial_conditions(c_double(ps), c_double(x), c_double(y),
-                                  c_double(vx), c_double(vy),
-                                  c_double(forward_speed),
-                                  wx.ctypes.data_as(_c_double_p),
-                                  wy.ctypes.data_as(_c_double_p),
-                                  c_int(len(wx)),
-                                  misc.ctypes.data_as(_c_double_p))
+    _to_frenet_initial_conditions(ps, x, y,
+                                  vx, vy,
+                                  forward_speed,
+                                  wx,
+                                  wy,
+                                  misc)
 
     # return the FrenetInitialConditions structure
-    return FrenetInitialConditions(
-        misc[0],  # c_s
-        misc[1],  # c_speed
-        misc[2],  # c_d
-        misc[3],  # c_d_d
-        misc[4],  # c_d_dd
-        target_speed,  # target speed
-        wx.ctypes.data_as(_c_double_p),  # waypoints x position
-        wy.ctypes.data_as(_c_double_p),  # waypoints y position
-        len(wx),
-        o_llx.ctypes.data_as(_c_double_p),  # obstacles lower left x
-        o_lly.ctypes.data_as(_c_double_p),  # obstacles lower left y
-        o_urx.ctypes.data_as(_c_double_p),  # obstacles upper right x
-        o_ury.ctypes.data_as(_c_double_p),  # obstacles upper right y
-        len(o_llx),
-    ), misc
+    ans = FotWrapper.FrenetInitialConditions()
+    ans.s0 = misc[0]
+    ans.c_speed = misc[1]
+    ans.c_d = misc[2]
+    ans.c_d_d = misc[3]
+    ans.c_d_dd = misc[4]
+    ans.target_speed = target_speed
+    ans.wx = wx
+    ans.wy = wy
+    ans.o_llx = o_llx
+    ans.o_lly = o_lly
+    ans.o_urx = o_urx
+    ans.o_ury = o_ury
+    return ans, misc
 
 
 #############################################################

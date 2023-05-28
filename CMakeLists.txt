@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 project(FrenetOptimalTrajectory)
 
 
@@ -21,6 +21,10 @@ else()
     find_package(Eigen)
     set(CUSTOM_EIGEN ${EIGEN_INCLUDE_DIR})
 endif()
+
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
+include_directories(${Python_INCLUDE_DIRS})
+message(STATUS "Python_INCLUDE_DIRS = ${Python_INCLUDE_DIRS}")
 
 include_directories(.)
 include_directories(
@@ -51,7 +55,7 @@ add_library(FrenetOptimalTrajectory SHARED
             src/FrenetOptimalTrajectory/AnytimeFrenetOptimalTrajectory.h
             src/FrenetOptimalTrajectory/FrenetPath.cpp
             src/FrenetOptimalTrajectory/FrenetPath.h
-            src/FrenetOptimalTrajectory/fot_wrapper.cpp
+            # src/FrenetOptimalTrajectory/fot_wrapper.cpp
             src/FrenetOptimalTrajectory/py_cpp_struct.h
             src/Obstacle/Obstacle.cpp
             src/Obstacle/Obstacle.h
@@ -99,7 +103,7 @@ add_executable(AnytimeFrenetOptimalTrajectoryTest
             src/FrenetOptimalTrajectory/AnytimeFrenetOptimalTrajectory.h
             src/FrenetOptimalTrajectory/FrenetPath.cpp
             src/FrenetOptimalTrajectory/FrenetPath.h
-            src/FrenetOptimalTrajectory/fot_wrapper.cpp
+            # src/FrenetOptimalTrajectory/fot_wrapper.cpp
             src/FrenetOptimalTrajectory/py_cpp_struct.h
             src/Obstacle/Obstacle.cpp
             src/Obstacle/Obstacle.h
@@ -121,7 +125,7 @@ add_executable(FrenetOptimalTrajectoryTest
                src/FrenetOptimalTrajectory/FrenetOptimalTrajectory.h
                src/FrenetOptimalTrajectory/FrenetPath.cpp
                src/FrenetOptimalTrajectory/FrenetPath.h
-               src/FrenetOptimalTrajectory/fot_wrapper.cpp
+            #    src/FrenetOptimalTrajectory/fot_wrapper.cpp
                src/FrenetOptimalTrajectory/py_cpp_struct.h
                src/Obstacle/Obstacle.cpp
                src/Obstacle/Obstacle.h
@@ -131,3 +135,9 @@ target_link_libraries(FrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gu
 target_link_libraries(PackageFrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui)
 target_link_libraries(FrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui)
 target_link_libraries(AnytimeFrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui)
+
+add_subdirectory(pybind11)
+include_directories(pybind11/include)
+pybind11_add_module(FotWrapper src/FrenetOptimalTrajectory/fot_wrapper.cpp)
+target_link_libraries(FotWrapper PRIVATE Eigen3::Eigen Qt5::Widgets Qt5::Gui
+                      FrenetOptimalTrajectory Python::Python)

@@ -1,6 +1,9 @@
 #ifndef FRENETOPTIMALTRAJECTORY_PY_CPP_STRUCT_H
 #define FRENETOPTIMALTRAJECTORY_PY_CPP_STRUCT_H
 #include <stddef.h>
+#include <vector>
+
+using namespace std; 
 
 const size_t MAX_PATH_LENGTH = 100;
 
@@ -11,31 +14,31 @@ struct FrenetInitialConditions {
     double c_d_d;
     double c_d_dd;
     double target_speed;
-    double *wx;
-    double *wy;
-    int nw;
-    double *o_llx;
-    double *o_lly;
-    double *o_urx;
-    double *o_ury;
-    int no;
+    vector<double> wx;
+    vector<double> wy;
+    // int nw;
+    vector<double> o_llx;
+    vector<double> o_lly;
+    vector<double> o_urx;
+    vector<double> o_ury;
+    // int no;
 };
 
 struct FrenetReturnValues {
     int success;
     size_t path_length;
-    double x_path[MAX_PATH_LENGTH];
-    double y_path[MAX_PATH_LENGTH];
-    double speeds[MAX_PATH_LENGTH];
-    double ix[MAX_PATH_LENGTH];
-    double iy[MAX_PATH_LENGTH];
-    double iyaw[MAX_PATH_LENGTH];
-    double d[MAX_PATH_LENGTH];
-    double s[MAX_PATH_LENGTH];
-    double speeds_x[MAX_PATH_LENGTH];
-    double speeds_y[MAX_PATH_LENGTH];
-    double params[MAX_PATH_LENGTH];
-    double costs[MAX_PATH_LENGTH];
+    vector<double> x_path;
+    vector<double> y_path;
+    vector<double> speeds;
+    vector<double> ix;
+    vector<double> iy;
+    vector<double> iyaw;
+    vector<double> d;
+    vector<double> s;
+    vector<double> speeds_x;
+    vector<double> speeds_y;
+    vector<double> params;
+    vector<double> costs;
 };
 
 struct FrenetHyperparameters {

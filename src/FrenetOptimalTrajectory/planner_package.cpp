@@ -67,23 +67,28 @@ static PyObject *method_get_path(PyObject *self, PyObject *args) {
 
     if (best_frenet_path && !best_frenet_path->x.empty()) {
         fot_rv->success = 1;
-        fot_rv->path_length = std::min(best_frenet_path->x.size(), MAX_PATH_LENGTH);
-        for (size_t i = 0; i < fot_rv->path_length; i++) {
-            fot_rv->x_path[i] = best_frenet_path->x[i];
-            fot_rv->y_path[i] = best_frenet_path->y[i];
-            fot_rv->speeds[i] = best_frenet_path->s_d[i];
-            fot_rv->ix[i] = best_frenet_path->ix[i];
-            fot_rv->iy[i] = best_frenet_path->iy[i];
-            fot_rv->iyaw[i] = best_frenet_path->iyaw[i];
-            fot_rv->d[i] = best_frenet_path->d[i];
-            fot_rv->s[i] = best_frenet_path->s[i];
-            fot_rv->speeds_x[i] =
-                cos(best_frenet_path->yaw[i]) * fot_rv->speeds[i];
-            fot_rv->speeds_y[i] =
-                sin(best_frenet_path->yaw[i]) * fot_rv->speeds[i];
+        int path_length = best_frenet_path->x.size();
+        fot_rv->path_length = path_length;
+        fot_rv->path_length = path_length;
+        fot_rv->x_path = best_frenet_path->x;
+        fot_rv->y_path = best_frenet_path->y;
+        fot_rv->speeds = best_frenet_path->s_d;
+        fot_rv->ix = best_frenet_path->ix;
+        fot_rv->iy = best_frenet_path->iy;
+        fot_rv->iyaw = best_frenet_path->iyaw;
+        fot_rv->d = best_frenet_path->d;
+        fot_rv->s = best_frenet_path->s;
+        fot_rv->speeds_x.resize(path_length);
+        fot_rv->speeds_y.resize(path_length);
+        for (int i = 0; i < path_length; i++) {
+            fot_rv->speeds_x[i] = cos(best_frenet_path->yaw[i]) *
+                fot_rv->speeds[i];
+            fot_rv->speeds_y[i] = sin(best_frenet_path->yaw[i]) *
+                fot_rv->speeds[i];
         }
 
         // store info for debug
+        fot_rv->params.resize(5);
         fot_rv->params[0] = best_frenet_path->s[1];
         fot_rv->params[1] = best_frenet_path->s_d[1];
         fot_rv->params[2] = best_frenet_path->d[1];
@@ -91,6 +96,7 @@ static PyObject *method_get_path(PyObject *self, PyObject *args) {
         fot_rv->params[4] = best_frenet_path->d_dd[1];
 
         // store costs for logging
+        fot_rv->costs.resize(12);
         fot_rv->costs[0] = best_frenet_path->c_lateral_deviation;
         fot_rv->costs[1] = best_frenet_path->c_lateral_velocity;
         fot_rv->costs[2] = best_frenet_path->c_lateral_acceleration;

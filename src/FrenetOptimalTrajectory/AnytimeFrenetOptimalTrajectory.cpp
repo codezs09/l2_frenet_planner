@@ -22,8 +22,8 @@ AnytimeFrenetOptimalTrajectory::AnytimeFrenetOptimalTrajectory(
 
     run_workers = false;
 
-    x.assign(fot_ic->wx, fot_ic->wx + fot_ic->nw);
-    y.assign(fot_ic->wy, fot_ic->wy + fot_ic->nw);
+    x = fot_ic->wx;
+    y = fot_ic->wy;
     setObstacles();
 
     // make sure best_frenet_path is initialized
@@ -287,12 +287,13 @@ void AnytimeFrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
 void AnytimeFrenetOptimalTrajectory::setObstacles() {
     // Construct obstacles
-    vector<double> llx(fot_ic->o_llx, fot_ic->o_llx + fot_ic->no);
-    vector<double> lly(fot_ic->o_lly, fot_ic->o_lly + fot_ic->no);
-    vector<double> urx(fot_ic->o_urx, fot_ic->o_urx + fot_ic->no);
-    vector<double> ury(fot_ic->o_ury, fot_ic->o_ury + fot_ic->no);
+    const vector<double>& llx(fot_ic->o_llx);
+    const vector<double>& lly(fot_ic->o_lly);
+    const vector<double>& urx(fot_ic->o_urx);
+    const vector<double>& ury(fot_ic->o_ury);
 
-    for (int i = 0; i < fot_ic->no; i++) {
+    const int no = fot_ic->o_llx.size();
+    for (int i = 0; i < no; i++) {
         addObstacle(Vector2f(llx[i], lly[i]), Vector2f(urx[i], ury[i]));
     }
 }
