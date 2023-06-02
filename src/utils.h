@@ -2,29 +2,52 @@
 #define FRENET_OPTIMAL_TRAJECTORY_UTILS_H
 
 #include <cmath>
+#include <nlohmann/json.hpp>
 #include <tuple>
 #include <vector>
 
 using namespace std;
+using json = nlohmann::json;
 
 typedef vector<double> Point;
-typedef vector<double> Pose;
+typedef vector<vector<double>> WayPoints;
 
-inline double norm(double x, double y) {
-    return sqrt(pow(x, 2) + pow(y, 2));
-}
+struct Pose {
+  double x;    // [m]
+  double y;    // [m]
+  double yaw;  // [rad]
+};
+struct Twist {
+  double vx;
+  double vy;
+  double yaw_rate;
+};
+struct Accel {
+  double ax;
+  double ay;
+  double yaw_accel;
+};
+
+inline double norm(double x, double y) { return sqrt(pow(x, 2) + pow(y, 2)); }
 
 inline void as_unit_vector(tuple<double, double>& vec) {
-    double magnitude = norm(get<0>(vec), get<1>(vec));
-    if (magnitude > 0) {
-        get<0>(vec) = get<0>(vec) / magnitude;
-        get<1>(vec) = get<1>(vec) / magnitude;
-    }
+  double magnitude = norm(get<0>(vec), get<1>(vec));
+  if (magnitude > 0) {
+    get<0>(vec) = get<0>(vec) / magnitude;
+    get<1>(vec) = get<1>(vec) / magnitude;
+  }
 }
 
 inline double dot(const tuple<double, double>& vec1,
                   const tuple<double, double>& vec2) {
-    return get<0>(vec1) * get<0>(vec2) +
-           get<1>(vec1) * get<1>(vec2);
+  return get<0>(vec1) * get<0>(vec2) + get<1>(vec1) * get<1>(vec2);
 }
-#endif //FRENET_OPTIMAL_TRAJECTORY_UTILS_H
+
+inline double cross_prodcut(const tuple<double, double>& vec1,
+                            const tuple<double, double>& vec2) {
+  return get<0>(vec1) * get<1>(vec2) - get<1>(vec1) * get<0>(vec2);
+}
+
+bool LoadJsonFile(string scene_path, json* j)
+
+#endif  // FRENET_OPTIMAL_TRAJECTORY_UTILS_H

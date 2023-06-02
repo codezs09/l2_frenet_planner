@@ -14,6 +14,7 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Eigen3)
+find_package(gflags REQUIRED)
 
 if(Eigen3_FOUND)
     set(CUSTOM_EIGEN ${EIGEN3_INCLUDE_DIR})
@@ -35,7 +36,6 @@ include_directories("${CMAKE_SOURCE_DIR}/src"
                     "${CMAKE_SOURCE_DIR}/src/Car")
 
 add_library(FrenetOptimalTrajectory SHARED
-            # src/main.cpp
             src/utils.h
             src/Polynomials/QuarticPolynomial.cpp
             src/Polynomials/QuarticPolynomial.h
@@ -59,7 +59,6 @@ add_library(FrenetOptimalTrajectory SHARED
             src/Car/Car.h)
 
 add_library(PackageFrenetOptimalTrajectory STATIC
-            # src/main.cpp
             src/utils.h
             src/Polynomials/QuarticPolynomial.cpp
             src/Polynomials/QuarticPolynomial.h
@@ -129,5 +128,6 @@ add_executable(FrenetOptimalTrajectoryTest
                src/Car/Car.h)
 target_link_libraries(FrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui)
 target_link_libraries(PackageFrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui)
-target_link_libraries(FrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui)
+target_link_libraries(FrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui
+                      gflags::gflags)
 target_link_libraries(AnytimeFrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui)

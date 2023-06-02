@@ -1,40 +1,57 @@
 #include "Car.h"
 
-// Set the pose of the car
-void Car::setPose(Pose p) {
-    pose = p;
+bool Car::getPose(Pose* p) {
+  if (!isPoseSet()) {
+    return false;
+  }
+  *p = *pose;
+}
+
+bool Car::getTwist(Twist* t) {
+  if (!isTwistSet()) {
+    return false;
+  }
+  *t = *twist;
+}
+
+bool Car::getAccel(Accel* a) {
+  if (!isAccelSet()) {
+    return false;
+  }
+  *a = *accel;
 }
 
 // Compute the outline of the car given its current pose
-vector<Point> Car::getOutline() {
-    double x, y, yaw;
-    double tail_x, tail_y, head_x, head_y;
-    vector<double> tail_l, tail_r;
-    vector<double> head_l, head_r;
+bool Car::getOutline(vector<Point>* outline) {
+  if (!isPoseSet()) {
+    return false;
+  }
+  double x = pose->x;
+  double y = pose->y;
+  double yaw = pose->yaw;
 
-    x = pose[0];
-    y = pose[1];
-    yaw = pose[2];
+  double tail_x, tail_y, head_x, head_y;
+  vector<double> tail_l, tail_r;
+  vector<double> head_l, head_r;
 
-    tail_x = x - cos(yaw) * length * 0.5;
-    tail_y = y - sin(yaw) * length * 0.5;
-    tail_l.push_back(tail_x + cos(yaw + M_PI_2) * width / 2.0);
-    tail_l.push_back(tail_y + sin(yaw + M_PI_2) * width / 2.0);
-    tail_r.push_back(tail_x + cos(yaw - M_PI_2) * width / 2.0);
-    tail_r.push_back(tail_y + sin(yaw - M_PI_2) * width / 2.0);
+  tail_x = x - cos(yaw) * length * 0.5;
+  tail_y = y - sin(yaw) * length * 0.5;
+  tail_l.push_back(tail_x + cos(yaw + M_PI_2) * width / 2.0);
+  tail_l.push_back(tail_y + sin(yaw + M_PI_2) * width / 2.0);
+  tail_r.push_back(tail_x + cos(yaw - M_PI_2) * width / 2.0);
+  tail_r.push_back(tail_y + sin(yaw - M_PI_2) * width / 2.0);
 
-    head_x = x + cos(yaw) * length * 0.5;
-    head_y = y + sin(yaw) * length * 0.5;
-    head_l.push_back(head_x + cos(yaw + M_PI_2) * width / 2.0);
-    head_l.push_back(head_y + sin(yaw + M_PI_2) * width / 2.0);
-    head_r.push_back(head_x + cos(yaw - M_PI_2) * width / 2.0);
-    head_r.push_back(head_y + sin(yaw - M_PI_2) * width / 2.0);
+  head_x = x + cos(yaw) * length * 0.5;
+  head_y = y + sin(yaw) * length * 0.5;
+  head_l.push_back(head_x + cos(yaw + M_PI_2) * width / 2.0);
+  head_l.push_back(head_y + sin(yaw + M_PI_2) * width / 2.0);
+  head_r.push_back(head_x + cos(yaw - M_PI_2) * width / 2.0);
+  head_r.push_back(head_y + sin(yaw - M_PI_2) * width / 2.0);
 
-    vector<Point> outline;
-    outline.push_back(tail_l);
-    outline.push_back(tail_r);
-    outline.push_back(head_r);
-    outline.push_back(head_l);
-    outline.push_back(tail_l);
-    return outline;
+  outline->push_back(tail_l);
+  outline->push_back(tail_r);
+  outline->push_back(head_r);
+  outline->push_back(head_l);
+  outline->push_back(tail_l);
+  return true;
 }

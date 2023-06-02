@@ -160,11 +160,13 @@ def to_frenet_initial_conditions(initial_conditions):
             vel (np.ndarray([float, float])): initial velocity [m/s]
             wp (np.ndarray([float, float])): list of global waypoints
             obs (np.ndarray([float, float, float, float])): list of obstacles
-                as: [lower left x, lower left y, upper right x, upper right y]
+                as: [lower left x, lower left y, lower right x, lower right y,
+                     upper right x, upper right y,upper left x, upper left y]
     Returns:
         FrenetInitialConditions, dictionary for debugging
     """
     # parse the initial conditions
+    timestamp = initial_conditions['timestamp']
     ps = initial_conditions['ps']
     pos = initial_conditions['pos']
     vel = initial_conditions['vel']
@@ -179,10 +181,6 @@ def to_frenet_initial_conditions(initial_conditions):
     vy = vel[1].item()
     wx = wp[:, 0].astype(np.float64)
     wy = wp[:, 1].astype(np.float64)
-    o_llx = np.copy(obs[:, 0]).astype(np.float64)
-    o_lly = np.copy(obs[:, 1]).astype(np.float64)
-    o_urx = np.copy(obs[:, 2]).astype(np.float64)
-    o_ury = np.copy(obs[:, 3]).astype(np.float64)
     forward_speed = np.hypot(vx, vy).item()
 
     # construct return array and convert initial conditions
@@ -194,6 +192,31 @@ def to_frenet_initial_conditions(initial_conditions):
                                   wy.ctypes.data_as(_c_double_p),
                                   c_int(len(wx)),
                                   misc.ctypes.data_as(_c_double_p))
+
+    # prediction module for the obstacles
+    n_obs = obs.shape[0]
+    obs_frenet_s0 = np.array([ob['pose'][0] for ob in obs]) # pose at cur timestamp
+    obs_frenet_d0 = np.array([ob['pose'][1] for ob in obs])
+    obs_frenet_th0 = np.array([ob['pose'][2] for ob in obs])
+    obs_tbl_dim = np.array([len(ob.speed_profile) for ob in obs])   # 1D, size len(obs[i].speed_profile)
+    obs_tbl_t = np.zeros((n_obs, max(obs_tbl_dim))) # 2D lookup table, size n_obs*max(len(obs[i].speed_profile))
+    obs_tbl_v = np.zeros((n_obs, max(obs_tbl_dim))) # 2D lookup table, size n_obs*max(len(obs[i].speed_profile))
+
+    _to_predict_obstacles(c_double(timestamp),
+                          obs_frenet_s0.ctypes.data_as(_c_double_p),
+                          obs_frenet_d0.ctypes.data_as(_c_double_p),
+                          obs_frenet_th0.ctypes.data_as(_c_double_p),
+                          c_int(n_obs),
+                          obs_tbl_dim.ctypes.data_as(_c_int_p),
+                          obs_tbl_t.ctypes.data
+                          wx.ctypes.data_as(_c_double_p),
+                          wy.ctypes.data_as(_c_double_p),
+                          c_int(len(wx)) )
+
+    o_llx = np.copy(obs[:, 0]).astype(np.float64)
+    o_lly = np.copy(obs[:, 1]).astype(np.float64)
+    o_urx = np.copy(obs[:, 2]).astype(np.float64)
+    o_ury = np.copy(obs[:, 3]).astype(np.float64)
 
     # return the FrenetInitialConditions structure
     return FrenetInitialConditions(
@@ -208,8 +231,12 @@ def to_frenet_initial_conditions(initial_conditions):
         len(wx),
         o_llx.ctypes.data_as(_c_double_p),  # obstacles lower left x
         o_lly.ctypes.data_as(_c_double_p),  # obstacles lower left y
+        o_lrx.ctypes.data_as(_c_double_p),  # obstacles lower right x
+        o_lry.ctypes.data_as(_c_double_p),  # obstacles lower right y
         o_urx.ctypes.data_as(_c_double_p),  # obstacles upper right x
         o_ury.ctypes.data_as(_c_double_p),  # obstacles upper right y
+        o_ulx.ctypes.data_as(_c_double_p),  # obstacles upper left x
+        o_uly.ctypes.data_as(_c_double_p),  # obstacles upper left y
         len(o_llx),
     ), misc
 

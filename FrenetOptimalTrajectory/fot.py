@@ -5,26 +5,23 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patch
 import argparse
 from pathlib import Path
+import os
+import json
 
 
 # Run fot planner
 def fot(show_animation=False,
         show_info=False,
         num_threads=0,
-        save_frame=False):
-    conds = {
-        's0':
-        0,
-        'target_speed':
-        20,
-        'wp': [[0, 0], [50, 0], [150, 0]],
-        'obs': [[48, -2, 52, 2], [98, -4, 102, 2], [98, 6, 102, 10],
-                [128, 2, 132, 6]],
-        'pos': [0, 0],
-        'vel': [0, 0],
-    }  # paste output from debug log
+        save_frame=False,
+        scene_path=""):
+    if not scene_path or os.path.exists(scene_path): 
+        raise ValueError("Scene path not provided")
+    with open(scene_path, 'r') as f:
+        conds = json.load(f)
 
     initial_conditions = {
+        'timestamp': 0.0,   # simulation time stamp
         'ps': conds['s0'],
         'target_speed': conds['target_speed'],
         'pos': np.array(conds['pos']),
@@ -60,13 +57,12 @@ def fot(show_animation=False,
     # static elements of planner
     wx = initial_conditions['wp'][:, 0]
     wy = initial_conditions['wp'][:, 1]
-    obs = np.array(conds['obs'])
 
     # simulation config
     sim_loop = 200
     area = 40
-    total_time = 0
-    time_list = []
+    total_runtime = 0
+    runtime_list = []
     for i in range(sim_loop):
         # run FOT and keep time
         print("Iteration: {}".format(i))
@@ -76,18 +72,21 @@ def fot(show_animation=False,
             fot_wrapper.run_fot(initial_conditions, hyperparameters)
         end_time = time.time() - start_time
         print("Time taken: {}".format(end_time))
-        total_time += end_time
-        time_list.append(end_time)
+        total_runtime += end_time
+        runtime_list.append(end_time)
 
         # reconstruct initial_conditions
         if success:
+            initial_conditions['timestamp'] += hyperparameters['dt']
             initial_conditions['pos'] = np.array([result_x[1], result_y[1]])
             initial_conditions['vel'] = np.array([speeds_x[1], speeds_y[1]])
             initial_conditions['ps'] = misc['s']
+            if initial_conditions['obs']['pose_coord'] == 'Cartesian':
+                initial_conditions['obs']['pose']
             if show_info:
                 print(costs)
         else:
-            print("Failed unexpectedly")
+            print(f"Failed unexpectedly at iteration {i}, simulation time {initial_conditions['timestamp']}.")
             break
 
         # break if near goal
@@ -102,8 +101,6 @@ def fot(show_animation=False,
                 "key_release_event",
                 lambda event: [exit(0) if event.key == "escape" else None])
             plt.plot(wx, wy)
-            if obs.shape[0] == 0:
-                obs = np.empty((0, 4))
             ax = plt.gca()
             for o in obs:
                 rect = patch.Rectangle((o[0], o[1]), o[2] - o[0], o[3] - o[1])
@@ -114,7 +111,7 @@ def fot(show_animation=False,
             plt.ylim(result_y[1] - area, result_y[1] + area)
             plt.xlabel("X axis")
             plt.ylabel("Y axis")
-            plt.title("v[m/s]:" +
+            plt.title(f"Timestamp {initial_conditions['timestamp']:.1f}, v[m/s]:" +
                       str(np.linalg.norm(initial_conditions['vel']))[0:4])
             plt.grid(True)
             if save_frame:
@@ -125,11 +122,11 @@ def fot(show_animation=False,
     print("Finish")
 
     print("======================= SUMMARY ========================")
-    print("Total time for {} iterations taken: {}".format(i, total_time))
-    print("Average time per iteration: {}".format(total_time / i))
-    print("Max time per iteration: {}".format(max(time_list)))
+    print("Total time for {} iterations taken: {}".format(i, total_runtime))
+    print("Average time per iteration: {}".format(total_runtime / i))
+    print("Max time per iteration: {}".format(max(runtime_list)))
 
-    return time_list
+    return runtime_list
 
 
 if __name__ == '__main__':
@@ -153,7 +150,13 @@ if __name__ == '__main__':
                         type=int,
                         default=0,
                         help="set number of threads to run with")
+    parser.add_argument("-p",
+                        "--scene_path",
+                        type=str,
+                        default="/home/sheng/Projects/l2_frenet_planner/config/scene/"
+                                "one_lane_slow_down.json",
+                        help="set path to load scene json file")
     args = parser.parse_args()
 
     # run planner with args passed in
-    fot(args.display, args.verbose, args.thread, args.save)
+    fot(args.display, args.verbose, args.thread, args.save, args.scene_path)

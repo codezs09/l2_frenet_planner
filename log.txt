@@ -2,8 +2,11 @@
 
 
 CHANGES: 
-- Change planning frequency to 10 Hz
+- may use pybind11 instead of ctypes
+
+- change obstacle representation to four corners
 - Add moving cars  ->  Needs fake Prediction module
+- Change planning frequency to 10 Hz
 - Add more lanes, add lane deciding logic
 - Add following/stopping mode, Lane Change mode
 
@@ -12,3 +15,9 @@ CHANGES:
 - convert global coordinates to local.
 - convert back to global. 
 
+
+Question: 
+- 每帧是要update initial conditions 包括 obstacle的位置的
+- Obstacles define has a problem: Only defined bottom-left and 
+  upper-right corners while assuming its edges parallel to axis. 
+- is obstacle shape converted in Frenet as well? 
