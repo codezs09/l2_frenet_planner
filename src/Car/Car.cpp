@@ -5,6 +5,7 @@ bool Car::getPose(Pose* p) {
     return false;
   }
   *p = *pose;
+  return true;
 }
 
 bool Car::getTwist(Twist* t) {
@@ -12,6 +13,7 @@ bool Car::getTwist(Twist* t) {
     return false;
   }
   *t = *twist;
+  return true;
 }
 
 bool Car::getAccel(Accel* a) {
@@ -19,6 +21,7 @@ bool Car::getAccel(Accel* a) {
     return false;
   }
   *a = *accel;
+  return true;
 }
 
 // Compute the outline of the car given its current pose

@@ -1,8 +1,16 @@
-2023.05.20
+06.01
+- interface change from ctypes to cpp call
+
+06.02
+- change car and obstacle class and methods
+- refactor CubicSpline2D method
+- Refactor to_frenet and to_cartesian methods
+
+06.03
 
 
 CHANGES: 
-- may use pybind11 instead of ctypes
+- may use pybind11 instead of ctypes. Tried but vector size change not supported.
 
 - change obstacle representation to four corners
 - Add moving cars  ->  Needs fake Prediction module

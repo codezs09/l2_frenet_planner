@@ -13,14 +13,15 @@ using namespace std;
 using json = nlohmann::json;
 
 struct FrenetInitialConditions {
-  double s0;
-  double c_speed;
-  double c_d;
-  double c_d_d;
-  double c_d_dd;
+  double s;
+  double s_d;
+  double s_dd;
+  double d;
+  double d_d;
+  double d_dd;
   double target_speed;
-  WayPoints wp;
-  vector<Obstacle> obstacles;
+  WayPoints wp;                  // Cartesian coordinates
+  vector<Obstacle> obstacles_c;  // Cartesian coordinates
 
   // int nw;
   // double *o_llx;

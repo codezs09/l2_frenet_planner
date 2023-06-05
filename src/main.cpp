@@ -3,7 +3,8 @@
 #include "FrenetPath.h"
 #include "fot_wrapper.cpp"
 #include "py_cpp_struct.h"
-#include "utils.h"
+#include "utils/coordinate_utils.h"
+#include "utils/utils.h"
 
 #include <fstream>
 #include <iostream>
@@ -29,18 +30,68 @@ bool InitFrenetHyperParameters() {
   return true;
 }
 
-bool InitFrenetInitialConditions(const Car& car, const WayPoints& wp,
-                                 FrenetInitialConditions* fot_init_cond) {
-  // find frenet coordinates
-  double frenet_coords[5];  // s, s_d, s_dd, d, d_d, d_dd
-  if (!to_frenet_coordinates(scene_j["s0"], car, wp, frenet_coords)) {
-    cout << "Fail to find frenet coordinates for car" << endl;
+bool InitFrenetInitialConditions(const Car& car, const json& scene_j,
+                                 FrenetInitialConditions* fot_ic) {
+  fot_ic->wp = scene_j["waypoints"];
+
+  // convert ego car to frenet coordinates
+  Pose pose_c;
+  if (!car.getPose(&pose_c)) {
+    cout << "Fail to get pose from ego car" << endl;
     return false;
   }
-  fot_init_cond->s0 = frenet_coords[0];
-  fot_init_cond->c_speed = frenet_coords[1];
+  Twist twist_c;
+  if (!car.getTwist(&twist_c)) {
+    cout << "Fail to get twist from ego car" << endl;
+    return false;
+  }
+  Accel accel_c;
+  if (!car.getAccel(&accel_c)) {
+    cout << "Fail to get accel from ego car" << endl;
+    return false;
+  }
+  Pose pose_f;
+  Twist twist_f;
+  Accel accel_f;
+  utils::ToFrenet(pose_c, twist_c, accel_c, fot_ic->wp, &pose_f, &twist_f,
+                  &accel_f);
+  fot_ic->s = pose_f.x;
+  fot_ic->s_d = twist_f.x;
+  fot_ic->s_dd = accel_f.x;
+  fot_ic->d = pose_f.y;
+  fot_ic->d_d = twist_f.y;
+  fot_ic->d_dd = accel_f.y;
+  fot_ic->target_speed = scene_j["target_speed"];
 
-  // initialize obstacles
+  // initialize obstacles in frenet coordinates
+  auto hyper_params = FrenetHyperparameters::getConstInstance();
+  const double dt = hyper_params.dt;
+  vector<Obstacle> obstacles_f;
+  for (const auto& ob_j : scene_j["obs"]) {
+    Pose ob_pose = {ob_j["pose"]};
+    Obstacle ob(ob_pose, ob_j["length"], ob_j["width"],
+                hyper_params.obstacle_clearance);
+    if (ob_j.contains("speed_profile")) {
+      std::map<double, double> spd_profile;
+      for (const auto& spd_j : ob_j["speed_profile"]) {
+        spd_profile[spd_j[0]] = spd_j[1];
+      }
+      ob.setSpeedLookupTable(spd_profile);
+      ob.predictPoses(0.0, hyper_params.maxt, dt);
+      ob.setTwist({spd_profile.front().second, 0.0, 0.0});
+    }
+  }
+  // convert to Cartesian coordinates
+  for (const auto& ob_f : obstacles_f) {
+    Pose ob_pose_c;
+    Twist ob_twist_c;
+    Accel ob_accel_c;
+    utils::ToCartesian(ob_f.pose_, ob_f.twist_, ob_f.accel_, fot_ic->wp,
+                       &ob_pose_c, &ob_twist_c, &ob_accel_c);
+    Obstacle ob_c(ob_pose_c, ob_twist_c, ob_f.length_, ob_f.width_,
+                  hyper_params.obstacle_clearance);
+    fot_ic->obstacles_c.push_back(ob_c);
+  }
 
   return true;
 }
@@ -57,10 +108,9 @@ int main(int argc, char** argv) {
     return 1;
   }
   Car ego_car({scene_j["pose"]}, {scene_j["vel"]}, {0, 0, 0});
-  WayPoints wp(scene_j["waypoints"]);
 
-  FrenetInitialConditions fot_init_cond;
-  if (!InitFrenetInitialConditions(ego_car, wp, &fot_init_cond)) {
+  FrenetInitialConditions fot_ic;
+  if (!InitFrenetInitialConditions(ego_car, scene_j, &fot_ic)) {
     return 1;
   }
 
@@ -76,6 +126,7 @@ int main(int argc, char** argv) {
          << endl;
     // prediction on obstacles
 
+    // run frenet optimal trajectory
     RunFot(state, hyperparameters);
 
     // update states, ego and obstacles

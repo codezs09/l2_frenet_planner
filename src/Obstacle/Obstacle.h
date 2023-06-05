@@ -27,6 +27,8 @@ class Obstacle {
            double obstacle_clearance)
       : Obstacle(pose, length, width, obstacle_clearance), twist_(twist) {}
 
+  void setTwist(Twist twist) { twist_ = twist; }
+
   void setSpeedLookupTable(const map<double, double> &spd_profile);
   bool predictPoses(double cur_timestamp, double max_duration, double dt);
   bool predictPoses(const map<double, double> &spd_profile,
@@ -45,7 +47,7 @@ class Obstacle {
   map<double, Pose> predict_poses_;  // map: timestapm -> pose
   Twist twist_;
 
-  unique_ptr<LookupTable1D> tbl_time_to_speed_ = nullptr;
+  unique_ptr<LookupTable1D> tbl_time_to_speed_ = nullptr;  // for Frenet frame
 };
 
 #endif  // FRENETOPTIMALTRAJECTORY_OBSTACLE_H
