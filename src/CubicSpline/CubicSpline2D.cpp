@@ -40,8 +40,13 @@ void CubicSpline2D::calc_s(const vector<double>& x, const vector<double>& y) {
 // Calculate the x position along the spline at given t
 double CubicSpline2D::calc_x(double t) { return sx.calc_der0(t); }
 
+// Calculate the deirvative of x along the spline at given t
+double CubicSpline2D::calc_dx_over_ds(double t) { return sx.calc_der1(t); }
+
 // Calculate the y position along the spline at given t
 double CubicSpline2D::calc_y(double t) { return sy.calc_der0(t); }
+
+double CubicSpline2D::calc_dy_over_ds(double t) { return sy.calc_der1(t); }
 
 // Calculate the curvature along the spline at given t
 double CubicSpline2D::calc_curvature(double t) {
@@ -61,25 +66,31 @@ double CubicSpline2D::calc_yaw(double t) {
   return yaw;
 }
 
-// Given x, y positions and an initial guess s0, find the closest s value
-double CubicSpline2D::find_s(double x, double y, double s0) {
-  // TO-DO: inefficient, use binary search
-  // TO-DO: remove the need for an initial guess
-  double s_closest = s0;
-  double closest = INFINITY;
-  double si = s.front();
+double CubicSpline2D::find_s(double x, double y) {
+  // TO-DO: use NLopt if necessary later on
+  double s_lo = s.front();
+  double s_hi = s.back();
+  double ds = 10.0;
 
-  do {
-    double px = calc_x(si);
-    double py = calc_y(si);
-    double dist = norm(x - px, y - py);
-    if (dist < closest) {
-      closest = dist;
-      s_closest = si;
+  double s_at_min_dist, min_dist;
+  while (ds > 1e-2) {
+    min_dist = std::numeric_limits<double>::max();
+    s_at_min_dist = s_lo;
+    for (int si = s_lo; si <= s_hi; si += ds) {
+      double px = calc_x(si);
+      double py = calc_y(si);
+      double dist = utils::norm(x - px, y - py);
+      if (dist < min_dist) {
+        min_dist = dist;
+        s_at_min_dist = si;
+      }
     }
-    si += 0.1;
-  } while (si < s.back());
-  return s_closest;
+    // update s_lo and s_hi
+    s_lo = std::max(s_lo, s_at_min_dist - 2 * ds);
+    s_hi = std::min(s_hi, s_at_min_dist + 2 * ds);
+    ds /= 10.0;
+  }
+  return s_at_min_dist;
 }
 
 // Remove any collinear points from given list of points by the triangle rule

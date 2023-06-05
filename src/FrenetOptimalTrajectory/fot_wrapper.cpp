@@ -95,7 +95,7 @@ bool to_frenet_coordinates(double s0, const Car& car, const WayPoints& wp,
   CubicSpline2D* csp = new CubicSpline2D(wp[0], wp[1]);
 
   // get distance from car to spline and projection
-  double s = csp->find_s(x, y, s0);
+  double s = csp->find_s(x, y);
   double distance = norm(csp->calc_x(s) - x, csp->calc_y(s) - y);
   tuple<double, double> bvec((csp->calc_x(s) - x) / distance,
                              (csp->calc_y(s) - y) / distance);
