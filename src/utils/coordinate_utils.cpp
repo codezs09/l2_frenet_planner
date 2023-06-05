@@ -1,4 +1,5 @@
 #include "coordinate_utils.h"
+#include <utility>
 
 namespace utils {
 
@@ -100,6 +101,43 @@ void ToCartesian(const Pose& pose_f, const Twist& twist_f, const Accel& accel_f,
   double yaw_accel_c = yaw_dd_f + kappa_nr * s_dd_f;  // ignore kappa derivative
 
   delete csp;
+}
+
+void ToFrenet(const Obstacle& ob_c, const WayPoints& wp,
+              std::unique_ptr<Obstacle>& ob_f) {
+  Pose pose_f;
+  Twist twist_f;
+  Accel accel_f;
+  ToFrenet(ob_c.pose, ob_c.twist, ob_c.accel, wp, &pose_f, &twist_f, &accel_f);
+  ob_f = std::make_unique<Obstacle>(pose_f, twist_f, ob_c.getLength(),
+                                    ob_c.getWidth(), ob_c.getClearence());
+  ob_f->setSpeedLookupTable(ob_c.getSpeedLookupTable());
+  // sheng: conversion of predict poses is not implemented here
+}
+
+void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
+                 std::unique_ptr<Obstacle>& ob_c) {
+  Pose pose_c;
+  Twist twist_c;
+  Accel accel_c;
+  ToCartesian(ob_f.pose, ob_f.twist, ob_f.accel, wp, &pose_c, &twist_c,
+              &accel_c);
+  ob_c = std::make_unique<Obstacle>(pose_c, twist_c, ob_f.getLength(),
+                                    ob_f.getWidth(), ob_f.getClearence());
+  ob_c->setSpeedLookupTable(ob_f.getSpeedLookupTable());
+
+  // conversion of predict poses to Cartesian
+  const auto& predict_poses_f = ob_f.getPredictPoses();
+  auto predict_poses_c = ob_c->mutablePredictPoses();
+  predict_poses_c->clear();
+  for (const auto& predict_pose_f : predict_poses_f) {
+    Pose predict_pose_c;
+    Twist dummy_twist;
+    Accel dummy_accel;
+    ToCartesian(predict_pose_f, {0, 0, 0}, {0, 0, 0}, wp, &predict_pose_c,
+                &dummy_twist, &dummy_accel);
+    predict_poses_c->push_back(predict_pose_c);
+  }
 }
 
 }  // namespace utils

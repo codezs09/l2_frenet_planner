@@ -42,6 +42,15 @@ void Obstacle::setSpeedLookupTable(const map<double, double> &spd_profile) {
   tbl_time_to_speed_ = make_unique<LookupTable1D>(spd_profile);
 }
 
+void Obstacle::setSpeedLookupTable(
+    const utils::LookupTable1D &tbl_time_to_speed) {
+  tbl_time_to_speed_ = make_unique<LookupTable1D>(tbl_time_to_speed);
+}
+
+const utils::LookupTable1D &Obstacle::getSpeedLookupTable() {
+  return *tbl_time_to_speed_;
+}
+
 bool predictPoses(double cur_timestamp, double max_duration, double dt) {
   if (tbl_time_to_speed_ == nullptr) {
     cerr << "Error: speed profile not set yet for obstacles! " << endl;

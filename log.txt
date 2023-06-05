@@ -1,12 +1,13 @@
 06.01
 - interface change from ctypes to cpp call
 
-06.02
+06.02~06.04
 - change car and obstacle class and methods
 - refactor CubicSpline2D method
 - Refactor to_frenet and to_cartesian methods
 
-06.03
+06.05
+- Add ToFrenet and ToCartesian methods for Obstacle class
 
 
 CHANGES: 

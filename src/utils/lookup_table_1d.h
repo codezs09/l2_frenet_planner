@@ -18,6 +18,8 @@ class LookupTable1D {
   LookupTable1D(const std::map<double, double>& table_) : table(table_) {
     assert(table.size() > 0);
   }
+  // copy constructor
+  LookupTable1D(const LookupTable1D& other) : table(other.table) {}
 
   double operator[](double x) const { return get(x); }
 

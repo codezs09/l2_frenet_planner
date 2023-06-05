@@ -30,6 +30,11 @@ struct Accel {
   double yaw_accel;
 };
 
+enum class CoordinateType {
+  CARTESIAN = 0,  //
+  FRENET = 1
+};
+
 inline double norm(double x, double y) { return sqrt(pow(x, 2) + pow(y, 2)); }
 
 inline void as_unit_vector(tuple<double, double>& vec) {

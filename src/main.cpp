@@ -56,11 +56,11 @@ bool InitFrenetInitialConditions(const Car& car, const json& scene_j,
   utils::ToFrenet(pose_c, twist_c, accel_c, fot_ic->wp, &pose_f, &twist_f,
                   &accel_f);
   fot_ic->s = pose_f.x;
-  fot_ic->s_d = twist_f.x;
-  fot_ic->s_dd = accel_f.x;
+  fot_ic->s_d = twist_f.vx;
+  fot_ic->s_dd = accel_f.ax;
   fot_ic->d = pose_f.y;
-  fot_ic->d_d = twist_f.y;
-  fot_ic->d_dd = accel_f.y;
+  fot_ic->d_d = twist_f.vy;
+  fot_ic->d_dd = accel_f.ay;
   fot_ic->target_speed = scene_j["target_speed"];
 
   // initialize obstacles in frenet coordinates
@@ -83,14 +83,9 @@ bool InitFrenetInitialConditions(const Car& car, const json& scene_j,
   }
   // convert to Cartesian coordinates
   for (const auto& ob_f : obstacles_f) {
-    Pose ob_pose_c;
-    Twist ob_twist_c;
-    Accel ob_accel_c;
-    utils::ToCartesian(ob_f.pose_, ob_f.twist_, ob_f.accel_, fot_ic->wp,
-                       &ob_pose_c, &ob_twist_c, &ob_accel_c);
-    Obstacle ob_c(ob_pose_c, ob_twist_c, ob_f.length_, ob_f.width_,
-                  hyper_params.obstacle_clearance);
-    fot_ic->obstacles_c.push_back(ob_c);
+    std::unique_ptr<Obstacle> ob_c = nullptr;
+    utils::ToCartesian(ob_f, fot_ic->wp, ob_c);
+    fot_ic->obstacles_c.push_back(*ob_c);
   }
 
   return true;
