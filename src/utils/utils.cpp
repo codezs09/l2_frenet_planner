@@ -1,5 +1,7 @@
 #include "utils.h"
 
+namespace utils {
+
 bool LoadJsonFile(string scene_path, json* j) {
   ifstream f(scene_path);
   if (!f.is_open()) {
@@ -25,3 +27,5 @@ bool LoadJsonFile(string scene_path, json* j) {
   f.close();
   return true;
 }
+
+}  // namespace utils

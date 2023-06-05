@@ -9,6 +9,8 @@
 using namespace std;
 using json = nlohmann::json;
 
+namespace utils {
+
 typedef vector<double> Point;
 typedef vector<vector<double>> WayPoints;
 
@@ -48,6 +50,8 @@ inline double cross_prodcut(const tuple<double, double>& vec1,
   return get<0>(vec1) * get<1>(vec2) - get<1>(vec1) * get<0>(vec2);
 }
 
-bool LoadJsonFile(string scene_path, json* j)
+bool LoadJsonFile(string scene_path, json* j);
+
+}  // namespace utils
 
 #endif  // FRENET_OPTIMAL_TRAJECTORY_UTILS_H
