@@ -36,32 +36,14 @@ bool InitFrenetInitialConditions(const Car& car, const json& scene_j,
   fot_ic->wp = scene_j["waypoints"];
 
   // convert ego car to frenet coordinates
-  Pose pose_c;
-  if (!car.getPose(&pose_c)) {
-    cout << "Fail to get pose from ego car" << endl;
-    return false;
-  }
-  Twist twist_c;
-  if (!car.getTwist(&twist_c)) {
-    cout << "Fail to get twist from ego car" << endl;
-    return false;
-  }
-  Accel accel_c;
-  if (!car.getAccel(&accel_c)) {
-    cout << "Fail to get accel from ego car" << endl;
-    return false;
-  }
-  Pose pose_f;
-  Twist twist_f;
-  Accel accel_f;
-  utils::ToFrenet(pose_c, twist_c, accel_c, fot_ic->wp, &pose_f, &twist_f,
-                  &accel_f);
-  fot_ic->s = pose_f.x;
-  fot_ic->s_d = twist_f.vx;
-  fot_ic->s_dd = accel_f.ax;
-  fot_ic->d = pose_f.y;
-  fot_ic->d_d = twist_f.vy;
-  fot_ic->d_dd = accel_f.ay;
+  Car car_f;
+  utils::ToFrenet(car, fot_ic->wp, &car_f);
+  fot_ic->s = car_f.getPose().x;
+  fot_ic->s_d = car_f.getTwist().vx;
+  fot_ic->s_dd = car_f.getAccel().ax;
+  fot_ic->d = car_f.getPose().y;
+  fot_ic->d_d = car_f.getTwist().vy;
+  fot_ic->d_dd = car_f.getAccel().ay;
   fot_ic->target_speed = scene_j["target_speed"];
 
   // initialize obstacles in frenet coordinates
@@ -120,7 +102,7 @@ int main(int argc, char** argv) {
     cout << "Iteration: " << i << ", Simulation time: " << timestamp << " [s]"
          << endl;
 
-    // update Frenet coordinate
+    // update ego car's Frenet coordinate
 
     // prediction on obstacles
 
@@ -135,6 +117,7 @@ int main(int argc, char** argv) {
 
     // update
     timestamp += TimeStep;
+
     // update ego car to next state
     double next_s = best_frenet_path->s[1];
     double next_d = best_frenet_path->d[1];
@@ -160,60 +143,6 @@ int main(int argc, char** argv) {
       ob.setPose(ob_pose_next);
     }
   }
-
-  // double wx [25] = {132.67, 128.67, 124.67, 120.67, 116.67, 112.67, 108.67,
-  //                104.67, 101.43,  97.77,  94.84,  92.89,  92.4 ,  92.4 ,
-  //                92.4 ,  92.4 ,  92.4 ,  92.4 ,  92.4 ,  92.39,  92.39,
-  //                92.39,  92.39,  92.39,  92.39};
-  // double wy [25] = {195.14, 195.14, 195.14, 195.14, 195.14, 195.14, 195.14,
-  //                195.14, 195.14, 195.03, 193.88, 191.75, 188.72, 185.32,
-  //                181.32, 177.32, 173.32, 169.32, 165.32, 161.32, 157.32,
-  //                153.32, 149.32, 145.32, 141.84};
-  // double o_llx[1] = {92.89};
-  // double o_lly[1] = {191.75};
-  // double o_urx[1] = {92.89};
-  // double o_ury[1] = {191.75};
-
-  // // set up experiment
-  // FrenetInitialConditions fot_ic = {
-  //     34.6,
-  //     7.10964962,
-  //     -1.35277168,
-  //     -1.86,
-  //     0.0,
-  //     10,
-  //     wx,
-  //     wy,
-  //     25,
-  //     o_llx,
-  //     o_lly,
-  //     o_urx,
-  //     o_ury,
-  //     1
-  // };
-  // FrenetHyperparameters fot_hp = {
-  //     25.0,
-  //     15.0,
-  //     15.0,
-  //     5.0,
-  //     5.0,
-  //     0.5,
-  //     0.2,
-  //     5.0,
-  //     2.0,
-  //     0.5,
-  //     2.0,
-  //     0.1,
-  //     1.0,
-  //     0.1,
-  //     0.1,
-  //     0.1,
-  //     0.1,
-  //     0.1,
-  //     1.0,
-  //     1.0,
-  //     2 // num thread
-  // };
 
   // run experiment
   FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(&fot_ic, &fot_hp);

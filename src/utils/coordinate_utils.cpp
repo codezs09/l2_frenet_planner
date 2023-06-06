@@ -103,6 +103,28 @@ void ToCartesian(const Pose& pose_f, const Twist& twist_f, const Accel& accel_f,
   delete csp;
 }
 
+bool ToFrenet(const Car& car_c, const WayPoints& wp, Car* car_f) {
+  Pose pose_f;
+  Twist twist_f;
+  Accel accel_f;
+  utils::ToFrenet(car_c.getPose(), car_c.getTwist(), car_c.getAccel(), wp,
+                  &pose_f, &twist_f, &accel_f);
+  car_f->setPose(pose_f);
+  car_f->setTwist(twist_f);
+  car_f->setAccel(accel_f);
+}
+
+bool ToCartesian(const Car& car_f, const WayPoints& wp, Car* car_c) {
+  Pose pose_c;
+  Twist twist_c;
+  Accel accel_c;
+  utils::ToCartesian(car_f.getPose(), car_f.getTwist(), car_f.getAccel(), wp,
+                     &pose_c, &twist_c, &accel_c);
+  car_c->setPose(pose_c);
+  car_c->setTwist(twist_c);
+  car_c->setAccel(accel_c);
+}
+
 void ToFrenet(const Obstacle& ob_c, const WayPoints& wp,
               std::unique_ptr<Obstacle>& ob_f) {
   Pose pose_f;

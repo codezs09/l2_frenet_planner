@@ -10,6 +10,9 @@
 - Add ToFrenet and ToCartesian methods for Obstacle class
 - Update ego car pose and obstacle poses to next state in the loop
 
+06.06
+- refactor Car getPose methods
+
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.
 
