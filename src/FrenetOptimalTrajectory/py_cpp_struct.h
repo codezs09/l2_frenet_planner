@@ -20,8 +20,8 @@ struct FrenetInitialConditions {
   double d_d;
   double d_dd;
   double target_speed;
-  WayPoints wp;                  // Cartesian coordinates
-  vector<Obstacle> obstacles_c;  // Cartesian coordinates
+  WayPoints& wp;                  // Cartesian coordinates
+  vector<Obstacle>& obstacles_c;  // Cartesian coordinates
 
   // int nw;
   // double *o_llx;

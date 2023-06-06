@@ -12,6 +12,7 @@
 
 06.06
 - refactor Car getPose methods
+- finish main loop framework
 
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.
