@@ -28,6 +28,7 @@ class Obstacle {
            double obstacle_clearance)
       : Obstacle(pose, length, width, obstacle_clearance), twist_(twist) {}
 
+  void setPose(Pose pose) { pose_ = pose; }
   void setTwist(Twist twist) { twist_ = twist; }
 
   void setSpeedLookupTable(const map<double, double> &spd_profile);
@@ -49,6 +50,7 @@ class Obstacle {
   bool predictPoses(double cur_timestamp, double max_duration, double dt);
   bool predictPoses(const map<double, double> &spd_profile,
                     double cur_timestamp, double max_duration, double dt);
+  Pose getPredictPoseAtTimestamp(double timestamp);
 
  private:
   const double length_;  // parallel with yaw

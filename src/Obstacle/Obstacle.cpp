@@ -78,6 +78,18 @@ bool Obstacle::predictPoses(map<double, double> spd_profile,
   return predictPoses(cur_timestamp, max_duration, dt);
 }
 
+Pose Obstacle::getPredictPoseAtTimestamp(double timestamp) {
+  if (predict_poses_.empty() || predict_poses_.size() == 1) {
+    return pose_;
+  }
+  for (const auto &p : predict_poses_) {
+    if (p.first >= timestamp - 1e-6) {
+      return p.second;
+    }
+  }
+  return predict_poses_.back().second;
+}
+
 // Determine whether given line segment intersects an obstacle
 // Arguments:
 //      p1: point 1 in the line segment
