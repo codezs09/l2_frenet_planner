@@ -1,13 +1,14 @@
 #ifndef FRENETOPTIMALTRAJECTORY_CAR_H
 #define FRENETOPTIMALTRAJECTORY_CAR_H
 
-#include "utils.h"
+#include "utils/utils.h"
 
 #include <memory>
 #include <tuple>
 #include <vector>
 
 using namespace std;
+using namespace utils;
 
 // Lincoln MKZ configuration
 const double VEHICLE_LENGTH = 4.93;
@@ -16,34 +17,31 @@ const double VEHICLE_WIDTH = 1.86;
 class Car {
  public:
   Car() : length(VEHICLE_LENGTH), width(VEHICLE_WIDTH) {}
-  Car(Pose pose_) : Car() { pose = make_unique<Pose>(pose_); }
-  Car(Pose pose_, Twist twist_) : Car(pose_) {
-    twist = make_unique<Twist>(twist_);
-  }
-  Car(Pose pose_, Twist twist_, Accel accel_) : Car(pose_, twist_) {
-    accel = make_unique<Accel>(accel_);
-  }
+  Car(Pose pose_) : Car(), pose(pose_) {}
+  Car(Pose pose_, Twist twist_) : Car(pose_), twist(twist_) {}
+  Car(Pose pose_, Twist twist_, Accel accel_)
+      : Car(pose_, twist_), accel(accel_) {}
 
   bool getOutline(vector<Point> *outline);
 
-  bool isPoseSet() { return (pose != nullptr); }
-  void setPose(Pose p) { pose = make_unique<Pose>(p); }
-  bool getPose(Pose *p);
+  void setPose(Pose p) { pose = p; }
+  const Pose &getPose() { return pose; }
+  Pose *mutablePose() { return &pose; }
 
-  bool isTwistSet() { return (twist != nullptr); }
-  void setTwist(Twist t) { twist = make_unique<Twist>(t); }
-  bool getTwist(Twist *t);
+  void setTwist(Twist t) { twist = t; }
+  const Twist &getTwist() { return twist; }
+  Twist *mutableTwist() { return &twist; }
 
-  bool isAccelSet() { return (accel != nullptr); }
-  void setAccel(Accel a) { accel = make_unique<Accel>(a); }
-  bool getAccel(Accel *a);
+  void setAccel(Accel a) { accel = a; }
+  const Accel &getAccel() { return accel; }
+  Accel *mutableAccel() { return &accel; }
 
  private:
   double length;
   double width;
-  unique_ptr<Pose> pose = nulptr;     // pose w.r.t global frame
-  unique_ptr<Twist> twist = nullptr;  // velocity w.r.t vehicle frame
-  unique_ptr<Accel> accel = nullptr;  // acceleration w.r.t vehicle frame
+  Pose pose({0, 0, 0});    // pose w.r.t global frame
+  Twist twist({0, 0, 0});  // velocity w.r.t vehicle frame
+  Accel accel({0, 0, 0});  // acceleration w.r.t vehicle frame
 };
 
 #endif  // FRENETOPTIMALTRAJECTORY_CAR_H

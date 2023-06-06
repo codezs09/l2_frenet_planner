@@ -76,18 +76,12 @@ void run_fot(FrenetInitialConditions* fot_ic, FrenetHyperparameters* fot_hp,
 // Convert the initial conditions from cartesian space to frenet space
 bool to_frenet_coordinates(double s0, const Car& car, const WayPoints& wp,
                            double* frenet_coordinates) {
-  Pose p;
-  if (!car.getPose(&p)) {
-    return false;
-  }
+  auto p = car.getPose();
   double x = p.x;
   double y = p.y;
   double yaw = p.yaw;
 
-  Twist t;
-  if (!car.getTwist(&t)) {
-    return false;
-  }
+  auto t = car.getTwist();
   double vx = t.vx;
   double vy = t.vy;
   // double yaw_rate = t.yaw_rate;

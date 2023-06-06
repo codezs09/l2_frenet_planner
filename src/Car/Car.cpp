@@ -1,37 +1,10 @@
 #include "Car.h"
 
-bool Car::getPose(Pose* p) {
-  if (!isPoseSet()) {
-    return false;
-  }
-  *p = *pose;
-  return true;
-}
-
-bool Car::getTwist(Twist* t) {
-  if (!isTwistSet()) {
-    return false;
-  }
-  *t = *twist;
-  return true;
-}
-
-bool Car::getAccel(Accel* a) {
-  if (!isAccelSet()) {
-    return false;
-  }
-  *a = *accel;
-  return true;
-}
-
 // Compute the outline of the car given its current pose
 bool Car::getOutline(vector<Point>* outline) {
-  if (!isPoseSet()) {
-    return false;
-  }
-  double x = pose->x;
-  double y = pose->y;
-  double yaw = pose->yaw;
+  double x = pose.x;
+  double y = pose.y;
+  double yaw = pose.yaw;
 
   double tail_x, tail_y, head_x, head_y;
   vector<double> tail_l, tail_r;
