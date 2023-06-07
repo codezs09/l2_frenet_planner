@@ -14,9 +14,15 @@
 - refactor Car getPose methods
 - finish main loop framework
 
+06.07
+- box to box collision detection
+- if not collided, then calculate box to box distance calculation (at the end it's point to line problem)
+
+
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.
 
+- update methods w.r.t obstables: isCollision, etc. 
 - change obstacle representation to four corners
 - Add moving cars  ->  Needs fake Prediction module
 - Change planning frequency to 10 Hz

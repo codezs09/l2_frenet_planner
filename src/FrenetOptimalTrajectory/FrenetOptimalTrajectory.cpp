@@ -19,20 +19,18 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
   // parse the waypoints and obstacles
   mu = new mutex();
 
-  x.assign(fot_ic.wp[0].begin(), fot_ic.wp[0].end());
-  y.assign(fot_ic.wp[1].begin(), fot_ic.wp[1].end());
   setObstacles();
 
   // make sure best_frenet_path is initialized
   best_frenet_path = nullptr;
 
   // exit if not enough waypoints
-  if (x.size() < 2) {
+  if (fot_ic.wp.empty() || foc_ic.wp[0].size() < 2) {
     return;
   }
 
   // construct spline path
-  csp = new CubicSpline2D(x, y);
+  csp = new CubicSpline2D(fot_ic.wp[0], foc_ic.wp[1]);
 
   // calculate the trajectories
   if (fot_hp.num_threads == 0) {
