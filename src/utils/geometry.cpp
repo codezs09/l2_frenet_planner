@@ -89,4 +89,26 @@ double distance(const Box& box_a, const Box& box_b) {
   return min_distance;
 }
 
+Point rotate(const Point& point, double angle) {
+  double x = point.x * std::cos(angle) - point.y * std::sin(angle);
+  double y = point.x * std::sin(angle) + point.y * std::cos(angle);
+  return {x, y};
+}
+
+Box pose_to_box(const Pose& pose, double length, double width,
+                double clearance = 0) {
+  Corners corners = {
+      {length, width / 2},
+      {length, -width / 2},
+      {0.0, -width / 2},
+      {0.0, width / 2},
+  };
+  for (auto& c : corners) {
+    c = rotate(c, pose.theta);
+    c.x += pose.x;
+    c.y += pose.y;
+  }
+  return corners;
+}
+
 }  // namespace utils

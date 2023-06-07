@@ -17,6 +17,8 @@
 06.07
 - box to box collision detection
 - if not collided, then calculate box to box distance calculation (at the end it's point to line problem)
+- add rotate and pose_to_box utils
+- add getBox method for Obstacle and Car class
 
 
 CHANGES: 
