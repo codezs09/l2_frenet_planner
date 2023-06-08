@@ -19,8 +19,6 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
   // parse the waypoints and obstacles
   mu = new mutex();
 
-  setObstacles();
-
   // make sure best_frenet_path is initialized
   best_frenet_path = nullptr;
 
@@ -67,10 +65,6 @@ FrenetOptimalTrajectory::~FrenetOptimalTrajectory() {
   delete csp;
   for (FrenetPath *fp : frenet_paths) {
     delete fp;
-  }
-
-  for (Obstacle *ob : obstacles) {
-    delete ob;
   }
 }
 
@@ -206,7 +200,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         }
 
         // auto start = chrono::high_resolution_clock::now();
-        bool valid_path = tfp->is_valid_path(obstacles);
+        bool valid_path = tfp->is_valid_path(fot_ic.obstacles_c);
         // auto end = chrono::high_resolution_clock::now();
         // valid_path_time +=
         // chrono::duration_cast<chrono::nanoseconds>(end -
@@ -240,7 +234,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
         // obstacle costs
         tfp->c_inv_dist_to_obstacles =
-            tfp->inverse_distance_to_obstacles(obstacles);
+            tfp->inverse_distance_to_obstacles(foc_it.obstacles_c);
 
         // final cost
         tfp->cf = fot_hp.klat * tfp->c_lateral +
@@ -270,23 +264,4 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
   // Thread argument is passed down cout << "Found " << frenet_paths.size() <<
   // " valid paths out of " << num_paths << " paths; Valid path time " <<
   // valid_path_time << "\n";
-}
-
-void FrenetOptimalTrajectory::setObstacles() {
-  // Construct obstacles
-  vector<double> llx(fot_ic.o_llx, fot_ic.o_llx + fot_ic.no);
-  vector<double> lly(fot_ic.o_lly, fot_ic.o_lly + fot_ic.no);
-  vector<double> urx(fot_ic.o_urx, fot_ic.o_urx + fot_ic.no);
-  vector<double> ury(fot_ic.o_ury, fot_ic.o_ury + fot_ic.no);
-
-  for (int i = 0; i < fot_ic.no; i++) {
-    addObstacle(Vector2f(llx[i], lly[i]), Vector2f(urx[i], ury[i]));
-  }
-}
-
-void FrenetOptimalTrajectory::addObstacle(Vector2f first_point,
-                                          Vector2f second_point) {
-  obstacles.push_back(new Obstacle(std::move(first_point),
-                                   std::move(second_point),
-                                   fot_hp.obstacle_clearance));
 }

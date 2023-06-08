@@ -51,6 +51,7 @@ class Obstacle {
   bool predictPoses(const map<double, double> &spd_profile,
                     double cur_timestamp, double max_duration, double dt);
   Pose getPredictPoseAtTimestamp(double timestamp);
+
   const vector<Box> &getPredictBoxes() const { return predict_boxes_; }
 
  private:

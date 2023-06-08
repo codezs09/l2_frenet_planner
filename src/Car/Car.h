@@ -22,7 +22,9 @@ class Car {
   Car(Pose pose_, Twist twist_, Accel accel_)
       : Car(pose_, twist_), accel(accel_) {}
 
-  bool getOutline(vector<Point> *outline);
+  Box getBox() { return utils::pose_to_box(pose, length, width); }
+
+  // bool getOutline(vector<Point> *outline);
 
   void setPose(Pose p) { pose = p; }
   const Pose &getPose() { return pose; }

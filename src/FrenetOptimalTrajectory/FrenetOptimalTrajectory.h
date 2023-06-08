@@ -35,8 +35,6 @@ class FrenetOptimalTrajectory {
                           const FrenetHyperparameters &fot_hp_);
   ~FrenetOptimalTrajectory();
   FrenetPath *getBestPath();
-  void setObstacles();
-  void addObstacle(Vector2f first_point, Vector2f second_point);
 
  private:
   const FrenetInitialConditions &fot_ic;
@@ -44,7 +42,6 @@ class FrenetOptimalTrajectory {
   mutex *mu;
   FrenetPath *best_frenet_path;
   CubicSpline2D *csp;
-  vector<Obstacle *> obstacles;
   vector<FrenetPath *> frenet_paths;
   void calc_frenet_paths(int start_di_index, int end_di_index,
                          bool multithreaded);

@@ -19,7 +19,8 @@
 - if not collided, then calculate box to box distance calculation (at the end it's point to line problem)
 - add rotate and pose_to_box utils
 - add getBox method for Obstacle and Car class
-
+- improve is_collision speed by avoiding unnecessary SAT check
+- refactor is_collision method for FrenetPath class
 
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.
