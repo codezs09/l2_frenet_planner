@@ -7,6 +7,7 @@
 #include "utils/utils.h"
 
 #include <gflags/gflags.h>
+#include <chrono>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -24,6 +25,13 @@ DEFINE_string(scene_path,
 DEFINE_string(hyper_path,
               "/home/sheng/Project/l2_frenet_planner/hyperparameters.json",
               "Path to hyperparameter config file");
+
+double get_duration_ms(std::chrono::time_point end,
+                       std::chrono::time_point start) {
+  auto duration =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  return static_cast<double>(duration.count()) / 1000.0;
+}
 
 bool InitFrenetHyperParameters() {
   json hyper_j;
@@ -134,11 +142,11 @@ int main(int argc, char** argv) {
   const double TimeStep = fot_hp.dt;
   // logic similar to fot.py script
   int sim_loop = 200;
-  double total_runtime = 0.0;
-  double timestamp = 0.0;  // [s], simulation timestamp
-  for (int i = 0; i < sim_loop; ++i) {
-    cout << "Iteration: " << i << ", Simulation time: " << timestamp << " [s]"
-         << endl;
+  double total_runtime = 0.0;  // [ms]
+  double timestamp = 0.0;      // [s], simulation timestamp
+  int i = 0;
+  for (; i < sim_loop; ++i) {
+    auto start = std::chrono::high_resolution_clock::now();
 
     // update Frenet coordinate of ego car
     UpdateFrenetCoordinates(ego_car, wp, &fot_ic);
@@ -156,6 +164,9 @@ int main(int argc, char** argv) {
       break;
     }
 
+    auto plan_end = std::chrono::high_resolution_clock::now();
+    double plan_duration = get_duration_ms(plan_end, start);
+
     // update
     timestamp += TimeStep;
     UpdateEgoCarNextState(best_frenet_path, wp, &ego_car);
@@ -164,7 +175,17 @@ int main(int argc, char** argv) {
       Pose ob_pose_next = ob.getPredictPoseAtTimestamp(timestamp);
       ob.setPose(ob_pose_next);
     }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    double cycle_duration = get_duration_ms(end, start);
+    total_runtime += cycle_duration;
+
+    cout << "Iteration: " << i << ", Simulation time: " << timestamp
+         << " [s]. Plan runtime: " << plan_duration
+         << " [ms], Cycle runtime: " << cycle_duration << " [ms]. " << endl;
   }
+  cout << "Total runtime: " << total_runtime << " [ms] for # " << i
+       << " iterations." << endl;
 
   return 0;
 }
