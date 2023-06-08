@@ -23,7 +23,8 @@ DEFINE_string(scene_path,
               "config/scenes/one_lane_slow_down.json",
               "Path to scene config file");
 DEFINE_string(hyper_path,
-              "/home/sheng/Project/l2_frenet_planner/hyperparameters.json",
+              "/home/sheng/Project/l2_frenet_planner/"
+              "config/hyperparameters.json",
               "Path to hyperparameter config file");
 
 double get_duration_ms(
@@ -68,7 +69,7 @@ void InitObstacles(const json& scene_j, const utils::WayPoints& wp,
   // const double dt = fot_hp.dt;
   vector<Obstacle> obstacles_f;
   for (const auto& ob_j : scene_j["obs"]) {
-    Pose ob_pose = {ob_j["pose"]};
+    Pose ob_pose = {ob_j["pose"][0], ob_j["pose"][1], ob_j["pose"][2]};
     Obstacle ob(ob_pose, ob_j["length"], ob_j["width"],
                 fot_hp.obstacle_clearance);
     if (ob_j.contains("speed_profile")) {
@@ -111,10 +112,19 @@ void UpdateEgoCarNextState(const FrenetPath* best_frenet_path,
   ego_car->setAccel(accel_c);
 }
 
-void InitWaypoints(const json& scene, WayPoints* wp) {
-  for (const auto& waypoint : scene["waypoints"]) {
+void InitWaypoints(const json& scene_j, WayPoints* wp) {
+  for (const auto& waypoint : scene_j["wp"]) {
     wp->push_back(waypoint.get<std::vector<double>>());
   }
+}
+
+Car InitEgoCar(const json& scene_j) {
+  Pose ego_car_pose = {scene_j["pose"][0], scene_j["pose"][1],
+                       scene_j["pose"][2]};
+  Twist ego_car_twist = {scene_j["vel"][0], scene_j["vel"][1],
+                         scene_j["vel"][2]};
+  Car ego_car(ego_car_pose, ego_car_twist, {0, 0, 0});
+  return ego_car;
 }
 
 int main(int argc, char** argv) {
@@ -131,13 +141,17 @@ int main(int argc, char** argv) {
 
   utils::WayPoints wp;
   InitWaypoints(scene_j, &wp);
+  Car ego_car = InitEgoCar(scene_j);
 
-  Car ego_car({scene_j["pose"]}, {scene_j["vel"]}, {0, 0, 0});
   vector<Obstacle> obstacles;
   InitObstacles(scene_j, wp, &obstacles);
 
+  cout << "debug 12" << endl;
+
   FrenetInitialConditions fot_ic(wp, obstacles);
   InitFrenetInitialConditions(ego_car, scene_j, wp, &fot_ic);
+
+  cout << "debug 43543f" << endl;
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
