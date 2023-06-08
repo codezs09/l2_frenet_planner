@@ -148,6 +148,12 @@ int main(int argc, char** argv) {
   for (; i < sim_loop; ++i) {
     auto start = std::chrono::high_resolution_clock::now();
 
+    // break if near goal
+    if (utils::norm(ego_car.getPose().x - wp.back()[0],
+                    ego_car.getPose().y - wp.back()[1]) < 3.0) {
+      break;
+    }
+
     // update Frenet coordinate of ego car
     UpdateFrenetCoordinates(ego_car, wp, &fot_ic);
     // prediction on obstacles
