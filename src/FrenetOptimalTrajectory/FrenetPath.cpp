@@ -91,7 +91,7 @@ bool FrenetPath::is_collision(const vector<Obstacle> &obstacles) {
   for (auto &ob : obstacles) {
     auto ob_boxes = ob.getPredictBoxes();
     for (int i = 0; i < path_size && i < ob_boxes.size(); ++i) {
-      auto &ob_box_i = ob_boxes[i];
+      auto &&ob_box_i = ob_boxes[i];
       Car ego_car_i({x[i], y[i], yaw[i]});
       Box ego_box_i = ego_car_i.getBox();
       // check collision for every time step
@@ -105,25 +105,20 @@ bool FrenetPath::is_collision(const vector<Obstacle> &obstacles) {
   return false;
 }
 
-// calculate the sum of 1 / distance_to_obstacle
+// calculate the Sum of 1 / distance_to_obstacle
+// sheng: Should only be used after is_collision() returns false
 double FrenetPath::inverse_distance_to_obstacles(
     const vector<Obstacle> &obstacles) {
   double total_inverse_distance = 0.0;
 
-  for (auto obstacle : obstacles) {
-    double llx = obstacle->bbox.first.x();
-    double lly = obstacle->bbox.first.y();
-    double urx = obstacle->bbox.second.x();
-    double ury = obstacle->bbox.second.y();
-
-    for (size_t i = 0; i < x.size(); i++) {
-      double d1 = norm(llx - x[i], lly - y[i]);
-      double d2 = norm(llx - x[i], ury - y[i]);
-      double d3 = norm(urx - x[i], ury - y[i]);
-      double d4 = norm(urx - x[i], lly - y[i]);
-
-      double closest = min({d1, d2, d3, d4});
-      total_inverse_distance += 1.0 / closest;
+  int path_size = x.size();
+  for (auto &ob : obstacles) {
+    auto &ob_boxes = ob.getPredictBoxes();
+    for (int i = 0; i < path_size && i < ob_boxes.size(); ++i) {
+      auto &ob_box_i = ob_boxes[i];
+      Car ego_car_i({x[i], y[i], yaw[i]});
+      Box ego_box_i = ego_car_i.getBox();
+      total_inverse_distance += 1.0 / utils::distance(ego_box_i, ob_box_i);
     }
   }
   return total_inverse_distance;

@@ -20,7 +20,7 @@
 - add rotate and pose_to_box utils
 - add getBox method for Obstacle and Car class
 - improve is_collision speed by avoiding unnecessary SAT check
-- refactor is_collision method for FrenetPath class
+- refactor is_collision and inverse_distance_to_obstacle method for FrenetPath class
 
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.
