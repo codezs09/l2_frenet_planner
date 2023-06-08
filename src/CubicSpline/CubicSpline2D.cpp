@@ -1,11 +1,12 @@
 #include "CubicSpline2D.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 
 using namespace std;
+using namespace utils;
 
 // Default constructor
 CubicSpline2D::CubicSpline2D() = default;

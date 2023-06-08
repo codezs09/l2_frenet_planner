@@ -4,7 +4,7 @@
 #include <eigen3/Eigen/Dense>
 #include <nlohmann/json.hpp>
 #include <vector>
-#include "utils.h"
+#include "utils/utils.h"
 
 const size_t MAX_PATH_LENGTH = 100;
 

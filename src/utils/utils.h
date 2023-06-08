@@ -11,7 +11,6 @@ using json = nlohmann::json;
 
 namespace utils {
 
-typedef vector<double> Point;
 typedef vector<vector<double>> WayPoints;
 
 struct Pose {

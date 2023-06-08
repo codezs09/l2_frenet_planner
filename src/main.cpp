@@ -12,6 +12,7 @@
 #include <nlohmann/json.hpp>
 
 using namespace std;
+using namespace utils;
 using json = nlohmann::json;
 
 DEFINE_string(scene_path,

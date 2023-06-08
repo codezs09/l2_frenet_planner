@@ -8,6 +8,7 @@
 #include <pair>
 #include <vector>
 
+#include "utils/geometry.h"
 #include "utils/lookup_table_1d.h"
 #include "utils/utils.h"
 
@@ -41,10 +42,6 @@ class Obstacle {
   double getLength() const { return length_; }
   double getWidth() const { return width_; }
   double getClearence() const { return obstacle_clearance_; }
-
-  bool isSegmentInObstacle(Vector2f &p1, Vector2f &p2);
-  bool isPointNearObstacle(Vector2f &p, double radius);
-  double getArea();
 
   // for use under Frenet frame
   bool predictPoses(double cur_timestamp, double max_duration, double dt);

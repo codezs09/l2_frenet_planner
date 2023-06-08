@@ -2,12 +2,13 @@
 #include "FrenetOptimalTrajectory.h"
 #include "FrenetPath.h"
 #include "py_cpp_struct.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 #include <stddef.h>
 #include <vector>
 
 using namespace std;
+using namespace utils;
 
 // C++ wrapper to expose the FrenetOptimalTrajectory class to python
 extern "C" {

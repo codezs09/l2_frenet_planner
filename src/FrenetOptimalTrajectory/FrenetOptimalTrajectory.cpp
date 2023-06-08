@@ -6,9 +6,10 @@
 #include "FrenetOptimalTrajectory.h"
 #include "QuarticPolynomial.h"
 #include "QuinticPolynomial.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 using namespace std;
+using namespace utils;
 
 // Compute the frenet optimal trajectory
 FrenetOptimalTrajectory::FrenetOptimalTrajectory(

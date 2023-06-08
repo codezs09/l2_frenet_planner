@@ -5,6 +5,7 @@
 #include "CubicSpline2D.h"
 #include "Obstacle.h"
 #include "py_cpp_struct.h"
+#include "utils/geometry.h"
 
 #include <eigen3/Eigen/Dense>
 #include <tuple>
@@ -12,6 +13,7 @@
 
 using namespace std;
 using namespace Eigen;
+using namespace utils;
 
 class FrenetPath {
  public:

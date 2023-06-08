@@ -1,6 +1,7 @@
 #ifndef FRENETOPTIMALTRAJECTORY_CAR_H
 #define FRENETOPTIMALTRAJECTORY_CAR_H
 
+#include "utils/geometry.h"
 #include "utils/utils.h"
 
 #include <memory>
@@ -23,8 +24,6 @@ class Car {
       : Car(pose_, twist_), accel(accel_) {}
 
   Box getBox() { return utils::pose_to_box(pose, length, width); }
-
-  // bool getOutline(vector<Point> *outline);
 
   void setPose(Pose p) { pose = p; }
   const Pose &getPose() { return pose; }
