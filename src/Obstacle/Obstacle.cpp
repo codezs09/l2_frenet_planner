@@ -51,7 +51,16 @@ const utils::LookupTable1D &Obstacle::getSpeedLookupTable() {
   return *tbl_time_to_speed_;
 }
 
-bool predictPoses(double cur_timestamp, double max_duration, double dt) {
+void Obstacle::UpdatePredictBoxes() {
+  predict_boxes_.clear();
+  for (auto &p : predict_poses_) {
+    predict_boxes_.push_back(
+        utils::pose_to_box(p, length_, width_, obstacle_clearance_));
+  }
+}
+
+bool Obstacle::predictPoses(double cur_timestamp, double max_duration,
+                            double dt) {
   if (tbl_time_to_speed_ == nullptr) {
     cerr << "Error: speed profile not set yet for obstacles! " << endl;
     return false;
@@ -68,6 +77,7 @@ bool predictPoses(double cur_timestamp, double max_duration, double dt) {
     p.y() += v * dt * std::sin(p.yaw());
     predict_poses_.push_back({t, p});
   }
+  UpdatePredictBoxes();
   return true;
 }
 

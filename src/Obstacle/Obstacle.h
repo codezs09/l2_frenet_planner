@@ -51,8 +51,11 @@ class Obstacle {
   bool predictPoses(const map<double, double> &spd_profile,
                     double cur_timestamp, double max_duration, double dt);
   Pose getPredictPoseAtTimestamp(double timestamp);
+  const vector<Box> &getPredictBoxes() const { return predict_boxes_; }
 
  private:
+  void UpdatePredictBoxes();
+
   const double length_;  // parallel with yaw
   const double width_;
   const double obstacle_clearance_;
@@ -60,6 +63,7 @@ class Obstacle {
   Pose pose_;
   map<double, Pose> predict_poses_;  // map: timestapm -> pose
   Twist twist_;
+  vector<Box> predict_boxes_;
 
   // for use under Frenet frame
   unique_ptr<LookupTable1D> tbl_time_to_speed_ = nullptr;
