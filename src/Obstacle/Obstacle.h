@@ -5,7 +5,7 @@
 #include <eigen3/Eigen/Dense>
 #include <map>
 #include <memory>
-#include <pair>
+#include <utility>
 #include <vector>
 
 #include "utils/geometry.h"
@@ -18,19 +18,24 @@ using namespace utils;
 
 class Obstacle {
  public:
-  // std::pair<Vector2f, Vector2f> bbox;
-
   Obstacle() = delete;
   Obstacle(Pose pose, double length, double width, double obstacle_clearance)
-      : pose_(pose), obstacle_clearance_(obstacle_clearance) {
-    predict_poses_.push_back({0.0, pose_});
-  }
+      : Obstacle(pose, {0, 0, 0}, length, width, obstacle_clearance) {}
   Obstacle(Pose pose, Twist twist, double length, double width,
            double obstacle_clearance)
-      : Obstacle(pose, length, width, obstacle_clearance), twist_(twist) {}
+      : pose_(pose),
+        twist_(twist),
+        length_(length),
+        width_(width),
+        obstacle_clearance_(obstacle_clearance) {
+    predict_poses_.insert(std::pair<double, Pose>(0.0, pose_));
+  }
 
   void setPose(Pose pose) { pose_ = pose; }
   void setTwist(Twist twist) { twist_ = twist; }
+
+  const Pose &getPose() const { return pose_; }
+  const Twist &getTwist() const { return twist_; }
 
   void setSpeedLookupTable(const map<double, double> &spd_profile);
   void setSpeedLookupTable(const utils::LookupTable1D &tbl_time_to_speed);

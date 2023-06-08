@@ -2,6 +2,8 @@
 #define FRENET_OPTIMAL_TRAJECTORY_UTILS_H
 
 #include <cmath>
+#include <fstream>
+#include <iostream>
 #include <nlohmann/json.hpp>
 #include <tuple>
 #include <vector>
@@ -49,7 +51,7 @@ inline double dot(const tuple<double, double>& vec1,
   return get<0>(vec1) * get<0>(vec2) + get<1>(vec1) * get<1>(vec2);
 }
 
-inline double cross_prodcut(const tuple<double, double>& vec1,
+inline double cross_product(const tuple<double, double>& vec1,
                             const tuple<double, double>& vec2) {
   return get<0>(vec1) * get<1>(vec2) - get<1>(vec1) * get<0>(vec2);
 }

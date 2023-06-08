@@ -33,7 +33,8 @@ include_directories("${CMAKE_SOURCE_DIR}/src"
                     "${CMAKE_SOURCE_DIR}/src/Polynomials"
                     "${CMAKE_SOURCE_DIR}/src/FrenetOptimalTrajectory"
                     "${CMAKE_SOURCE_DIR}/src/Obstacle"
-                    "${CMAKE_SOURCE_DIR}/src/Car")
+                    "${CMAKE_SOURCE_DIR}/src/Car"
+                    "${CMAKE_SOURCE_DIR}/include")
 
 add_library(FrenetOptimalTrajectory SHARED
             src/utils/utils.cpp
@@ -135,8 +136,10 @@ add_executable(FrenetOptimalTrajectoryTest
                src/Obstacle/Obstacle.h
                src/Car/Car.cpp
                src/Car/Car.h)
-target_link_libraries(FrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui)
-target_link_libraries(PackageFrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui)
+target_link_libraries(FrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui
+                      gflags)
+target_link_libraries(PackageFrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui
+                      gflags)
 target_link_libraries(FrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui
-                      gflags::gflags)
-target_link_libraries(AnytimeFrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui)
+                      gflags)
+# target_link_libraries(AnytimeFrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui)

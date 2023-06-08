@@ -6,6 +6,7 @@
 #include "utils/coordinate_utils.h"
 #include "utils/utils.h"
 
+#include <gflags/gflags.h>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -70,7 +71,7 @@ void InitObstacles(const json& scene_j, const utils::WayPoints& wp,
       }
       ob.setSpeedLookupTable(spd_profile);
       // ob.predictPoses(0.0, fot_hp.maxt, dt);
-      ob.setTwist({spd_profile.front().second, 0.0, 0.0});
+      ob.setTwist({spd_profile.begin()->second, 0.0, 0.0});
     }
   }
   // convert to Cartesian coordinates

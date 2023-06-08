@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "Car/Car.h"
+#include "CubicSpline/CubicSpline2D.h"
 #include "Obstacle/Obstacle.h"
 #include "utils/utils.h"
 

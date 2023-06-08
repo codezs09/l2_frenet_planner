@@ -24,7 +24,7 @@ class Line {
   Point start;
   Point end;
   Line(const Point& start, const Point& end) : start(start), end(end) {}
-  double Length() { return distance(start, end); }
+  double Length() const;
 };
 
 using Corners = std::array<Point, 4>;
@@ -40,8 +40,8 @@ class Box {
   Box(const Corners& corners) : corners(corners) {}
   Corners corners;
 
-  vector<Line> getEdges();
-  double DistanceTo(const Box& other);
+  vector<Line> getEdges() const;
+  double DistanceTo(const Box& other) const;
 };
 
 bool is_collision(const Box& box_a, const Box& box_b);

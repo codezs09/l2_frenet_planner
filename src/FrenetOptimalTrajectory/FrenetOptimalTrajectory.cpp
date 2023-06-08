@@ -24,12 +24,12 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
   best_frenet_path = nullptr;
 
   // exit if not enough waypoints
-  if (fot_ic.wp.empty() || foc_ic.wp[0].size() < 2) {
+  if (fot_ic.wp.empty() || fot_ic.wp[0].size() < 2) {
     return;
   }
 
   // construct spline path
-  csp = new CubicSpline2D(fot_ic.wp[0], foc_ic.wp[1]);
+  csp = new CubicSpline2D(fot_ic.wp[0], fot_ic.wp[1]);
 
   // calculate the trajectories
   if (fot_hp.num_threads == 0) {
@@ -141,7 +141,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
       fp = new FrenetPath(fot_hp);
       QuinticPolynomial lat_qp = QuinticPolynomial(
-          fot_ic.c_d, fot_ic.c_d_d, fot_ic.c_d_dd, di, 0.0, 0.0, ti);
+          fot_ic.d, fot_ic.d_d, fot_ic.d_dd, di, 0.0, 0.0, ti);
 
       // construct frenet path
       t = 0;
@@ -235,7 +235,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
         // obstacle costs
         tfp->c_inv_dist_to_obstacles =
-            tfp->inverse_distance_to_obstacles(foc_it.obstacles_c);
+            tfp->inverse_distance_to_obstacles(fot_ic.obstacles_c);
 
         // final cost
         tfp->cf = fot_hp.klat * tfp->c_lateral +

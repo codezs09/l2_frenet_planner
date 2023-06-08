@@ -17,32 +17,42 @@ const double VEHICLE_WIDTH = 1.86;
 
 class Car {
  public:
-  Car() : length(VEHICLE_LENGTH), width(VEHICLE_WIDTH) {}
-  Car(Pose pose_) : Car(), pose(pose_) {}
-  Car(Pose pose_, Twist twist_) : Car(pose_), twist(twist_) {}
+  Car() : Car({0, 0, 0}) {}
+  Car(Pose pose_) : Car(pose_, {0, 0, 0}) {}
+  Car(Pose pose_, Twist twist_) : Car(pose_, twist_, {0, 0, 0}) {}
   Car(Pose pose_, Twist twist_, Accel accel_)
-      : Car(pose_, twist_), accel(accel_) {}
+      : pose(pose_),
+        twist(twist_),
+        accel(accel_),
+        length(VEHICLE_LENGTH),
+        width(VEHICLE_WIDTH) {}
+  Car(Pose pose_, Twist twist_, Accel accel_, double length_, double width_)
+      : pose(pose_),
+        twist(twist_),
+        accel(accel_),
+        length(length_),
+        width(width_) {}
 
   Box getBox() { return utils::pose_to_box(pose, length, width); }
 
   void setPose(Pose p) { pose = p; }
-  const Pose &getPose() { return pose; }
+  const Pose &getPose() const { return pose; }
   Pose *mutablePose() { return &pose; }
 
   void setTwist(Twist t) { twist = t; }
-  const Twist &getTwist() { return twist; }
+  const Twist &getTwist() const { return twist; }
   Twist *mutableTwist() { return &twist; }
 
   void setAccel(Accel a) { accel = a; }
-  const Accel &getAccel() { return accel; }
+  const Accel &getAccel() const { return accel; }
   Accel *mutableAccel() { return &accel; }
 
  private:
   double length;
   double width;
-  Pose pose({0, 0, 0});    // pose w.r.t global frame
-  Twist twist({0, 0, 0});  // velocity w.r.t vehicle frame
-  Accel accel({0, 0, 0});  // acceleration w.r.t vehicle frame
+  Pose pose;    // pose w.r.t global frame
+  Twist twist;  // velocity w.r.t vehicle frame
+  Accel accel;  // acceleration w. = .t vehicle frame
 };
 
 #endif  // FRENETOPTIMALTRAJECTORY_CAR_H

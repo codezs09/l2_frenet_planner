@@ -23,7 +23,7 @@ void Obstacle::UpdatePredictBoxes() {
   predict_boxes_.clear();
   for (auto &p : predict_poses_) {
     predict_boxes_.push_back(
-        utils::pose_to_box(p, length_, width_, obstacle_clearance_));
+        utils::pose_to_box(p.second, length_, width_, obstacle_clearance_));
   }
 }
 
@@ -37,13 +37,13 @@ bool Obstacle::predictPoses(double cur_timestamp, double max_duration,
   predict_poses_.clear();
   int num_steps = std::ceil(max_duration / dt);
   Pose p = pose_;
-  predict_poses_.push_back({cur_timestamp, p});
+  predict_poses_.insert(std::pair<double, Pose>(cur_timestamp, p));
   for (int i = 1; i <= num_steps; ++i) {
     double t = cur_timestamp + i * dt;
     double v = tbl_time_to_speed_->get(t);
-    p.x() += v * dt * std::cos(p.yaw());
-    p.y() += v * dt * std::sin(p.yaw());
-    predict_poses_.push_back({t, p});
+    p.x() += v * dt * std::cos(p.yaw);
+    p.y() += v * dt * std::sin(p.yaw);
+    predict_poses_.insert(std::pair<double, Pose>(t, p));
   }
   UpdatePredictBoxes();
   return true;
@@ -65,5 +65,5 @@ Pose Obstacle::getPredictPoseAtTimestamp(double timestamp) {
       return p.second;
     }
   }
-  return predict_poses_.back().second;
+  return predict_poses_.rbegin()->second;
 }

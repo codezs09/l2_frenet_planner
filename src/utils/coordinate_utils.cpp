@@ -103,7 +103,7 @@ void ToCartesian(const Pose& pose_f, const Twist& twist_f, const Accel& accel_f,
   delete csp;
 }
 
-bool ToFrenet(const Car& car_c, const WayPoints& wp, Car* car_f) {
+void ToFrenet(const Car& car_c, const WayPoints& wp, Car* car_f) {
   Pose pose_f;
   Twist twist_f;
   Accel accel_f;
@@ -114,7 +114,7 @@ bool ToFrenet(const Car& car_c, const WayPoints& wp, Car* car_f) {
   car_f->setAccel(accel_f);
 }
 
-bool ToCartesian(const Car& car_f, const WayPoints& wp, Car* car_c) {
+void ToCartesian(const Car& car_f, const WayPoints& wp, Car* car_c) {
   Pose pose_c;
   Twist twist_c;
   Accel accel_c;
@@ -130,7 +130,8 @@ void ToFrenet(const Obstacle& ob_c, const WayPoints& wp,
   Pose pose_f;
   Twist twist_f;
   Accel accel_f;
-  ToFrenet(ob_c.pose, ob_c.twist, ob_c.accel, wp, &pose_f, &twist_f, &accel_f);
+  ToFrenet(ob_c.getPose(), ob_c.getTwist(), {0, 0, 0}, wp, &pose_f, &twist_f,
+           &accel_f);
   ob_f = std::make_unique<Obstacle>(pose_f, twist_f, ob_c.getLength(),
                                     ob_c.getWidth(), ob_c.getClearence());
   ob_f->setSpeedLookupTable(ob_c.getSpeedLookupTable());
@@ -142,7 +143,7 @@ void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
   Pose pose_c;
   Twist twist_c;
   Accel accel_c;
-  ToCartesian(ob_f.pose, ob_f.twist, ob_f.accel, wp, &pose_c, &twist_c,
+  ToCartesian(ob_f.getPose(), ob_f.getTwist(), {0, 0, 0}, wp, &pose_c, &twist_c,
               &accel_c);
   ob_c = std::make_unique<Obstacle>(pose_c, twist_c, ob_f.getLength(),
                                     ob_f.getWidth(), ob_f.getClearence());
@@ -156,9 +157,9 @@ void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
     Pose predict_pose_c;
     Twist dummy_twist;
     Accel dummy_accel;
-    ToCartesian(predict_pose_f, {0, 0, 0}, {0, 0, 0}, wp, &predict_pose_c,
-                &dummy_twist, &dummy_accel);
-    predict_poses_c->push_back(predict_pose_c);
+    ToCartesian(predict_pose_f.second, {0, 0, 0}, {0, 0, 0}, wp,
+                &predict_pose_c, &dummy_twist, &dummy_accel);
+    (*predict_poses_c)[predict_pose_f.first] = predict_pose_c;
   }
 }
 

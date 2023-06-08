@@ -31,97 +31,98 @@ extern "C" {
 //      1 if successful, 0 if failure
 //      Also stores the Frenet Optimal Trajectory into x_path, y_path,
 //      speeds if it exists
-void run_fot(FrenetInitialConditions* fot_ic, FrenetHyperparameters* fot_hp,
-             FrenetReturnValues* fot_rv) {
-  FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
-  FrenetPath* best_frenet_path = fot.getBestPath();
-  if (best_frenet_path && !best_frenet_path->x.empty()) {
-    fot_rv->success = 1;
-    fot_rv->path_length = std::min(best_frenet_path->x.size(), MAX_PATH_LENGTH);
-    for (size_t i = 0; i < fot_rv->path_length; i++) {
-      fot_rv->x_path[i] = best_frenet_path->x[i];
-      fot_rv->y_path[i] = best_frenet_path->y[i];
-      fot_rv->speeds[i] = best_frenet_path->s_d[i];
-      fot_rv->ix[i] = best_frenet_path->ix[i];
-      fot_rv->iy[i] = best_frenet_path->iy[i];
-      fot_rv->iyaw[i] = best_frenet_path->iyaw[i];
-      fot_rv->d[i] = best_frenet_path->d[i];
-      fot_rv->s[i] = best_frenet_path->s[i];
-      fot_rv->speeds_x[i] = cos(best_frenet_path->yaw[i]) * fot_rv->speeds[i];
-      fot_rv->speeds_y[i] = sin(best_frenet_path->yaw[i]) * fot_rv->speeds[i];
-    }
+// void run_fot(FrenetInitialConditions* fot_ic, FrenetHyperparameters* fot_hp,
+//              FrenetReturnValues* fot_rv) {
+//   FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
+//   FrenetPath* best_frenet_path = fot.getBestPath();
+//   if (best_frenet_path && !best_frenet_path->x.empty()) {
+//     fot_rv->success = 1;
+//     fot_rv->path_length = std::min(best_frenet_path->x.size(),
+//     MAX_PATH_LENGTH); for (size_t i = 0; i < fot_rv->path_length; i++) {
+//       fot_rv->x_path[i] = best_frenet_path->x[i];
+//       fot_rv->y_path[i] = best_frenet_path->y[i];
+//       fot_rv->speeds[i] = best_frenet_path->s_d[i];
+//       fot_rv->ix[i] = best_frenet_path->ix[i];
+//       fot_rv->iy[i] = best_frenet_path->iy[i];
+//       fot_rv->iyaw[i] = best_frenet_path->iyaw[i];
+//       fot_rv->d[i] = best_frenet_path->d[i];
+//       fot_rv->s[i] = best_frenet_path->s[i];
+//       fot_rv->speeds_x[i] = cos(best_frenet_path->yaw[i]) *
+//       fot_rv->speeds[i]; fot_rv->speeds_y[i] = sin(best_frenet_path->yaw[i])
+//       * fot_rv->speeds[i];
+//     }
 
-    // store info for debug
-    fot_rv->params[0] = best_frenet_path->s[1];
-    fot_rv->params[1] = best_frenet_path->s_d[1];
-    fot_rv->params[2] = best_frenet_path->d[1];
-    fot_rv->params[3] = best_frenet_path->d_d[1];
-    fot_rv->params[4] = best_frenet_path->d_dd[1];
+//     // store info for debug
+//     fot_rv->params[0] = best_frenet_path->s[1];
+//     fot_rv->params[1] = best_frenet_path->s_d[1];
+//     fot_rv->params[2] = best_frenet_path->d[1];
+//     fot_rv->params[3] = best_frenet_path->d_d[1];
+//     fot_rv->params[4] = best_frenet_path->d_dd[1];
 
-    // store costs for logging
-    fot_rv->costs[0] = best_frenet_path->c_lateral_deviation;
-    fot_rv->costs[1] = best_frenet_path->c_lateral_velocity;
-    fot_rv->costs[2] = best_frenet_path->c_lateral_acceleration;
-    fot_rv->costs[3] = best_frenet_path->c_lateral_jerk;
-    fot_rv->costs[4] = best_frenet_path->c_lateral;
-    fot_rv->costs[5] = best_frenet_path->c_longitudinal_acceleration;
-    fot_rv->costs[6] = best_frenet_path->c_longitudinal_jerk;
-    fot_rv->costs[7] = best_frenet_path->c_time_taken;
-    fot_rv->costs[8] = best_frenet_path->c_end_speed_deviation;
-    fot_rv->costs[9] = best_frenet_path->c_longitudinal;
-    fot_rv->costs[10] = best_frenet_path->c_inv_dist_to_obstacles;
-    fot_rv->costs[11] = best_frenet_path->cf;
-  }
-}
+//     // store costs for logging
+//     fot_rv->costs[0] = best_frenet_path->c_lateral_deviation;
+//     fot_rv->costs[1] = best_frenet_path->c_lateral_velocity;
+//     fot_rv->costs[2] = best_frenet_path->c_lateral_acceleration;
+//     fot_rv->costs[3] = best_frenet_path->c_lateral_jerk;
+//     fot_rv->costs[4] = best_frenet_path->c_lateral;
+//     fot_rv->costs[5] = best_frenet_path->c_longitudinal_acceleration;
+//     fot_rv->costs[6] = best_frenet_path->c_longitudinal_jerk;
+//     fot_rv->costs[7] = best_frenet_path->c_time_taken;
+//     fot_rv->costs[8] = best_frenet_path->c_end_speed_deviation;
+//     fot_rv->costs[9] = best_frenet_path->c_longitudinal;
+//     fot_rv->costs[10] = best_frenet_path->c_inv_dist_to_obstacles;
+//     fot_rv->costs[11] = best_frenet_path->cf;
+//   }
+// }
 
-// Convert the initial conditions from cartesian space to frenet space
-bool to_frenet_coordinates(double s0, const Car& car, const WayPoints& wp,
-                           double* frenet_coordinates) {
-  auto p = car.getPose();
-  double x = p.x;
-  double y = p.y;
-  double yaw = p.yaw;
+// // Convert the initial conditions from cartesian space to frenet space
+// bool to_frenet_coordinates(double s0, const Car& car, const WayPoints& wp,
+//                            double* frenet_coordinates) {
+//   auto p = car.getPose();
+//   double x = p.x;
+//   double y = p.y;
+//   double yaw = p.yaw;
 
-  auto t = car.getTwist();
-  double vx = t.vx;
-  double vy = t.vy;
-  // double yaw_rate = t.yaw_rate;
+//   auto t = car.getTwist();
+//   double vx = t.vx;
+//   double vy = t.vy;
+//   // double yaw_rate = t.yaw_rate;
 
-  CubicSpline2D* csp = new CubicSpline2D(wp[0], wp[1]);
+//   CubicSpline2D* csp = new CubicSpline2D(wp[0], wp[1]);
 
-  // get distance from car to spline and projection
-  double s = csp->find_s(x, y);
-  double distance = norm(csp->calc_x(s) - x, csp->calc_y(s) - y);
-  tuple<double, double> bvec((csp->calc_x(s) - x) / distance,
-                             (csp->calc_y(s) - y) / distance);
+//   // get distance from car to spline and projection
+//   double s = csp->find_s(x, y);
+//   double distance = norm(csp->calc_x(s) - x, csp->calc_y(s) - y);
+//   tuple<double, double> bvec((csp->calc_x(s) - x) / distance,
+//                              (csp->calc_y(s) - y) / distance);
 
-  // normal spline vector
-  double x0 = csp->calc_x(s0);
-  double y0 = csp->calc_y(s0);
-  double x1 = csp->calc_x(s0 + 2);
-  double y1 = csp->calc_y(s0 + 2);
+//   // normal spline vector
+//   double x0 = csp->calc_x(s0);
+//   double y0 = csp->calc_y(s0);
+//   double x1 = csp->calc_x(s0 + 2);
+//   double y1 = csp->calc_y(s0 + 2);
 
-  // unit vector orthog. to spline
-  tuple<double, double> tvec(y1 - y0, -(x1 - x0));
-  as_unit_vector(tvec);
+//   // unit vector orthog. to spline
+//   tuple<double, double> tvec(y1 - y0, -(x1 - x0));
+//   as_unit_vector(tvec);
 
-  // compute tangent / normal car vectors
-  tuple<double, double> fvec(vx, vy);
-  as_unit_vector(fvec);
+//   // compute tangent / normal car vectors
+//   tuple<double, double> fvec(vx, vy);
+//   as_unit_vector(fvec);
 
-  // get initial conditions in frenet frame
-  frenet_coordinates[0] = s;  // current longitudinal position s
-  frenet_coordinates[1] =
-      forward_speed * cross_prodcut(tvec, fvec);  // c_s_d [m/s]
-  frenet_coordinates[2] = 0.0;                    //  c_s_dd [m/s^2]
-  // lateral position c_d [m]
-  frenet_coordinates[3] = copysign(distance, dot(tvec, bvec));
-  // lateral speed c_d_d [m/s]
-  frenet_coordinates[4] = -forward_speed * dot(tvec, fvec);
-  frenet_coordinates[5] = 0.0;  // lateral acceleration c_d_dd [m/s^2]
-  // TODO: add lateral acceleration when CARLA 9.7 is patched (IMU)
+//   // get initial conditions in frenet frame
+//   frenet_coordinates[0] = s;  // current longitudinal position s
+//   frenet_coordinates[1] =
+//       forward_speed * cross_product(tvec, fvec);  // c_s_d [m/s]
+//   frenet_coordinates[2] = 0.0;                    //  c_s_dd [m/s^2]
+//   // lateral position c_d [m]
+//   frenet_coordinates[3] = copysign(distance, dot(tvec, bvec));
+//   // lateral speed c_d_d [m/s]
+//   frenet_coordinates[4] = -forward_speed * dot(tvec, fvec);
+//   frenet_coordinates[5] = 0.0;  // lateral acceleration c_d_dd [m/s^2]
+//   // TODO: add lateral acceleration when CARLA 9.7 is patched (IMU)
 
-  delete csp;
-  return true;
-}
+//   delete csp;
+//   return true;
+// }
 }

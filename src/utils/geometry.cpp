@@ -2,9 +2,13 @@
 
 namespace utils {
 
-double Box::DistanceTo(const Box& other) { return distance(*this, other); }
+double Line::Length() const { return distance(start, end); }
 
-vector<Line> Box::getEdges() {
+double Box::DistanceTo(const Box& other) const {
+  return distance(*this, other);
+}
+
+vector<Line> Box::getEdges() const {
   vector<Line> edges;
   for (int i = 0; i < 4; ++i) {
     edges.push_back(Line(corners[i], corners[(i + 1) % 4]));
@@ -54,8 +58,8 @@ bool is_collision(const Box& box_a, const Box& box_b) {
   }
 
   for (auto& a : axes) {
-    vector<double, double> a_unit_vec = {(a.end.x - a.start.x) / a.Length(),
-                                         (a.end.y - a.start.y) / a.Length()};
+    tuple<double, double> a_unit_vec = {(a.end.x - a.start.x) / a.Length(),
+                                        (a.end.y - a.start.y) / a.Length()};
 
     double min1 = std::numeric_limits<double>::max();
     double max1 = std::numeric_limits<double>::min();
@@ -86,10 +90,10 @@ double distance(const Point& point_a, const Point& point_b) {
 double distance(const Point& point, const Line& line) {
   // using projection method
   double line_length = line.Length();
-  vector<double, double> line_unit_vec = {
+  tuple<double, double> line_unit_vec = {
       (line.end.x - line.start.x) / line_length,
       (line.end.y - line.start.y) / line_length};
-  vector<double, double> sp_vec = {
+  tuple<double, double> sp_vec = {
       point.x - line.start.x, point.y - line.start.y};  // line start to point
 
   double projection = dot(sp_vec, line_unit_vec);
@@ -129,15 +133,15 @@ Point rotate(const Point& point, double angle) {
 }
 
 Box pose_to_box(const Pose& pose, double length, double width,
-                double clearance = 0) {
+                double clearance) {
   Corners corners = {
-      {length, width / 2},
-      {length, -width / 2},
-      {0.0, -width / 2},
-      {0.0, width / 2},
+      Point(length, width / 2),
+      Point(length, -width / 2),
+      Point(0.0, -width / 2),
+      Point(0.0, width / 2),
   };
   for (auto& c : corners) {
-    c = rotate(c, pose.theta);
+    c = rotate(c, pose.yaw);
     c.x += pose.x;
     c.y += pose.y;
   }

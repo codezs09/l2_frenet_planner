@@ -159,7 +159,7 @@ void AnytimeFrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
       fp = new FrenetPath(fot_hp);
       QuinticPolynomial lat_qp = QuinticPolynomial(
-          fot_ic->c_d, fot_ic->c_d_d, fot_ic->c_d_dd, di, 0.0, 0.0, ti);
+          fot_ic->d, fot_ic->d_d, fot_ic->d_dd, di, 0.0, 0.0, ti);
 
       // construct frenet path
       t = 0;
