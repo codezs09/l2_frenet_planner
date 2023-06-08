@@ -23,11 +23,11 @@ class Obstacle {
       : Obstacle(pose, {0, 0, 0}, length, width, obstacle_clearance) {}
   Obstacle(Pose pose, Twist twist, double length, double width,
            double obstacle_clearance)
-      : pose_(pose),
-        twist_(twist),
-        length_(length),
+      : length_(length),
         width_(width),
-        obstacle_clearance_(obstacle_clearance) {
+        obstacle_clearance_(obstacle_clearance),
+        pose_(pose),
+        twist_(twist) {
     predict_poses_.insert(std::pair<double, Pose>(0.0, pose_));
   }
 

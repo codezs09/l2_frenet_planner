@@ -99,6 +99,7 @@ void ToCartesian(const Pose& pose_f, const Twist& twist_f, const Accel& accel_f,
   double ay_c = utils::dot(unit_vec_vy_c, unit_vec_vx_nr) * s_dd_f +
                 utils::dot(unit_vec_vy_c, unit_vec_vy_nr) * d_dd_f;
   double yaw_accel_c = yaw_dd_f + kappa_nr * s_dd_f;  // ignore kappa derivative
+  *accel_c = {ax_c, ay_c, yaw_accel_c};  // Accel in Cartesian frame
 
   delete csp;
 }

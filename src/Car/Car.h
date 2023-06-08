@@ -48,11 +48,11 @@ class Car {
   Accel *mutableAccel() { return &accel; }
 
  private:
-  double length;
-  double width;
   Pose pose;    // pose w.r.t global frame
   Twist twist;  // velocity w.r.t vehicle frame
   Accel accel;  // acceleration w. = .t vehicle frame
+  double length;
+  double width;
 };
 
 #endif  // FRENETOPTIMALTRAJECTORY_CAR_H

@@ -85,10 +85,10 @@ bool FrenetPath::is_collision(const vector<Obstacle> &obstacles) {
     return false;
   }
 
-  int path_size = x.size();
+  std::size_t path_size = x.size();
   for (auto &ob : obstacles) {
     auto ob_boxes = ob.getPredictBoxes();
-    for (int i = 0; i < path_size && i < ob_boxes.size(); ++i) {
+    for (std::size_t i = 0; i < path_size && i < ob_boxes.size(); ++i) {
       auto &&ob_box_i = ob_boxes[i];
       Car ego_car_i({x[i], y[i], yaw[i]});
       Box ego_box_i = ego_car_i.getBox();
@@ -109,10 +109,10 @@ double FrenetPath::inverse_distance_to_obstacles(
     const vector<Obstacle> &obstacles) {
   double total_inverse_distance = 0.0;
 
-  int path_size = x.size();
+  std::size_t path_size = x.size();
   for (auto &ob : obstacles) {
     auto &ob_boxes = ob.getPredictBoxes();
-    for (int i = 0; i < path_size && i < ob_boxes.size(); ++i) {
+    for (std::size_t i = 0; i < path_size && i < ob_boxes.size(); ++i) {
       auto &ob_box_i = ob_boxes[i];
       Car ego_car_i({x[i], y[i], yaw[i]});
       Box ego_box_i = ego_car_i.getBox();

@@ -56,7 +56,7 @@ void InitFrenetInitialConditions(const Car& car, const json& scene_j,
 void InitObstacles(const json& scene_j, const utils::WayPoints& wp,
                    vector<Obstacle>* obstacles) {
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
-  const double dt = fot_hp.dt;
+  // const double dt = fot_hp.dt;
   vector<Obstacle> obstacles_f;
   for (const auto& ob_j : scene_j["obs"]) {
     Pose ob_pose = {ob_j["pose"]};

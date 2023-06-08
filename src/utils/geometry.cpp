@@ -79,8 +79,8 @@ bool is_collision(const Box& box_a, const Box& box_b) {
     if (max1 < min2 || max2 < min1) {
       return false;  // if there is a gap, return no collision
     }
-    return true;  // all projections overlap
   }
+  return true;  // all projections overlap
 }
 
 double distance(const Point& point_a, const Point& point_b) {
