@@ -15,7 +15,7 @@ void Obstacle::setSpeedLookupTable(
   tbl_time_to_speed_ = make_unique<LookupTable1D>(tbl_time_to_speed);
 }
 
-const utils::LookupTable1D &Obstacle::getSpeedLookupTable() {
+const utils::LookupTable1D &Obstacle::getSpeedLookupTable() const {
   return *tbl_time_to_speed_;
 }
 
@@ -41,15 +41,15 @@ bool Obstacle::predictPoses(double cur_timestamp, double max_duration,
   for (int i = 1; i <= num_steps; ++i) {
     double t = cur_timestamp + i * dt;
     double v = tbl_time_to_speed_->get(t);
-    p.x() += v * dt * std::cos(p.yaw);
-    p.y() += v * dt * std::sin(p.yaw);
+    p.x += v * dt * std::cos(p.yaw);
+    p.y += v * dt * std::sin(p.yaw);
     predict_poses_.insert(std::pair<double, Pose>(t, p));
   }
   UpdatePredictBoxes();
   return true;
 }
 
-bool Obstacle::predictPoses(map<double, double> spd_profile,
+bool Obstacle::predictPoses(const map<double, double> &spd_profile,
                             double cur_timestamp, double max_duration,
                             double dt) {
   setSpeedLookupTable(spd_profile);

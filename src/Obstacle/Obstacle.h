@@ -39,7 +39,7 @@ class Obstacle {
 
   void setSpeedLookupTable(const map<double, double> &spd_profile);
   void setSpeedLookupTable(const utils::LookupTable1D &tbl_time_to_speed);
-  const utils::LookupTable1D &getSpeedLookupTable();
+  const utils::LookupTable1D &getSpeedLookupTable() const;
 
   map<double, Pose> getPredictPoses() const { return predict_poses_; }
   map<double, Pose> *mutablePredictPoses() { return &predict_poses_; }

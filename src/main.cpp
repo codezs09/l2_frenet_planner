@@ -1,4 +1,4 @@
-#include "FrenetOptimalTrajectory.h"
+#include "FrenetOptimalTrajectory/FrenetOptimalTrajectory.h"
 #include "FrenetOptimalTrajectory/py_cpp_struct.h"
 #include "FrenetPath.h"
 #include "fot_wrapper.cpp"
@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <utility>
 
 using namespace std;
 using namespace utils;
@@ -46,18 +47,15 @@ void UpdateFrenetCoordinates(const Car& car, const utils::WayPoints& wp,
 }
 
 void InitFrenetInitialConditions(const Car& car, const json& scene_j,
-                                 utils::WayPoints& wp,
-                                 vector<Obstacle>& obstacles,
+                                 const utils::WayPoints& wp,
                                  FrenetInitialConditions* fot_ic) {
   UpdateFrenetCoordinates(car, wp, fot_ic);
   fot_ic->target_speed = scene_j["target_speed"];
-  fot_ic->wp = wp;
-  fot_ic->obstacles_c = obstacles;
 }
 
 void InitObstacles(const json& scene_j, const utils::WayPoints& wp,
                    vector<Obstacle>* obstacles) {
-  auto fot_hp = FrenetHyperparameters::getConstInstance();
+  const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double dt = fot_hp.dt;
   vector<Obstacle> obstacles_f;
   for (const auto& ob_j : scene_j["obs"]) {
@@ -78,11 +76,12 @@ void InitObstacles(const json& scene_j, const utils::WayPoints& wp,
   for (const auto& ob_f : obstacles_f) {
     std::unique_ptr<Obstacle> ob_c = nullptr;
     utils::ToCartesian(ob_f, wp, ob_c);
-    obstacles->push_back(*ob_c);
+    obstacles->push_back(std::move(*ob_c));
   }
 }
 
-void UpdateEgoCarNextState(const FrenetPath* best_frenet_path, Car& ego_car) {
+void UpdateEgoCarNextState(const FrenetPath* best_frenet_path,
+                           const WayPoints& wp, Car* ego_car) {
   // update ego car to next state
   double next_s = best_frenet_path->s[1];
   double next_d = best_frenet_path->d[1];
@@ -90,17 +89,23 @@ void UpdateEgoCarNextState(const FrenetPath* best_frenet_path, Car& ego_car) {
   double next_d_d = best_frenet_path->d_d[1];
   double next_s_dd = best_frenet_path->s_dd[1];
   double next_d_dd = best_frenet_path->d_dd[1];
-  double next_yaw_f = std::atan2(d_d, s_d);
-  double next_yaw_d_f = (s_d * d_dd - d_d * s_dd) / (s_d * s_d + d_d * d_d);
+  double next_yaw_f = std::atan2(next_d_d, next_s_d);
+  double next_yaw_d_f = (next_s_d * next_d_dd - next_d_d * next_s_dd) /
+                        (next_s_d * next_s_d + next_d_d * next_d_d);
   Pose pose_c;
   Twist twist_c;
   Accel accel_c;
   ToCartesian({next_s, next_d, next_yaw_f}, {next_s_d, next_d_d, next_yaw_d_f},
-              {next_s_dd, next_d_dd, 0.0}, fot_ic.wp, &pose_c, &twist_c,
-              &accel_c);
-  ego_car.setPose(pose_c);
-  ego_car.setTwist(twist_c);
-  ego_car.setAccel(accel_c);
+              {next_s_dd, next_d_dd, 0.0}, wp, &pose_c, &twist_c, &accel_c);
+  ego_car->setPose(pose_c);
+  ego_car->setTwist(twist_c);
+  ego_car->setAccel(accel_c);
+}
+
+void InitWaypoints(const json& scene, WayPoints* wp) {
+  for (const auto& waypoint : scene["waypoints"]) {
+    wp->push_back(waypoint.get<std::vector<double>>());
+  }
 }
 
 int main(int argc, char** argv) {
@@ -115,13 +120,15 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  utils::WayPoints wp(scene_j["waypoints"]);
+  utils::WayPoints wp;
+  InitWaypoints(scene_j, &wp);
+
   Car ego_car({scene_j["pose"]}, {scene_j["vel"]}, {0, 0, 0});
   vector<Obstacle> obstacles;
   InitObstacles(scene_j, wp, &obstacles);
 
-  FrenetInitialConditions fot_ic;
-  InitFrenetInitialConditions(ego_car, scene_j, wp, obstacles, &fot_ic);
+  FrenetInitialConditions fot_ic(wp, obstacles);
+  InitFrenetInitialConditions(ego_car, scene_j, wp, &fot_ic);
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
@@ -134,7 +141,7 @@ int main(int argc, char** argv) {
          << endl;
 
     // update Frenet coordinate of ego car
-    UpdateFrenetCoordinates(ego_car, wp, fot_ic);
+    UpdateFrenetCoordinates(ego_car, wp, &fot_ic);
     // prediction on obstacles
     for (auto& ob : obstacles) {
       ob.predictPoses(timestamp, fot_hp.maxt, TimeStep);
@@ -151,7 +158,7 @@ int main(int argc, char** argv) {
 
     // update
     timestamp += TimeStep;
-    UpdateEgoCarNextState(best_frenet_path, &ego_car);
+    UpdateEgoCarNextState(best_frenet_path, wp, &ego_car);
     // update obstacle to next state
     for (Obstacle& ob : obstacles) {
       Pose ob_pose_next = ob.getPredictPoseAtTimestamp(timestamp);

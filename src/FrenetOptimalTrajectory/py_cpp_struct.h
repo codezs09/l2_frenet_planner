@@ -13,6 +13,10 @@ using namespace std;
 using json = nlohmann::json;
 
 struct FrenetInitialConditions {
+  FrenetInitialConditions() = delete;
+  FrenetInitialConditions(WayPoints& wp, vector<Obstacle>& obstacles_c)
+      : wp(wp), obstacles_c(obstacles_c) {}
+
   double s;
   double s_d;
   double s_dd;
