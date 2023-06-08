@@ -13,7 +13,40 @@ vector<Line> Box::getEdges() {
 }
 
 bool is_collision(const Box& box_a, const Box& box_b) {
-  // using projection method, i.e. Separating Axis Theorem
+  // quick check to avoid unnecessary computation below
+  auto get_range_x = [](Box b) -> std::pair<double, double> {
+    double min_x = std::numeric_limits<double>::max();
+    double max_x = std::numeric_limits<double>::min();
+    for (auto& c : b.corners) {
+      min_x = std::min(min_x, c.x);
+      max_x = std::max(max_x, c.x);
+    }
+    return {min_x, max_x};
+  };
+  auto range_x_a = get_range_x(box_a);
+  auto range_x_b = get_range_x(box_b);
+  if (range_x_a.first > range_x_b.second ||
+      range_x_b.first > range_x_a.second) {
+    return false;  // gap in x direction
+  }
+
+  auto get_range_y = [](Box b) -> std::pair<double, double> {
+    double min_y = std::numeric_limits<double>::max();
+    double max_y = std::numeric_limits<double>::min();
+    for (auto& c : b.corners) {
+      min_y = std::min(min_y, c.y);
+      max_y = std::max(max_y, c.y);
+    }
+    return {min_y, max_y};
+  };
+  auto range_y_a = get_range_y(box_a);
+  auto range_y_b = get_range_y(box_b);
+  if (range_y_a.first > range_y_b.second ||
+      range_y_b.first > range_y_a.second) {
+    return false;  // gap in y direction
+  }
+
+  // Otherwise using projection method, i.e. Separating Axis Theorem
   std::vector<Line> axes;
   for (int i = 0; i < 2; ++i) {
     axes.push_back(Line(box_a.corners[i], box_a.corners[(i + 1) % 4]));
