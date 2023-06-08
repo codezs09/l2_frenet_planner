@@ -26,8 +26,9 @@ DEFINE_string(hyper_path,
               "/home/sheng/Project/l2_frenet_planner/hyperparameters.json",
               "Path to hyperparameter config file");
 
-double get_duration_ms(std::chrono::time_point end,
-                       std::chrono::time_point start) {
+double get_duration_ms(
+    std::chrono::time_point<std::chrono::high_resolution_clock> end,
+    std::chrono::time_point<std::chrono::high_resolution_clock> start) {
   auto duration =
       std::chrono::duration_cast<std::chrono::microseconds>(end - start);
   return static_cast<double>(duration.count()) / 1000.0;
