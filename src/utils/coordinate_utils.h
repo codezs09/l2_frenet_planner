@@ -7,6 +7,7 @@
 #include "Car/Car.h"
 #include "CubicSpline/CubicSpline2D.h"
 #include "Obstacle/Obstacle.h"
+#include "utils/debug.h"
 #include "utils/utils.h"
 
 namespace utils {

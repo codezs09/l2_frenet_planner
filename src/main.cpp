@@ -165,8 +165,8 @@ int main(int argc, char** argv) {
     auto start = std::chrono::high_resolution_clock::now();
 
     // break if near goal
-    if (utils::norm(ego_car.getPose().x - wp.back()[0],
-                    ego_car.getPose().y - wp.back()[1]) < 3.0) {
+    if (utils::norm(ego_car.getPose().x - wp[0].back(),
+                    ego_car.getPose().y - wp[1].back()) < 3.0) {
       break;
     }
 
