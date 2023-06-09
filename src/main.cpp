@@ -113,8 +113,9 @@ void UpdateEgoCarNextState(const FrenetPath* best_frenet_path,
 }
 
 void InitWaypoints(const json& scene_j, WayPoints* wp) {
-  for (const auto& waypoint : scene_j["wp"]) {
-    wp->push_back(waypoint.get<std::vector<double>>());
+  for (const auto& point : scene_j["wp"]) {
+    (*wp)[0].push_back(point[0]);
+    (*wp)[1].push_back(point[1]);
   }
 }
 

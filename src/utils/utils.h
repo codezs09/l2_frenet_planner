@@ -13,7 +13,7 @@ using json = nlohmann::json;
 
 namespace utils {
 
-typedef vector<vector<double>> WayPoints;
+typedef array<vector<double>, 2> WayPoints;  // [x_vec, y_vec]
 
 struct Pose {
   double x;    // [m]
