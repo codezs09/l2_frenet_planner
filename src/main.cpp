@@ -19,11 +19,11 @@ using namespace utils;
 using json = nlohmann::json;
 
 DEFINE_string(scene_path,
-              "/home/sheng/Projects/l2_frenet_planner/"
+              "/home/deeproute/l2_frenet_planner/"
               "config/scenes/one_lane_slow_down.json",
               "Path to scene config file");
 DEFINE_string(hyper_path,
-              "/home/sheng/Projects/l2_frenet_planner/"
+              "/home/deeproute/l2_frenet_planner/"
               "config/hyperparameters.json",
               "Path to hyperparameter config file");
 

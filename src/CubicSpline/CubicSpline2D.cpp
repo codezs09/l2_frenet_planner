@@ -87,9 +87,9 @@ double CubicSpline2D::find_s(double x, double y) {
       }
     }
     // update s_lo and s_hi
-    ds /= 10.0;
     s_lo = std::max(s_lo, s_at_min_dist - 2 * ds);
     s_hi = std::min(s_hi, s_at_min_dist + 2 * ds);
+    ds /= 10.0;
   }
   return s_at_min_dist;
 }

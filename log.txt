@@ -32,6 +32,16 @@
     - fix search_index not containing last element for CubicSpline1D
     - fix find_s bug for CubicSpline2D
 
+06.09
+- data logging for
+    - timestamp
+    - ego car (pose, twist, accel)
+    - best path (poses)
+    - obstacles (pose)
+    - candidate paths (poses)
+- add postprocessing script for logged data, with
+    - visualization
+
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.
 

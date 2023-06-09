@@ -173,7 +173,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         tfp->d_dd.assign(fp->d_dd.begin(), fp->d_dd.end());
         tfp->d_ddd.assign(fp->d_ddd.begin(), fp->d_ddd.end());
         QuarticPolynomial lon_qp = QuarticPolynomial(
-            fot_ic.s, fot_ic.s_d, 0.0, tv, 0.0,
+            fot_ic.s, fot_ic.s_d, fot_ic.s_dd, tv, 0.0,
             ti);  // 1. ic and ec lon_acc all zeros? 2. sampling time is same
                   // for both lat and lon?
 
