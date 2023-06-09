@@ -8,7 +8,7 @@
 			"pose": [50, 0, 0], 
 			"length": 5.0,
 			"width": 2.2,
-			"speed_profile": [[0, 25], [10, 0]]
+			"speed_profile": [[0, 10], [10, 0]]
 		},
 		{
 			"pose_coord": "Frenet",

@@ -81,6 +81,7 @@ void InitObstacles(const json& scene_j, const utils::WayPoints& wp,
       // ob.predictPoses(0.0, fot_hp.maxt, dt);
       ob.setTwist({spd_profile.begin()->second, 0.0, 0.0});
     }
+    obstacles_f.push_back(std::move(ob));
   }
   // convert to Cartesian coordinates
   for (const auto& ob_f : obstacles_f) {

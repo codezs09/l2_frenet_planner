@@ -33,6 +33,8 @@
     - fix find_s bug for CubicSpline2D
 
 06.09
+- FIX moving clitch with gdb debugging tool
+- FIX no response to obstacles
 - data logging for
     - timestamp
     - ego car (pose, twist, accel)
