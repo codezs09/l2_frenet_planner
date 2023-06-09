@@ -26,6 +26,11 @@
 - fix build and warning errors 
 - add termination condition for main loop when the ego car reaches to end of destination
 - add time cost calculation for main loop
+- fix running bugs: 
+    - json parsing error
+    - parse waypoint bugs
+    - fix search_index not containing last element for CubicSpline1D
+    - fix find_s bug for CubicSpline2D
 
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.
