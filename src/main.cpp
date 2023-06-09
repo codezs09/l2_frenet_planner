@@ -19,11 +19,11 @@ using namespace utils;
 using json = nlohmann::json;
 
 DEFINE_string(scene_path,
-              "/home/sheng/Project/l2_frenet_planner/"
+              "/home/sheng/Projects/l2_frenet_planner/"
               "config/scenes/one_lane_slow_down.json",
               "Path to scene config file");
 DEFINE_string(hyper_path,
-              "/home/sheng/Project/l2_frenet_planner/"
+              "/home/sheng/Projects/l2_frenet_planner/"
               "config/hyperparameters.json",
               "Path to hyperparameter config file");
 
@@ -147,12 +147,8 @@ int main(int argc, char** argv) {
   vector<Obstacle> obstacles;
   InitObstacles(scene_j, wp, &obstacles);
 
-  cout << "debug 12" << endl;
-
   FrenetInitialConditions fot_ic(wp, obstacles);
   InitFrenetInitialConditions(ego_car, scene_j, wp, &fot_ic);
-
-  cout << "debug 43543f" << endl;
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
@@ -180,7 +176,7 @@ int main(int argc, char** argv) {
     // run frenet optimal trajectory
     FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
     FrenetPath* best_frenet_path = fot.getBestPath();
-    if (!best_frenet_path || !best_frenet_path->x.empty()) {
+    if (!best_frenet_path || best_frenet_path->x.empty()) {
       cerr << "Fail to find a feasible path at timestamp: " << timestamp
            << endl;
       break;
@@ -202,9 +198,14 @@ int main(int argc, char** argv) {
     double cycle_duration = get_duration_ms(end, start);
     total_runtime += cycle_duration;
 
-    cout << "Iteration: " << i << ", Simulation time: " << timestamp
-         << " [s]. Plan runtime: " << plan_duration
-         << " [ms], Cycle runtime: " << cycle_duration << " [ms]. " << endl;
+    cout << "#" << i << ", simtime: " << timestamp
+         << "[s]. Plan: " << plan_duration << "[ms], Cycle: " << cycle_duration
+         << "[ms]. x=" << ego_car.getPose().x << ", y=" << ego_car.getPose().y
+         << ", yaw=" << utils::rad2deg(ego_car.getPose().yaw)
+         << "[deg]. vx=" << ego_car.getTwist().vx
+         << ", vy=" << ego_car.getTwist().vy
+         << ", w=" << utils::rad2deg(ego_car.getTwist().yaw_rate)
+         << "[deg/s]. ax=" << ego_car.getAccel().ax << endl;
   }
   cout << "Total runtime: " << total_runtime << " [ms] for # " << i
        << " iterations." << endl;

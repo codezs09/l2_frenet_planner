@@ -58,6 +58,10 @@ inline double cross_product(const tuple<double, double>& vec1,
 
 bool LoadJsonFile(string scene_path, json* j);
 
+inline double deg2rad(double deg) { return deg * M_PI / 180.0; }
+inline double rad2deg(double rad) { return rad * 180.0 / M_PI; }
+double warp_angle(double angle);
+
 }  // namespace utils
 
 #endif  // FRENET_OPTIMAL_TRAJECTORY_UTILS_H

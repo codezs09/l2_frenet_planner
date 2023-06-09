@@ -28,4 +28,14 @@ bool LoadJsonFile(string scene_path, json* j) {
   return true;
 }
 
+double warp_angle(double angle) {
+  while (angle > M_PI) {
+    angle -= 2 * M_PI;
+  }
+  while (angle < -M_PI) {
+    angle += 2 * M_PI;
+  }
+  return angle;
+}
+
 }  // namespace utils
