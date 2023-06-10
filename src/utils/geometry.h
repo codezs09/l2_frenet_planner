@@ -40,6 +40,7 @@ using Corners = std::array<Point, 4>;
  */
 class Box {
  public:
+  Box() = default;
   Box(const Corners& corners) : corners(corners) {}
   Corners corners;
 

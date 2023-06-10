@@ -62,7 +62,7 @@ class FrenetPath {
   // final cost
   double cf = 0.0;
 
-  FrenetPath(const FrenetHyperparameters& fot_hp_) : fot_hp(fot_hp_) {}
+  FrenetPath() = default;
   bool to_global_path(CubicSpline2D* csp);
   bool is_valid_path(const vector<Obstacle>& obstacles);
   bool is_collision(const vector<Obstacle>& obstacles);
@@ -74,10 +74,6 @@ class FrenetPath {
                  c_longitudinal_acceleration, c_longitudinal_jerk, c_time_taken,
                  c_end_speed_deviation, c_longitudinal, c_inv_dist_to_obstacles,
                  cf);
-
- private:
-  // Hyperparameters
-  const FrenetHyperparameters& fot_hp;
 };
 
 #endif  // FRENET_OPTIMAL_TRAJECTORY_FRENETPATH_H

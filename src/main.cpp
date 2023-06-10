@@ -20,15 +20,16 @@ using namespace utils;
 using json = nlohmann::json;
 
 DEFINE_string(scene_path,
-              "/home/deeproute/l2_frenet_planner/"
+              "/home/sheng/Projects/l2_frenet_planner/"
               "config/scenes/one_lane_slow_down.json",
               "Path to scene config file");
 DEFINE_string(hyper_path,
-              "/home/deeproute/l2_frenet_planner/"
+              "/home/sheng/Projects/l2_frenet_planner/"
               "config/hyperparameters.json",
               "Path to hyperparameter config file");
 DEFINE_bool(store_data, true, "turn on flag to store running data.");
-DEFINE_string(data_path, "/home/deeproute/l2_frenet_planner/build/data.bin",
+DEFINE_string(data_path,
+              "/home/sheng/Projects/l2_frenet_planner/build/data.bin",
               "Path to store running data.");
 
 double get_duration_ms(
@@ -233,7 +234,9 @@ int main(int argc, char** argv) {
        << " iterations." << endl;
 
   if (FLAGS_store_data) {
-    save_data(FLAGS_data_path, data_frames);
+    if (save_data(FLAGS_data_path, data_frames)) {
+      cout << "Data logging at: " << FLAGS_data_path << endl;
+    }
   }
   return 0;
 }

@@ -139,7 +139,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
       lateral_acceleration = 0;
       lateral_jerk = 0;
 
-      fp = new FrenetPath(fot_hp);
+      fp = new FrenetPath();
       QuinticPolynomial lat_qp = QuinticPolynomial(
           fot_ic.d, fot_ic.d_d, fot_ic.d_dd, di, 0.0, 0.0, ti);
 
@@ -166,7 +166,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         longitudinal_jerk = 0;
 
         // copy frenet path
-        tfp = new FrenetPath(fot_hp);
+        tfp = new FrenetPath();
         tfp->t.assign(fp->t.begin(), fp->t.end());
         tfp->d.assign(fp->d.begin(), fp->d.end());
         tfp->d_d.assign(fp->d_d.begin(), fp->d_d.end());

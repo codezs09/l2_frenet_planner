@@ -26,7 +26,7 @@ struct DataFrame {
                  frenet_paths);
 };
 
-void save_data(const std::string& filename,
+bool save_data(const std::string& filename,
                const std::vector<DataFrame>& data_frames);
 
 #endif  // UTILS_DATA_LOG_H

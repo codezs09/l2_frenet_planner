@@ -56,18 +56,22 @@ bool FrenetPath::to_global_path(CubicSpline2D *csp) {
 // Validate the calculated frenet paths against threshold speed, acceleration,
 // curvature and collision checks
 bool FrenetPath::is_valid_path(const vector<Obstacle> &obstacles) {
+  const auto &fot_hp = FrenetHyperparameters::getConstInstance();
+
   if (any_of(s_d.begin(), s_d.end(),
-             [this](int i) { return abs(i) > fot_hp.max_speed; })) {
+             [this, &fot_hp](int i) { return abs(i) > fot_hp.max_speed; })) {
     return false;
   }
   // max accel check
-  else if (any_of(s_dd.begin(), s_dd.end(),
-                  [this](int i) { return abs(i) > fot_hp.max_accel; })) {
+  else if (any_of(s_dd.begin(), s_dd.end(), [this, &fot_hp](int i) {
+             return abs(i) > fot_hp.max_accel;
+           })) {
     return false;
   }
   // max curvature check
-  else if (any_of(c.begin(), c.end(),
-                  [this](int i) { return abs(i) > fot_hp.max_curvature; })) {
+  else if (any_of(c.begin(), c.end(), [this, &fot_hp](int i) {
+             return abs(i) > fot_hp.max_curvature;
+           })) {
     return false;
   }
   // collision check

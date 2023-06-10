@@ -19,7 +19,29 @@ using namespace utils;
 
 class Obstacle {
  public:
-  Obstacle() = delete;
+  Obstacle() = default;
+
+  // copy constructor
+  Obstacle(const Obstacle &other)
+      : length_(other.length_),
+        width_(other.width_),
+        obstacle_clearance_(other.obstacle_clearance_),
+        pose_(other.pose_),
+        twist_(other.twist_),
+        predict_poses_(other.predict_poses_),
+        predict_boxes_(other.predict_boxes_),
+        tbl_time_to_speed_(new LookupTable1D(*(other.tbl_time_to_speed_))) {}
+
+  // copy assignment operator
+  Obstacle &operator=(const Obstacle &other) {
+    if (this != &other) {
+      // copy and swap idiom
+      Obstacle copy(other);
+      std::swap(*this, copy);
+    }
+    return *this;
+  }
+
   Obstacle(Pose pose, double length, double width, double obstacle_clearance)
       : Obstacle(pose, {0, 0, 0}, length, width, obstacle_clearance) {}
   Obstacle(Pose pose, Twist twist, double length, double width,
@@ -63,8 +85,8 @@ class Obstacle {
   double obstacle_clearance_;
 
   Pose pose_;
-  map<double, Pose> predict_poses_;  // map: timestapm -> pose
   Twist twist_;
+  map<double, Pose> predict_poses_;  // map: timestapm -> pose
   vector<Box> predict_boxes_;
 
   MSGPACK_DEFINE(length_, width_, obstacle_clearance_, pose_, twist_,
