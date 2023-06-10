@@ -35,7 +35,7 @@
 06.09
 - FIX moving clitch with gdb debugging tool
 - FIX no response to obstacles
-- data logging for
+- Using MessagePack to do data logging for following fields 
     - timestamp
     - ego car (pose, twist, accel)
     - best path (poses)

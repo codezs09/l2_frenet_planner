@@ -35,6 +35,7 @@ class FrenetOptimalTrajectory {
                           const FrenetHyperparameters &fot_hp_);
   ~FrenetOptimalTrajectory();
   FrenetPath *getBestPath();
+  const vector<FrenetPath *> &getFrenetPaths() { return frenet_paths; }
 
  private:
   const FrenetInitialConditions &fot_ic;

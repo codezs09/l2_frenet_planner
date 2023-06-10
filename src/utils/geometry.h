@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cmath>
+#include <msgpack.hpp>
 #include <utility>
 #include <vector>
 
@@ -17,6 +18,8 @@ class Point {
   Point(double x = 0, double y = 0) : x(x), y(y) {}
   double x;  // [m]
   double y;  // [m]
+
+  MSGPACK_DEFINE(x, y);
 };
 
 class Line {
@@ -42,6 +45,8 @@ class Box {
 
   vector<Line> getEdges() const;
   double DistanceTo(const Box& other) const;
+
+  MSGPACK_DEFINE(corners);
 };
 
 bool is_collision(const Box& box_a, const Box& box_b);

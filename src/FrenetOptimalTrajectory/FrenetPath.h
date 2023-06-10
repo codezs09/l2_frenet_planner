@@ -8,6 +8,7 @@
 #include "utils/geometry.h"
 
 #include <eigen3/Eigen/Dense>
+#include <msgpack.hpp>
 #include <tuple>
 #include <vector>
 
@@ -66,6 +67,13 @@ class FrenetPath {
   bool is_valid_path(const vector<Obstacle>& obstacles);
   bool is_collision(const vector<Obstacle>& obstacles);
   double inverse_distance_to_obstacles(const vector<Obstacle>& obstacles);
+
+  MSGPACK_DEFINE(t, d, d_d, d_dd, d_ddd, s, s_d, s_dd, s_ddd, x, y, yaw, ds, c,
+                 c_lateral_deviation, c_lateral_velocity,
+                 c_lateral_acceleration, c_lateral_jerk, c_lateral,
+                 c_longitudinal_acceleration, c_longitudinal_jerk, c_time_taken,
+                 c_end_speed_deviation, c_longitudinal, c_inv_dist_to_obstacles,
+                 cf);
 
  private:
   // Hyperparameters

@@ -16,6 +16,9 @@ find_package(Qt5Gui REQUIRED)
 find_package(Eigen3)
 find_package(gflags REQUIRED)
 
+find_package(msgpack REQUIRED)
+include_directories(${MSGPACK_INCLUDE_DIRS})
+
 if(Eigen3_FOUND)
     set(CUSTOM_EIGEN ${EIGEN3_INCLUDE_DIR})
 else()
@@ -41,6 +44,7 @@ add_library(FrenetOptimalTrajectory SHARED
             src/utils/geometry.cpp
             src/utils/lookup_table_1d.h
             src/utils/coordinate_utils.cpp
+            src/utils/data_log.cpp
             src/Polynomials/QuarticPolynomial.cpp
             src/Polynomials/QuarticPolynomial.h
             src/Polynomials/QuinticPolynomial.cpp
@@ -67,6 +71,7 @@ add_library(PackageFrenetOptimalTrajectory STATIC
             src/utils/geometry.cpp
             src/utils/lookup_table_1d.h
             src/utils/coordinate_utils.cpp
+            src/utils/data_log.cpp
             src/Polynomials/QuarticPolynomial.cpp
             src/Polynomials/QuarticPolynomial.h
             src/Polynomials/QuinticPolynomial.cpp
@@ -118,6 +123,7 @@ add_executable(FrenetOptimalTrajectoryTest
                src/utils/geometry.cpp
                src/utils/lookup_table_1d.h
                src/utils/coordinate_utils.cpp
+               src/utils/data_log.cpp
                src/Polynomials/QuarticPolynomial.cpp
                src/Polynomials/QuarticPolynomial.h
                src/Polynomials/QuinticPolynomial.cpp
@@ -137,9 +143,9 @@ add_executable(FrenetOptimalTrajectoryTest
                src/Car/Car.cpp
                src/Car/Car.h)
 target_link_libraries(FrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui
-                      gflags)
+                      gflags ${MSGPACK_LIBRARIES})
 target_link_libraries(PackageFrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui
-                      gflags)
+                      gflags ${MSGPACK_LIBRARIES})
 target_link_libraries(FrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui
-                      gflags)
+                      gflags ${MSGPACK_LIBRARIES})
 # target_link_libraries(AnytimeFrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui)

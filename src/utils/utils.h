@@ -4,6 +4,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <msgpack.hpp>
 #include <nlohmann/json.hpp>
 #include <tuple>
 #include <vector>
@@ -19,16 +20,22 @@ struct Pose {
   double x;    // [m]
   double y;    // [m]
   double yaw;  // [rad]
+
+  MSGPACK_DEFINE(x, y, yaw);
 };
 struct Twist {
   double vx;
   double vy;
   double yaw_rate;
+
+  MSGPACK_DEFINE(vx, vy, yaw_rate);
 };
 struct Accel {
   double ax;
   double ay;
   double yaw_accel;
+
+  MSGPACK_DEFINE(ax, ay, yaw_accel);
 };
 
 enum class CoordinateType {

@@ -5,6 +5,7 @@
 #include <eigen3/Eigen/Dense>
 #include <map>
 #include <memory>
+#include <msgpack.hpp>
 #include <utility>
 #include <vector>
 
@@ -56,17 +57,21 @@ class Obstacle {
 
   const vector<Box> &getPredictBoxes() const { return predict_boxes_; }
 
- private:
-  void UpdatePredictBoxes();
-
-  const double length_;  // parallel with yaw
-  const double width_;
-  const double obstacle_clearance_;
+  // private: // set public for convenience to use msgpack
+  double length_;  // parallel with yaw
+  double width_;
+  double obstacle_clearance_;
 
   Pose pose_;
   map<double, Pose> predict_poses_;  // map: timestapm -> pose
   Twist twist_;
   vector<Box> predict_boxes_;
+
+  MSGPACK_DEFINE(length_, width_, obstacle_clearance_, pose_, twist_,
+                 predict_boxes_);
+
+ private:
+  void UpdatePredictBoxes();
 
   // for use under Frenet frame
   unique_ptr<LookupTable1D> tbl_time_to_speed_ = nullptr;

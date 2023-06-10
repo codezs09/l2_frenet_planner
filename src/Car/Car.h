@@ -5,6 +5,7 @@
 #include "utils/utils.h"
 
 #include <memory>
+#include <msgpack.hpp>
 #include <tuple>
 #include <vector>
 
@@ -47,12 +48,14 @@ class Car {
   const Accel &getAccel() const { return accel; }
   Accel *mutableAccel() { return &accel; }
 
- private:
+  //  private:  // sheng: set public to use msgpack
   Pose pose;    // pose w.r.t global frame
   Twist twist;  // velocity w.r.t vehicle frame
   Accel accel;  // acceleration w. = .t vehicle frame
   double length;
   double width;
+
+  MSGPACK_DEFINE(pose, twist, accel, length, width);
 };
 
 #endif  // FRENETOPTIMALTRAJECTORY_CAR_H

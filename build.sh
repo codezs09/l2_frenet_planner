@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo apt-get install -y libeigen3-dev clang cmake libgflags-dev
+sudo apt-get install -y libeigen3-dev clang cmake libgflags-dev libmsgpack-dev
 if [ ! -d "build" ]; then
   mkdir build
 fi

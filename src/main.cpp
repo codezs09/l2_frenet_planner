@@ -4,6 +4,7 @@
 #include "fot_wrapper.cpp"
 #include "py_cpp_struct.h"
 #include "utils/coordinate_utils.h"
+#include "utils/data_log.h"
 #include "utils/utils.h"
 
 #include <gflags/gflags.h>
@@ -26,6 +27,9 @@ DEFINE_string(hyper_path,
               "/home/deeproute/l2_frenet_planner/"
               "config/hyperparameters.json",
               "Path to hyperparameter config file");
+DEFINE_bool(store_data, true, "turn on flag to store running data.");
+DEFINE_string(data_path, "/home/deeproute/l2_frenet_planner/build/data.bin",
+              "Path to store running data.");
 
 double get_duration_ms(
     std::chrono::time_point<std::chrono::high_resolution_clock> end,
@@ -153,11 +157,11 @@ int main(int argc, char** argv) {
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
-  // logic similar to fot.py script
   int sim_loop = 200;
   double total_runtime = 0.0;  // [ms]
   double timestamp = 0.0;      // [s], simulation timestamp
   int i = 0;
+  std::vector<DataFrame> data_frames;
   for (; i < sim_loop; ++i) {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -186,6 +190,23 @@ int main(int argc, char** argv) {
     auto plan_end = std::chrono::high_resolution_clock::now();
     double plan_duration = get_duration_ms(plan_end, start);
 
+    // save current frame data
+    if (FLAGS_store_data) {
+      const auto& frenet_paths = fot.getFrenetPaths();
+
+      DataFrame df;
+      df.timestamp = timestamp;
+      df.ego_car = ego_car;
+      df.best_frenet_path = *best_frenet_path;
+      df.wx = wp[0];
+      df.wy = wp[1];
+      df.obstacles = obstacles;
+      for (auto p : frenet_paths) {
+        df.frenet_paths.push_back(*p);
+      }
+      data_frames.push_back(std::move(df));
+    }
+
     // update
     timestamp += TimeStep;
     UpdateEgoCarNextState(best_frenet_path, wp, &ego_car);
@@ -211,5 +232,8 @@ int main(int argc, char** argv) {
   cout << "Total runtime: " << total_runtime << " [ms] for # " << i
        << " iterations." << endl;
 
+  if (FLAGS_store_data) {
+    save_data(FLAGS_data_path, data_frames);
+  }
   return 0;
 }

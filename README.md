@@ -2,6 +2,17 @@
 ![FrenetOptimalTrajectory Demo](img/fot.gif)
 ![FrenetOptimalTrajectory Demo](img/fot2.gif)
 
+## Dependency Requirements
+Install Python dependencies: 
+```
+pip install -r requirements.txt
+```
+
+Other apt package dependencies:
+```
+sudo apt-get install -y libeigen3-dev clang cmake libgflags-dev libmsgpack-dev
+```
+
 ## Overview
 This repository contains a fast, C++ implementation of the Frenet Optimal
  Trajectory algorithm with a Python wrapper. It is used as one of the motion planning models in 
