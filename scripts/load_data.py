@@ -1,6 +1,11 @@
 from collections import namedtuple
 import msgpack
 
+'''
+Load data in msgpack format into python classes. 
+The data format and deserialization are provided below. 
+'''
+
 Point = namedtuple('Point', ['x', 'y'])
 Box = namedtuple('Box', ['corners'])
 Pose = namedtuple('Pose', ['x', 'y', 'yaw'])
