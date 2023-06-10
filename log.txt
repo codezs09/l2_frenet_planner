@@ -41,7 +41,10 @@
     - best path (poses)
     - obstacles (pose)
     - candidate paths (poses)
+
+06.10
 - add postprocessing script for logged data, with
+    - data parsing
     - visualization
 
 CHANGES: 
