@@ -135,10 +135,10 @@ Point rotate(const Point& point, double angle) {
 Box pose_to_box(const Pose& pose, double length, double width,
                 double clearance) {
   Corners corners = {
-      Point(length, width / 2),
-      Point(length, -width / 2),
-      Point(0.0, -width / 2),
-      Point(0.0, width / 2),
+      Point(length + clearance, width / 2 + clearance),
+      Point(length + clearance, -width / 2 - clearance),
+      Point(0.0 - clearance, -width / 2 - clearance),
+      Point(0.0 - clearance, width / 2 + clearance),
   };
   for (auto& c : corners) {
     c = rotate(c, pose.yaw);
