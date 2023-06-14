@@ -9,6 +9,8 @@ import sys
 import subprocess
 
 from load_data import load_data
+from utils.geometry import rotate, pose_to_box
+from make_gif import make_gif
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD_DIR = os.path.join(PROJECT_DIR, "build")
@@ -28,6 +30,8 @@ def parse_arguments():
                         default=DATA_LOG_PATH)
     parser.add_argument('--save_frame', action='store_true',
                         default=True)
+    parser.add_argument('--save_gif', action='store_true',
+                        default=True)
 
     args = parser.parse_args()
     return args 
@@ -43,7 +47,7 @@ def run_cpp_executable(args):
 def post_process(args):
     # visualization
     if args.store_data:
-        area = 10
+        area = 20
         data_frames = load_data(args.data_path)
         # visualize data
         for i, frame in enumerate(data_frames):
@@ -51,28 +55,47 @@ def post_process(args):
             plt.plot(frame.wx, frame.wy)
             ax = plt.gca()
 
+            # plot obstacles
             for obstacle in frame.obstacles:
                 corners = obstacle.predict_boxes[0].corners
-                polygon = patch.Polygon(corners, linewidth=1, edgecolor='k', facecolor='none')
+                polygon = patch.Polygon(corners, linewidth=1, edgecolor='b', facecolor='none')
                 ax.add_patch(polygon)
-            plt.plot(frame.best_frenet_path.x, frame.best_frenet_path.y, "-or")
+                for j in range(1, len(obstacle.predict_boxes), 10):
+                    corners = obstacle.predict_boxes[j].corners
+                    polygon = patch.Polygon(corners, linewidth=1, edgecolor='b', facecolor='none',
+                                            linestyle='--')
+                    ax.add_patch(polygon)
+
+            # plot ego car
             ego_x = frame.ego_car.pose.x
             ego_y = frame.ego_car.pose.y
-            ego_yaw = frame.ego_car.pose.yaw
+            ego_corners = pose_to_box(frame.ego_car.pose, frame.ego_car.length, frame.ego_car.width)
+            ego_polygon = patch.Polygon(ego_corners, linewidth=1, edgecolor='g', facecolor='none')
+            ax.add_patch(ego_polygon)
             plt.plot(ego_x, ego_y, "vc")
-            plt.xlim(ego_x - area, ego_x + area)
-            plt.ylim(ego_y - area, ego_y + area)
+
+            # plot frenet paths
+            plt.plot(frame.best_frenet_path.x, frame.best_frenet_path.y, "-or")
+            print("frame.frenet_paths number: ", len(frame.frenet_paths))
+            # for frenet_path in frame.frenet_paths:
+            #     plt.plot(frenet_path.x, frenet_path.y, "-")
+
+            plt.axis('equal')
+            plt.xlim(ego_x - 0.5*area, ego_x + 1.5*area)
+            plt.ylim(ego_y - 0.5*area, ego_y + 1.5*area)
             plt.xlabel("X [m]")
             plt.ylabel("Y [m]")
-            plt.title(f"Timestamp {frame.timestamp}, v[m/s]:" + \
+            plt.title(f"Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
                       str(np.linalg.norm((frame.ego_car.twist.vx)))[:4])
             plt.grid(True)
-            if args.save_frame:
+            if args.save_frame or args.save_gif:
                 Path("img/frames").mkdir(parents=True, exist_ok=True)
                 plt.savefig("img/frames/{}.jpg".format(i))
             plt.pause(0.1)
 
 if __name__=="__main__":
     args = parse_arguments()
-    run_cpp_executable(args)
+    # run_cpp_executable(args)
     post_process(args)
+    if args.save_gif:
+        make_gif()

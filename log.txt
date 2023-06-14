@@ -43,9 +43,21 @@
     - candidate paths (poses)
 
 06.10
-- add postprocessing script for logged data, with
+- Add postprocessing script for logged data, with
     - data parsing
     - visualization
+        - ego car box 
+        - candiate trajectories in grey 
+        - best trajectory in red
+        - waypoints and its fitted cubic reference line (OPTIONAL)
+        - obstacles and predicted movements
+        - lane lines 
+
+06.11
+- Add lane lines instead of single waypoints
+- Add lane change logic
+
+
 
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.
