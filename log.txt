@@ -1,0 +1,82 @@
+06.01
+- interface change from ctypes to cpp call
+
+06.02~06.04
+- change car and obstacle class and methods
+- refactor CubicSpline2D method
+- Refactor to_frenet and to_cartesian methods
+
+06.05
+- Add ToFrenet and ToCartesian methods for Obstacle class
+- Update ego car pose and obstacle poses to next state in the loop
+
+06.06
+- refactor Car getPose methods
+- finish main loop framework
+
+06.07
+- box to box collision detection
+- if not collided, then calculate box to box distance calculation (at the end it's point to line problem)
+- add rotate and pose_to_box utils
+- add getBox method for Obstacle and Car class
+- improve is_collision speed by avoiding unnecessary SAT check
+- refactor is_collision and inverse_distance_to_obstacle method for FrenetPath class
+
+06.08
+- fix build and warning errors 
+- add termination condition for main loop when the ego car reaches to end of destination
+- add time cost calculation for main loop
+- fix running bugs: 
+    - json parsing error
+    - parse waypoint bugs
+    - fix search_index not containing last element for CubicSpline1D
+    - fix find_s bug for CubicSpline2D
+
+06.09
+- FIX moving clitch with gdb debugging tool
+- FIX no response to obstacles
+- Using MessagePack to do data logging for following fields 
+    - timestamp
+    - ego car (pose, twist, accel)
+    - best path (poses)
+    - obstacles (pose)
+    - candidate paths (poses)
+
+06.10
+- Add postprocessing script for logged data, with
+    - data parsing
+    - visualization
+        - ego car box 
+        - candiate trajectories in grey 
+        - best trajectory in red
+        - waypoints and its fitted cubic reference line (OPTIONAL)
+        - obstacles and predicted movements
+        - lane lines 
+
+06.11
+- Add lane lines instead of single waypoints
+- Add lane change logic
+
+
+
+CHANGES: 
+- may use pybind11 instead of ctypes. Tried but vector size change not supported.
+
+- update methods w.r.t obstables: isCollision, etc. 
+- change obstacle representation to four corners
+- Add moving cars  ->  Needs fake Prediction module
+- Change planning frequency to 10 Hz
+- Add more lanes, add lane deciding logic
+- Add following/stopping mode, Lane Change mode
+
+- Add sensor models and state estimation module. 
+- finish planning in local coordinates. 
+- convert global coordinates to local.
+- convert back to global. 
+
+
+Question: 
+- 每帧是要update initial conditions 包括 obstacle的位置的
+- Obstacles define has a problem: Only defined bottom-left and 
+  upper-right corners while assuming its edges parallel to axis. 
+- is obstacle shape converted in Frenet as well? 

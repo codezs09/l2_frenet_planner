@@ -1,0 +1,30 @@
+{
+	"s0": 0,
+	"target_speed": 20.0,
+	"wp": [[0,0], [50, 10], [150, 30]],
+	"obs": [
+		{
+			"pose_coord": "Frenet",
+			"pose": [50, 0, 0], 
+			"length": 5.0,
+			"width": 2.2,
+			"speed_profile": [[0, 1], [10, 1]]
+		},
+		{
+			"pose_coord": "Frenet",
+			"pose": [20, 0.5, 0], 
+			"length": 5.0,
+			"width": 2.2,
+			"speed_profile": [[0, 10], [10, 3]]
+		},
+		{
+			"pose_coord": "Frenet",
+			"pose": [40, -2.0, 0], 
+			"length": 5.0,
+			"width": 2.5,
+			"speed_profile": [[0, 8], [10, 5]]
+		}
+	],
+	"pose": [0, 0, 0],
+	"vel": [0, 0, 0]
+}

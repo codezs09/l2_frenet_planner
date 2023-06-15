@@ -30,26 +30,23 @@ using namespace std;
 using namespace Eigen;
 
 class FrenetOptimalTrajectory {
-public:
-    FrenetOptimalTrajectory(FrenetInitialConditions *fot_ic_,
-                            FrenetHyperparameters *fot_hp_);
-    ~FrenetOptimalTrajectory();
-    FrenetPath *getBestPath();
-    void setObstacles();
-    void addObstacle(Vector2f first_point, Vector2f second_point);
+ public:
+  FrenetOptimalTrajectory(const FrenetInitialConditions &fot_ic_,
+                          const FrenetHyperparameters &fot_hp_);
+  ~FrenetOptimalTrajectory();
+  FrenetPath *getBestPath();
+  const vector<FrenetPath *> &getFrenetPaths() { return frenet_paths; }
 
-private:
-    FrenetInitialConditions *fot_ic;
-    FrenetHyperparameters *fot_hp;
-    mutex *mu;
-    FrenetPath *best_frenet_path;
-    CubicSpline2D *csp;
-    vector<Obstacle *> obstacles;
-    vector<double> x, y;
-    vector<FrenetPath *> frenet_paths;
-    void calc_frenet_paths(int start_di_index, int end_di_index,
-                           bool multithreaded);
-    void threaded_calc_all_frenet_paths();
+ private:
+  const FrenetInitialConditions &fot_ic;
+  const FrenetHyperparameters &fot_hp;
+  mutex *mu;
+  FrenetPath *best_frenet_path;
+  CubicSpline2D *csp;
+  vector<FrenetPath *> frenet_paths;
+  void calc_frenet_paths(int start_di_index, int end_di_index,
+                         bool multithreaded);
+  void threaded_calc_all_frenet_paths();
 };
 
-#endif // FRENET_OPTIMAL_TRAJECTORY_FRENET_OPTIMAL_TRAJECTORY_H
+#endif  // FRENET_OPTIMAL_TRAJECTORY_FRENET_OPTIMAL_TRAJECTORY_H
