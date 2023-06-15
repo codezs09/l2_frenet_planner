@@ -53,11 +53,14 @@
         - obstacles and predicted movements
         - lane lines 
 
-06.11
+06.15
 - Add lane lines instead of single waypoints
 - Add lane change logic
+- Add logic to decide which lane the ego car is currently in
 
 
+- FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空
+- 外层对每条lane的 wp 分别 loop 下，在外层最终选择哪条lane执行
 
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.

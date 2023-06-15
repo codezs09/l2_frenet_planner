@@ -24,6 +24,8 @@ struct FrenetInitialConditions {
   double d_d;
   double d_dd;
   double target_speed;
+
+  // TO-DO: 以下两个fields特别是 obstacles_c 感觉可以单独拉出作为输入
   WayPoints& wp;                  // Cartesian coordinates
   vector<Obstacle>& obstacles_c;  // Cartesian coordinates
 
