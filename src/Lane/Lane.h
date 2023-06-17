@@ -55,6 +55,8 @@ class Lane {
                          WayPoints* right_boundary) const;
   void SetLaneBoundaries(const WayPoints& left_boundary,
                          const WayPoints& right_boundary);
+  void SetLeftLaneBoundary(const WayPoints& left_boundary);
+  void SetRightLaneBoundary(const WayPoints& right_boundary);
 
   const WayPoints& GetWayPoints() const { return wp_; }
   double GetLaneWidth() const { return lane_width_; }

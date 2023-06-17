@@ -164,4 +164,28 @@ void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
   }
 }
 
+void ShiftWaypoints(const WayPoints& ref_wp, double offset, WayPoints* wp) {
+  if (wp == nullptr) {
+    throw std::invalid_argument("wp is nullptr");
+  }
+
+  (*wp)[0]->clear();
+  (*wp)[1]->clear();
+
+  const int wp_size = ref_wp[0].size();
+  CubicSpline2D csp = CubicSpline2D(ref_wp[0], ref_wp[1]);
+  for (int i = 0; i < wp_size; ++i) {
+    double s = csp.find_s(wp[0][i], wp[1][i]);
+
+    double x = csp.calc_x(s);
+    double y = csp.calc_y(s);
+    double yaw = csp.calc_yaw(s);
+
+    double x_shift = x - offset * sin(yaw);
+    double y_shift = y + offset * cos(yaw);
+    (*wp)[0]->push_back(x_shift);
+    (*wp)[1]->push_back(y_shift);
+  }
+}
+
 }  // namespace utils

@@ -2,7 +2,7 @@
 #define LOOKUP_TABLE_1D_H
 
 #include <algorithm>
-#include <cassert>
+// #include <cassert>
 #include <map>
 
 using namespace std;
@@ -16,7 +16,10 @@ class LookupTable1D {
  public:
   LookupTable1D() = delete;
   LookupTable1D(const std::map<double, double>& table_) : table(table_) {
-    assert(table.size() > 0);
+    // assert(table.size() > 0);
+    if (table.empty()) {
+      throw std::invalid_argument("LookupTable1D: table is empty");
+    }
   }
 
   // copy constructor

@@ -11,7 +11,15 @@ bool Lane::GetLaneBoundaries(WayPoints* left_boundary,
 
 void Lane::SetLaneBoundaries(const WayPoints& left_boundary,
                              const WayPoints& right_boundary) {
+  SetLeftLaneBoundary(left_boundary);
+  SetRightLaneBoundary(right_boundary);
+}
+
+void Lane::SetLeftLaneBoundary(const WayPoints& left_boundary) {
   left_boundary_ = left_boundary;
+}
+
+void Lane::SetRightLaneBoundary(const WayPoints& right_boundary) {
   right_boundary_ = right_boundary;
 }
 
