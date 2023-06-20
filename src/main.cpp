@@ -6,6 +6,7 @@
 #include "py_cpp_struct.h"
 #include "utils/coordinate_utils.h"
 #include "utils/data_log.h"
+#include "utils/debug.h"
 #include "utils/utils.h"
 
 #include <gflags/gflags.h>
@@ -68,8 +69,11 @@ void UpdateFrenetCoordinates(const Car& car, const utils::WayPoints& wp,
 //   UpdateFrenetCoordinates(car, wp, fot_ic);
 // }
 
-void InitObstacles(const json& scene_j, const utils::WayPoints& wp,
-                   vector<Obstacle>* obstacles) {
+void InitObstacles(const json& scene_j, const vector<Lane>& lanes,
+                   const vector<Obstacle>* obstacles) {
+  utils::WayPoints ref_wp;
+  InitWaypoints(scene_j, &ref_wp);
+
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   // const double dt = fot_hp.dt;
   vector<Obstacle> obstacles_f;
@@ -88,11 +92,27 @@ void InitObstacles(const json& scene_j, const utils::WayPoints& wp,
     }
     obstacles_f.push_back(std::move(ob));
   }
+
   // convert to Cartesian coordinates
+  // note: the obstacle initial pose defined in scene in Frenet frame is w.r.t.
+  // ref_wp
   for (const auto& ob_f : obstacles_f) {
     std::unique_ptr<Obstacle> ob_c = nullptr;
-    utils::ToCartesian(ob_f, wp, ob_c);
+    utils::ToCartesian(ob_f, ref_wp, ob_c);
     obstacles->push_back(std::move(*ob_c));
+  }
+
+  // set lane id for each obstacle as well.
+  for (auto& ob : *obstacles) {
+    ob.clearLaneIds();
+    for (int i = 0; i < lanes.size(); ++i) {
+      if (point_in_lane(lanes[i], ob.getPose().x, ob.getPose().y)) {
+        ob.addLaneId(i);
+      }
+    }
+    auto& lane_ids = ob.getLaneIds();
+    vector<int> vec_lane_ids(lane_ids.begin(), lane_ids.end());
+    cout << "ob lane_ids: " << utils::vector_to_str(vec_lane_ids) << endl;
   }
 }
 
@@ -138,7 +158,7 @@ void InitLanes(const json& scene_j, vector<Lane>* lanes) {
   utils::WayPoints ref_wp;
   InitWaypoints(scene_j, &ref_wp);
 
-  const lane_width = scene_j["laen_width"];
+  const lane_width = scene_j["lane_width"];
   const num_lanes_left = scene_j["num_lanes_left"];
   const num_lanes_right = scene_j["num_lanes_right"];
   const total_lanes = num_lanes_left + num_lanes_right + 1;
@@ -151,7 +171,8 @@ void InitLanes(const json& scene_j, vector<Lane>* lanes) {
       utils::ShiftWayPoints(ref_wp, -i * lane_width,
                             &lane_wp);  // positive shift to the left
     }
-    utils::Lane lane(lane_wp, lane_width);
+    int lane_id = i + num_lanes_left;
+    utils::Lane lane(lane_id, lane_wp, lane_width);
     lanes->push_back(lane);
   }
 
@@ -194,18 +215,16 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  vector<utils::Lane> lanes;
+  vector<Lane> lanes;
   InitLanes(scene_j, &lanes);
 
   Car ego_car = InitEgoCar(scene_j);
 
   vector<Obstacle> obstacles;
-  InitObstacles(scene_j, wp, &obstacles);
+  InitObstacles(scene_j, lanes, &obstacles);
 
   // TO-DO: move inside loop
-  FrenetInitialConditions fot_ic(wp, obstacles);
-  fot_ic->target_speed = scene_j["target_speed"];
-  // InitFrenetInitialConditions(ego_car, scene_j, wp, &fot_ic);
+  double target_speed = scene_j["target_speed"];
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
@@ -224,12 +243,20 @@ int main(int argc, char** argv) {
     }
 
     // TO-DO:  loop each lane here and may initialize fot_ic for each lane
+    FrenetInitialConditions fot_ic(wp, obstacles);
+    fot_ic->target_speed = target_speed;
 
     // update Frenet coordinate of ego car
     UpdateFrenetCoordinates(ego_car, wp, &fot_ic);
     // prediction on obstacles
     for (auto& ob : obstacles) {
-      ob.predictPoses(timestamp, fot_hp.maxt, TimeStep);
+      std::unique_ptr<Obstacle> ob_f = nullptr;
+      int ob_laneid = *(ob.getLaneIds().begin());
+      utils::ToFrenet(ob, lanes[ob_laneid], ob_f);
+      ob_f.predictPoses(timestamp, fot_hp.maxt, TimeStep);
+      std::unique_ptr<Obstacle> ob_c = nullptr;
+      utils::ToCartesian(*ob_f, lanes[ob_laneid], ob_c);
+      ob = std::move(*ob_c);
     }
 
     // run frenet optimal trajectory

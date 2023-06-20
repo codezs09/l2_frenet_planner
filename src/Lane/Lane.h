@@ -12,18 +12,20 @@ using namespace utils;
 
 class Lane {
  public:
-  Lane(const WayPoints& wp, double lane_width = 4.0, Lane* left_lane = nullptr,
-       Lane* right_lane = nullptr)
-      : wp_(wp),
+  Lane(int lane_id, const WayPoints& wp, double lane_width = 4.0,
+       Lane* left_lane = nullptr, Lane* right_lane = nullptr)
+      : lane_id_(lane_id),
+        wp_(wp),
         lane_width_(lane_width),
         left_lane_(left_lane),
         right_lane_(right_lane) {
     CalculateLaneBoundariesFromWaypoints();
   }
-  Lane(const WayPoints& wp, double lane_width, Lane* left_lane,
+  Lane(int lane_id, const WayPoints& wp, double lane_width, Lane* left_lane,
        Lane* right_lane, const WayPoints& left_boundary,
        const WayPoints& right_boundary)
-      : wp_(wp),
+      : lane_id_(lane_id),
+        wp_(wp),
         lane_width_(lane_width),
         left_boundary_(left_boundary),
         right_boundary_(right_boundary),
@@ -32,7 +34,8 @@ class Lane {
 
   // copy constructor
   Lane(const Lane& other)
-      : wp_(other.wp_),
+      : lane_id_(lane_id),
+        wp_(other.wp_),
         lane_width_(other.lane_width_),
         left_boundary_(other.left_boundary_),
         right_boundary_(other.right_boundary_),
@@ -73,8 +76,9 @@ class Lane {
   WayPoints right_boundary_;
 
   double lane_width_;
-  Lane* left_lane_ = nullptr;
+  Lane* left_lane_ = nullptr;  // or change to left_lane_id
   Lane* right_lane_ = nullptr;
+  int lane_id_;
 };
 
 #endif  // FRENETOPTIMALTRAJECTORY_LANE_H

@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <msgpack.hpp>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -20,12 +21,24 @@ using namespace utils;
 class Obstacle {
  public:
   Obstacle() = default;
+  Obstacle(Pose pose, double length, double width, double obstacle_clearance)
+      : Obstacle(pose, {0, 0, 0}, length, width, obstacle_clearance) {}
+  Obstacle(Pose pose, Twist twist, double length, double width,
+           double obstacle_clearance)
+      : length_(length),
+        width_(width),
+        obstacle_clearance_(obstacle_clearance),
+        pose_(pose),
+        twist_(twist) {
+    predict_poses_.insert(std::pair<double, Pose>(0.0, pose_));
+  }
 
   // copy constructor
   Obstacle(const Obstacle &other)
       : length_(other.length_),
         width_(other.width_),
         obstacle_clearance_(other.obstacle_clearance_),
+        lane_id_(other.lane_id_),
         pose_(other.pose_),
         twist_(other.twist_),
         predict_poses_(other.predict_poses_),
@@ -40,18 +53,6 @@ class Obstacle {
       std::swap(*this, copy);
     }
     return *this;
-  }
-
-  Obstacle(Pose pose, double length, double width, double obstacle_clearance)
-      : Obstacle(pose, {0, 0, 0}, length, width, obstacle_clearance) {}
-  Obstacle(Pose pose, Twist twist, double length, double width,
-           double obstacle_clearance)
-      : length_(length),
-        width_(width),
-        obstacle_clearance_(obstacle_clearance),
-        pose_(pose),
-        twist_(twist) {
-    predict_poses_.insert(std::pair<double, Pose>(0.0, pose_));
   }
 
   void setPose(Pose pose) { pose_ = pose; }
@@ -71,6 +72,14 @@ class Obstacle {
   double getWidth() const { return width_; }
   double getClearence() const { return obstacle_clearance_; }
 
+  bool isInLane(int lane_id) const { return (lane_id_.count(lane_id) > 0); }
+  void addLaneId(int lane_id) { lane_id_.insert(lane_id); }
+  void setLaneId(unordered_set<int> lane_ids) {
+    lane_ids_ = std::move(lane_ids);
+  }
+  void clearLaneIds() { lane_ids_.clear(); }
+  const unordered_set<int> &getLaneIds() const { return lane_ids_; }
+
   // for use under Frenet frame
   bool predictPoses(double cur_timestamp, double max_duration, double dt);
   bool predictPoses(const map<double, double> &spd_profile,
@@ -83,6 +92,7 @@ class Obstacle {
   double length_;  // parallel with yaw
   double width_;
   double obstacle_clearance_;
+  std::unordered_set<int> lane_ids_;  // could occupy multiple lanes
 
   Pose pose_;
   Twist twist_;
