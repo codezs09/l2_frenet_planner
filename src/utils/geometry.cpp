@@ -148,4 +148,26 @@ Box pose_to_box(const Pose& pose, double length, double width,
   return corners;
 }
 
+bool point_in_lane(const Lane& lane, double x, double y) {
+  WayPoints left_boundary, right_boundary;
+  lane.GetLaneBoundaries(&left_boundary, &right_boundary);
+
+  CubicSpline2D left_spline(left_boundary[0], left_boundary[1]);
+  CubicSpline2D right_spline(right_boundary[0], right_boundary[1]);
+  // check if the point is in the lane
+  double s1 = left_spline.find_s(x, y);
+  double x1 = left_spline.calc_x(s1);
+  double y1 = left_spline.calc_y(s1);
+
+  double s2 = right_spline.find_s(x, y);
+  double x2 = right_spline.calc_x(s2);
+  double y2 = right_spline.calc_y(s2);
+
+  if (x > std::max(x1, x2) || x < std::min(x1, x2) || y > std::max(y1, y2) ||
+      y < std::min(y1, y2)) {
+    return false;
+  }
+  return true;
+}
+
 }  // namespace utils

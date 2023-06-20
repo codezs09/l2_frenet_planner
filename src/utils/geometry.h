@@ -1,12 +1,14 @@
 #ifndef UTILS_GEOMETRY_H
 #define UTILS_GEOMETRY_H
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <msgpack.hpp>
 #include <utility>
 #include <vector>
 
+#include "Lane/Lane.h"
 #include "utils/utils.h"
 
 using namespace std;
@@ -77,6 +79,17 @@ Point rotate(const Point& point, double angle);
  */
 Box pose_to_box(const Pose& pose, double length, double width,
                 double clearance = 0);
+
+/**
+ * @brief Judge if a point is in a lane confined by its boundaries.
+ *
+ * @param lane
+ * @param x
+ * @param y
+ * @return true
+ * @return false
+ */
+bool point_in_lane(const Lane& lane, double x, double y);
 
 }  // namespace utils
 
