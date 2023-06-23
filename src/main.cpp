@@ -21,17 +21,14 @@ using namespace std;
 using namespace utils;
 using json = nlohmann::json;
 
-DEFINE_string(scene_path,
-              "/home/sheng/Projects/l2_frenet_planner/"
-              "config/scenes/one_lane_slow_down.json",
+const std::string REPO_DIR = "/home/sheng/Projects/l2_frenet_planner/";
+
+DEFINE_string(scene_path, REPO_DIR + "config/scenes/one_lane_slow_down.json",
               "Path to scene config file");
-DEFINE_string(hyper_path,
-              "/home/sheng/Projects/l2_frenet_planner/"
-              "config/hyperparameters.json",
+DEFINE_string(hyper_path, REPO_DIR + "config/hyperparameters.json",
               "Path to hyperparameter config file");
 DEFINE_bool(store_data, false, "turn on flag to store running data.");
-DEFINE_string(data_path,
-              "/home/sheng/Projects/l2_frenet_planner/build/data.bin",
+DEFINE_string(data_path, REPO_DIR + "build/data.bin",
               "Path to store running data.");
 
 double get_duration_ms(
