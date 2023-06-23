@@ -95,7 +95,7 @@ def post_process(args):
 
 if __name__=="__main__":
     args = parse_arguments()
-    # run_cpp_executable(args)
+    run_cpp_executable(args)
     post_process(args)
     if args.save_gif:
         make_gif()

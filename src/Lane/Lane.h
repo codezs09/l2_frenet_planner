@@ -45,9 +45,13 @@ class Lane {
   // copy assignment operator
   Lane& operator=(const Lane& other) {
     if (this != &other) {
-      // copy and swap idiom
-      Lane copy(other);
-      std::swap(*this, copy);
+      lane_id_ = other.lane_id_;
+      wp_ = other.wp_;
+      lane_width_ = other.lane_width_;
+      left_boundary_ = other.left_boundary_;
+      right_boundary_ = other.right_boundary_;
+      left_lane_ = other.left_lane_;
+      right_lane_ = other.right_lane_;
     }
     return *this;
   }

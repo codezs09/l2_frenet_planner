@@ -28,8 +28,7 @@ class LookupTable1D {
   // copy assignment operator, copy and swap idiom
   LookupTable1D& operator=(LookupTable1D other) {
     if (this != &other) {
-      LookupTable1D copy(other);
-      std::swap(*this, copy);
+      table = other.table;
     }
     return *this;
   }

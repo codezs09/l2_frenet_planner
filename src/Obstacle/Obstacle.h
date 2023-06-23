@@ -48,9 +48,15 @@ class Obstacle {
   // copy assignment operator
   Obstacle &operator=(const Obstacle &other) {
     if (this != &other) {
-      // copy and swap idiom
-      Obstacle copy(other);
-      std::swap(*this, copy);
+      length_ = other.length_;
+      width_ = other.width_;
+      obstacle_clearance_ = other.obstacle_clearance_;
+      lane_ids_ = other.lane_ids_;
+      pose_ = other.pose_;
+      twist_ = other.twist_;
+      predict_poses_ = other.predict_poses_;
+      predict_boxes_ = other.predict_boxes_;
+      tbl_time_to_speed_.reset(new LookupTable1D(*(other.tbl_time_to_speed_)));
     }
     return *this;
   }
