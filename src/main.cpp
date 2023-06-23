@@ -21,7 +21,7 @@ using namespace std;
 using namespace utils;
 using json = nlohmann::json;
 
-const std::string REPO_DIR = "/home/sheng/Projects/l2_frenet_planner/";
+const std::string REPO_DIR = "/home/deeproute/l2_frenet_planner/";
 
 DEFINE_string(scene_path, REPO_DIR + "config/scenes/one_lane_slow_down.json",
               "Path to scene config file");
@@ -66,8 +66,15 @@ void UpdateFrenetCoordinates(const Car& car, const utils::WayPoints& wp,
 //   UpdateFrenetCoordinates(car, wp, fot_ic);
 // }
 
+void InitWaypoints(const json& scene_j, WayPoints* wp) {
+  for (const auto& point : scene_j["wp"]) {
+    (*wp)[0].push_back(point[0]);
+    (*wp)[1].push_back(point[1]);
+  }
+}
+
 void InitObstacles(const json& scene_j, const vector<Lane>& lanes,
-                   const vector<Obstacle>* obstacles) {
+                   vector<Obstacle>* const obstacles) {
   utils::WayPoints ref_wp;
   InitWaypoints(scene_j, &ref_wp);
 
@@ -114,7 +121,8 @@ void InitObstacles(const json& scene_j, const vector<Lane>& lanes,
 }
 
 void UpdateEgoCarNextState(const FrenetPath* best_frenet_path,
-                           const WayPoints& wp, Car* ego_car) {
+                           const vector<Lane>& lanes, Car* ego_car) {
+  const WayPoints& wp = lanes[best_frenet_path->lane_id].GetWayPoints();
   // update ego car to next state
   double next_s = best_frenet_path->s[1];
   double next_d = best_frenet_path->d[1];
@@ -134,13 +142,6 @@ void UpdateEgoCarNextState(const FrenetPath* best_frenet_path,
   ego_car->setTwist(twist_c);
   ego_car->setAccel(accel_c);
   ego_car->setTargetLaneId(best_frenet_path->lane_id);
-}
-
-void InitWaypoints(const json& scene_j, WayPoints* wp) {
-  for (const auto& point : scene_j["wp"]) {
-    (*wp)[0].push_back(point[0]);
-    (*wp)[1].push_back(point[1]);
-  }
 }
 
 Car InitEgoCar(const json& scene_j, const vector<Lane>& lanes) {
@@ -168,31 +169,31 @@ void InitLanes(const json& scene_j, vector<Lane>* lanes) {
   utils::WayPoints ref_wp;
   InitWaypoints(scene_j, &ref_wp);
 
-  const lane_width = scene_j["lane_width"];
-  const num_lanes_left = scene_j["num_lanes_left"];
-  const num_lanes_right = scene_j["num_lanes_right"];
-  const total_lanes = num_lanes_left + num_lanes_right + 1;
+  const double lane_width = scene_j["lane_width"];
+  const int num_lanes_left = scene_j["num_lanes_left"];
+  const int num_lanes_right = scene_j["num_lanes_right"];
+  const int total_lanes = num_lanes_left + num_lanes_right + 1;
 
   for (int i = -num_lanes_left; i <= num_lanes_right; ++i) {
     utils::WayPoints lane_wp;
-    if (int i == 0) {
+    if (i == 0) {
       lane_wp = ref_wp;
     } else {
-      utils::ShiftWayPoints(ref_wp, -i * lane_width,
+      utils::ShiftWaypoints(ref_wp, -i * lane_width,
                             &lane_wp);  // positive shift to the left
     }
     int lane_id = i + num_lanes_left;
-    utils::Lane lane(lane_id, lane_wp, lane_width);
+    Lane lane(lane_id, lane_wp, lane_width);
     lanes->push_back(lane);
   }
 
   // lane associations
   for (int i = 0; i < lanes->size(); ++i) {
     if (i > 0) {
-      (*lanes)[i].MutableLeftLane() = &(*lanes)[i - 1];
+      (*lanes)[i].SetLeftLane(&(*lanes)[i - 1]);
     }
     if (i < lanes->size() - 1) {
-      (*lanes)[i].MutableRightLane() = &(*lanes)[i + 1];
+      (*lanes)[i].SetLeftLane(&(*lanes)[i + 1]);
     }
   }
 
@@ -205,7 +206,7 @@ void InitLanes(const json& scene_j, vector<Lane>* lanes) {
     }
     utils::ShiftWaypoints(ref_wp, (-i - 0.5) * lane_width, &right_lane_bound);
 
-    utils::Lane& lane = (*lanes)[i + num_lanes_left];
+    Lane& lane = (*lanes)[i + num_lanes_left];
     lane.SetLeftLaneBoundary(left_lane_bound);
     lane.SetRightLaneBoundary(right_lane_bound);
 
@@ -262,7 +263,7 @@ int main(int argc, char** argv) {
       }
 
       FrenetInitialConditions fot_ic(wp, obstacles);
-      fot_ic->target_speed = target_speed;
+      fot_ic.target_speed = target_speed;
 
       // update Frenet coordinate of ego car
       UpdateFrenetCoordinates(ego_car, wp, &fot_ic);
@@ -273,10 +274,10 @@ int main(int argc, char** argv) {
         if (!ob.getLaneIds().empty()) {
           ob_laneid = *(ob.getLaneIds().begin());
         }
-        utils::ToFrenet(ob, lanes[ob_laneid], ob_f);
-        ob_f.predictPoses(timestamp, fot_hp.maxt, TimeStep);
+        utils::ToFrenet(ob, lanes[ob_laneid].GetWayPoints(), ob_f);
+        ob_f->predictPoses(timestamp, fot_hp.maxt, TimeStep);
         std::unique_ptr<Obstacle> ob_c = nullptr;
-        utils::ToCartesian(*ob_f, lanes[ob_laneid], ob_c);
+        utils::ToCartesian(*ob_f, lanes[ob_laneid].GetWayPoints(), ob_c);
         ob = std::move(*ob_c);
       }
 
@@ -285,18 +286,17 @@ int main(int argc, char** argv) {
       FrenetPath* best_frenet_path_per_lane = fot.getBestPath();
       if (!best_frenet_path_per_lane || best_frenet_path_per_lane->x.empty()) {
         cerr << "Fail to find a feasible path at timestamp: " << timestamp
-             << endl;
-        break;
+             << ", at lane: " << lane.GetLaneId() << endl;
+      } else {
+        // update cost for each frenet path based on lane
+        best_frenet_path_per_lane->lane_id = lane.GetLaneId();
+        best_frenet_path_per_lane->c_lane_change = std::abs(
+            best_frenet_path_per_lane->lane_id - ego_car.getTargetLaneId());
+        best_frenet_path_per_lane->cf +=
+            fot_hp.klane * best_frenet_path_per_lane->c_lane_change;
+
+        best_frenet_paths.push_back(std::move(*best_frenet_path_per_lane));
       }
-
-      // update cost for each frenet path based on lane
-      best_frenet_path_per_lane->lane_id = lane.GetLaneId();
-      best_frenet_path_per_lane->c_lane_change = std::abs(
-          best_frenet_path_per_lane->lane_id - ego_car.getTargetLaneId());
-      best_frenet_path_per_lane->c_f +=
-          fot_hp.klane * best_frenet_path_per_lane->c_lane_change;
-
-      best_frenet_paths.push_back(std::move(*best_frenet_path_per_lane));
     }
     if (reach_goal) {
       break;
@@ -305,7 +305,7 @@ int main(int argc, char** argv) {
     // update cost for each frenet path based on lane
     // choose from best trajectory along each lane based on cost
     FrenetPath* best_frenet_path = nullptr;
-    for (const auto& fp : best_frenet_paths) {
+    for (auto& fp : best_frenet_paths) {
       if (!best_frenet_path) {
         best_frenet_path = &fp;
       } else {
@@ -320,24 +320,20 @@ int main(int argc, char** argv) {
 
     // save current frame data
     if (FLAGS_store_data) {
-      const auto& frenet_paths = fot.getFrenetPaths();
-
       DataFrame df;
       df.timestamp = timestamp;
       df.ego_car = ego_car;
       df.best_frenet_path = *best_frenet_path;
-      df.wx = wp[0];
-      df.wy = wp[1];
+      // df.wx = wp[0];
+      // df.wy = wp[1];
       df.obstacles = obstacles;
-      for (auto p : frenet_paths) {
-        df.frenet_paths.push_back(*p);
-      }
+      df.frenet_paths = best_frenet_paths;
       data_frames.push_back(std::move(df));
     }
 
     // update
     timestamp += TimeStep;
-    UpdateEgoCarNextState(best_frenet_path, wp, &ego_car);
+    UpdateEgoCarNextState(best_frenet_path, lanes, &ego_car);
     // update obstacle to next state
     for (Obstacle& ob : obstacles) {
       Pose ob_pose_next = ob.getPredictPoseAtTimestamp(timestamp);

@@ -38,7 +38,7 @@ class Obstacle {
       : length_(other.length_),
         width_(other.width_),
         obstacle_clearance_(other.obstacle_clearance_),
-        lane_id_(other.lane_id_),
+        lane_ids_(other.lane_ids_),
         pose_(other.pose_),
         twist_(other.twist_),
         predict_poses_(other.predict_poses_),
@@ -72,9 +72,9 @@ class Obstacle {
   double getWidth() const { return width_; }
   double getClearence() const { return obstacle_clearance_; }
 
-  bool isInLane(int lane_id) const { return (lane_id_.count(lane_id) > 0); }
-  void addLaneId(int lane_id) { lane_id_.insert(lane_id); }
-  void setLaneId(unordered_set<int> lane_ids) {
+  bool isInLane(int lane_id) const { return (lane_ids_.count(lane_id) > 0); }
+  void addLaneId(int lane_id) { lane_ids_.insert(lane_id); }
+  void setLaneIds(unordered_set<int> lane_ids) {
     lane_ids_ = std::move(lane_ids);
   }
   void clearLaneIds() { lane_ids_.clear(); }

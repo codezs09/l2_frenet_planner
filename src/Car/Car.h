@@ -57,7 +57,7 @@ class Car {
   double width;
 
   int cur_lane_id = -1;
-  int taget_lane_id = -1;
+  int target_lane_id = -1;
 
   MSGPACK_DEFINE(pose, twist, accel, length, width);
 };

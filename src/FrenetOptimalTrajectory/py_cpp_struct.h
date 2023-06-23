@@ -76,6 +76,7 @@ struct FrenetHyperparameters {
   double ko;
   double klat;
   double klon;
+  double klane;
   int num_threads;
 
   void Init(json j) {
@@ -99,6 +100,7 @@ struct FrenetHyperparameters {
     ko = j["ko"];
     klat = j["klat"];
     klon = j["klon"];
+    klane = j["klane"];
     num_threads = j["num_threads"];
   }
 

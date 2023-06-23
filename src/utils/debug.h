@@ -12,7 +12,8 @@
 
 namespace utils {
 
-inline std::string vector_to_str(const std::vector<double>& vec) {
+template <typename T>
+inline std::string vector_to_str(const std::vector<T>& vec) {
   std::string str = "[";
   for (std::size_t i = 0; i < vec.size(); ++i) {
     str += std::to_string(vec[i]);
@@ -24,7 +25,8 @@ inline std::string vector_to_str(const std::vector<double>& vec) {
   return str;
 }
 
-inline void print_vector(const std::vector<double>& vec) {
+template <typename T>
+inline void print_vector(const std::vector<T>& vec) {
   cout << vector_to_str(vec) << endl;
 }
 

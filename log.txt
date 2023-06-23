@@ -59,6 +59,9 @@
 - Add logic to decide which lane the obstacle is currently in
 
 06.23
+- Loop paths for each lane
+- Log and Visualize each lane and path
+- Debug
 
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空

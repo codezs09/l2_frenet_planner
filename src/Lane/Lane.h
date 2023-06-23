@@ -34,7 +34,7 @@ class Lane {
 
   // copy constructor
   Lane(const Lane& other)
-      : lane_id_(lane_id),
+      : lane_id_(other.lane_id_),
         wp_(other.wp_),
         lane_width_(other.lane_width_),
         left_boundary_(other.left_boundary_),
@@ -67,9 +67,13 @@ class Lane {
 
   const WayPoints& GetWayPoints() const { return wp_; }
   double GetLaneWidth() const { return lane_width_; }
+
+  void SetLeftLane(Lane* lane) { left_lane_ = lane; }
   bool GetLeftLane(Lane* left_lane);
+  Lane* MutableLeftLane() { return left_lane_; }  // check nullptr before use
+
+  void SetRightLane(Lane* lane) { right_lane_ = lane; }
   bool GetRightLane(Lane* right_lane);
-  Lane* MutableLeftLane() { return left_lane_; }    // check nullptr before use
   Lane* MutableRightLane() { return right_lane_; }  // check nullptr before use
 
  private:
