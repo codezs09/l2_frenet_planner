@@ -53,10 +53,12 @@
         - obstacles and predicted movements
         - lane lines 
 
-06.15
+06.20
 - Add lane lines instead of single waypoints
 - Add lane change logic
-- Add logic to decide which lane the ego car is currently in
+- Add logic to decide which lane the obstacle is currently in
+
+06.23
 
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空

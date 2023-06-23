@@ -53,6 +53,10 @@ class Lane {
   }
 
   void SetWayPoints(const WayPoints& wp, double lane_width = 4.0);
+  const WayPoints& GetWayPoints() { return wp_; }
+
+  void SetLaneId(int lane_id) { lane_id_ = lane_id; }
+  int GetLaneId() const { return lane_id_; }
 
   bool GetLaneBoundaries(WayPoints* left_boundary,
                          WayPoints* right_boundary) const;

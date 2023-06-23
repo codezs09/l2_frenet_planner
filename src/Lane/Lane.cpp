@@ -1,7 +1,5 @@
 #include "Lane.h"
 
-void Lane::SetWaypoints(const WayPoints& wp) { wp_ = wp; }
-
 bool Lane::GetLaneBoundaries(WayPoints* left_boundary,
                              WayPoints* right_boundary) const {
   *left_boundary = left_boundary_;

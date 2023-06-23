@@ -22,11 +22,7 @@ class Car {
   Car(Pose pose_) : Car(pose_, {0, 0, 0}) {}
   Car(Pose pose_, Twist twist_) : Car(pose_, twist_, {0, 0, 0}) {}
   Car(Pose pose_, Twist twist_, Accel accel_)
-      : pose(pose_),
-        twist(twist_),
-        accel(accel_),
-        length(VEHICLE_LENGTH),
-        width(VEHICLE_WIDTH) {}
+      : Car(pose_, twist_, accel_, VEHICLE_LENGTH, VEHICLE_WIDTH) {}
   Car(Pose pose_, Twist twist_, Accel accel_, double length_, double width_)
       : pose(pose_),
         twist(twist_),
@@ -48,12 +44,20 @@ class Car {
   const Accel &getAccel() const { return accel; }
   Accel *mutableAccel() { return &accel; }
 
+  void setCurLaneId(int lane_id) { cur_lane_id = lane_id; }
+  int getCurLaneId() { return cur_lane_id; }
+  void setTargetLaneId(int lane_id) { target_lane_id = lane_id; }
+  int getTargetLaneId() { return target_lane_id; }
+
   //  private:  // sheng: set public to use msgpack
   Pose pose;    // pose w.r.t global frame
   Twist twist;  // velocity w.r.t vehicle frame
   Accel accel;  // acceleration w. = .t vehicle frame
   double length;
   double width;
+
+  int cur_lane_id = -1;
+  int taget_lane_id = -1;
 
   MSGPACK_DEFINE(pose, twist, accel, length, width);
 };

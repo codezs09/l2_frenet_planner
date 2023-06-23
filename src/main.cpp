@@ -136,6 +136,7 @@ void UpdateEgoCarNextState(const FrenetPath* best_frenet_path,
   ego_car->setPose(pose_c);
   ego_car->setTwist(twist_c);
   ego_car->setAccel(accel_c);
+  ego_car->setTargetLaneId(best_frenet_path->lane_id);
 }
 
 void InitWaypoints(const json& scene_j, WayPoints* wp) {
@@ -145,12 +146,24 @@ void InitWaypoints(const json& scene_j, WayPoints* wp) {
   }
 }
 
-Car InitEgoCar(const json& scene_j) {
+Car InitEgoCar(const json& scene_j, const vector<Lane>& lanes) {
   Pose ego_car_pose = {scene_j["pose"][0], scene_j["pose"][1],
                        scene_j["pose"][2]};
   Twist ego_car_twist = {scene_j["vel"][0], scene_j["vel"][1],
                          scene_j["vel"][2]};
   Car ego_car(ego_car_pose, ego_car_twist, {0, 0, 0});
+
+  // initialize lane_id for ego car
+  int lane_id = -1;
+  for (int i = 0; i < lanes.size(); ++i) {
+    if (point_in_lane(lanes[i], ego_car_pose.x, ego_car_pose.y)) {
+      lane_id = i;
+      break;
+    }
+  }
+  ego_car.setCurLaneId(lane_id);
+  ego_car.setTargetLaneId(lane_id);
+
   return ego_car;
 }
 
@@ -218,12 +231,11 @@ int main(int argc, char** argv) {
   vector<Lane> lanes;
   InitLanes(scene_j, &lanes);
 
-  Car ego_car = InitEgoCar(scene_j);
+  Car ego_car = InitEgoCar(scene_j, lanes);
 
   vector<Obstacle> obstacles;
   InitObstacles(scene_j, lanes, &obstacles);
 
-  // TO-DO: move inside loop
   double target_speed = scene_j["target_speed"];
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
@@ -233,39 +245,77 @@ int main(int argc, char** argv) {
   double timestamp = 0.0;      // [s], simulation timestamp
   int i = 0;
   std::vector<DataFrame> data_frames;
+  bool reach_goal = false;
+  std::vector<FrenetPath>
+      best_frenet_paths;  // store the best frenet path for each lane
+
   for (; i < sim_loop; ++i) {
     auto start = std::chrono::high_resolution_clock::now();
 
-    // break if near goal
-    if (utils::norm(ego_car.getPose().x - wp[0].back(),
-                    ego_car.getPose().y - wp[1].back()) < 3.0) {
+    // Loop each lane here and may initialize fot_ic for each lane
+    best_frenet_paths.clear();
+    for (auto& lane : lanes) {
+      WayPoints wp = lane.GetWayPoints();
+
+      // break if near goal
+      if (utils::norm(ego_car.getPose().x - wp[0].back(),
+                      ego_car.getPose().y - wp[1].back()) < 3.0) {
+        reach_goal = true;
+        break;
+      }
+
+      FrenetInitialConditions fot_ic(wp, obstacles);
+      fot_ic->target_speed = target_speed;
+
+      // update Frenet coordinate of ego car
+      UpdateFrenetCoordinates(ego_car, wp, &fot_ic);
+      // prediction on obstacles
+      for (auto& ob : obstacles) {
+        std::unique_ptr<Obstacle> ob_f = nullptr;
+        int ob_laneid = 0;
+        if (!ob.getLaneIds().empty()) {
+          ob_laneid = *(ob.getLaneIds().begin());
+        }
+        utils::ToFrenet(ob, lanes[ob_laneid], ob_f);
+        ob_f.predictPoses(timestamp, fot_hp.maxt, TimeStep);
+        std::unique_ptr<Obstacle> ob_c = nullptr;
+        utils::ToCartesian(*ob_f, lanes[ob_laneid], ob_c);
+        ob = std::move(*ob_c);
+      }
+
+      // run frenet optimal trajectory
+      FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
+      FrenetPath* best_frenet_path_per_lane = fot.getBestPath();
+      if (!best_frenet_path_per_lane || best_frenet_path_per_lane->x.empty()) {
+        cerr << "Fail to find a feasible path at timestamp: " << timestamp
+             << endl;
+        break;
+      }
+
+      // update cost for each frenet path based on lane
+      best_frenet_path_per_lane->lane_id = lane.GetLaneId();
+      best_frenet_path_per_lane->c_lane_change = std::abs(
+          best_frenet_path_per_lane->lane_id - ego_car.getTargetLaneId());
+      best_frenet_path_per_lane->c_f +=
+          fot_hp.klane * best_frenet_path_per_lane->c_lane_change;
+
+      best_frenet_paths.push_back(std::move(*best_frenet_path_per_lane));
+    }
+    if (reach_goal) {
       break;
     }
 
-    // TO-DO:  loop each lane here and may initialize fot_ic for each lane
-    FrenetInitialConditions fot_ic(wp, obstacles);
-    fot_ic->target_speed = target_speed;
-
-    // update Frenet coordinate of ego car
-    UpdateFrenetCoordinates(ego_car, wp, &fot_ic);
-    // prediction on obstacles
-    for (auto& ob : obstacles) {
-      std::unique_ptr<Obstacle> ob_f = nullptr;
-      int ob_laneid = *(ob.getLaneIds().begin());
-      utils::ToFrenet(ob, lanes[ob_laneid], ob_f);
-      ob_f.predictPoses(timestamp, fot_hp.maxt, TimeStep);
-      std::unique_ptr<Obstacle> ob_c = nullptr;
-      utils::ToCartesian(*ob_f, lanes[ob_laneid], ob_c);
-      ob = std::move(*ob_c);
-    }
-
-    // run frenet optimal trajectory
-    FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
-    FrenetPath* best_frenet_path = fot.getBestPath();
-    if (!best_frenet_path || best_frenet_path->x.empty()) {
-      cerr << "Fail to find a feasible path at timestamp: " << timestamp
-           << endl;
-      break;
+    // update cost for each frenet path based on lane
+    // choose from best trajectory along each lane based on cost
+    FrenetPath* best_frenet_path = nullptr;
+    for (const auto& fp : best_frenet_paths) {
+      if (!best_frenet_path) {
+        best_frenet_path = &fp;
+      } else {
+        if (fp.cf < best_frenet_path->cf) {
+          best_frenet_path = &fp;
+        }
+      }
     }
 
     auto plan_end = std::chrono::high_resolution_clock::now();
