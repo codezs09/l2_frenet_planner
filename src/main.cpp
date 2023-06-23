@@ -109,7 +109,7 @@ void InitObstacles(const json& scene_j, const vector<Lane>& lanes,
   // set lane id for each obstacle as well.
   for (auto& ob : *obstacles) {
     ob.clearLaneIds();
-    for (int i = 0; i < lanes.size(); ++i) {
+    for (std::size_t i = 0; i < lanes.size(); ++i) {
       if (point_in_lane(lanes[i], ob.getPose().x, ob.getPose().y)) {
         ob.addLaneId(i);
       }
@@ -153,7 +153,7 @@ Car InitEgoCar(const json& scene_j, const vector<Lane>& lanes) {
 
   // initialize lane_id for ego car
   int lane_id = -1;
-  for (int i = 0; i < lanes.size(); ++i) {
+  for (std::size_t i = 0; i < lanes.size(); ++i) {
     if (point_in_lane(lanes[i], ego_car_pose.x, ego_car_pose.y)) {
       lane_id = i;
       break;
@@ -188,7 +188,7 @@ void InitLanes(const json& scene_j, vector<Lane>* lanes) {
   }
 
   // lane associations
-  for (int i = 0; i < lanes->size(); ++i) {
+  for (std::size_t i = 0; i < lanes->size(); ++i) {
     if (i > 0) {
       (*lanes)[i].SetLeftLane(&(*lanes)[i - 1]);
     }

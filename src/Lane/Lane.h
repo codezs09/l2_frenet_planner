@@ -14,8 +14,8 @@ class Lane {
  public:
   Lane(int lane_id, const WayPoints& wp, double lane_width = 4.0,
        Lane* left_lane = nullptr, Lane* right_lane = nullptr)
-      : lane_id_(lane_id),
-        wp_(wp),
+      : wp_(wp),
+        lane_id_(lane_id),
         lane_width_(lane_width),
         left_lane_(left_lane),
         right_lane_(right_lane) {
@@ -24,32 +24,32 @@ class Lane {
   Lane(int lane_id, const WayPoints& wp, double lane_width, Lane* left_lane,
        Lane* right_lane, const WayPoints& left_boundary,
        const WayPoints& right_boundary)
-      : lane_id_(lane_id),
-        wp_(wp),
-        lane_width_(lane_width),
+      : wp_(wp),
         left_boundary_(left_boundary),
         right_boundary_(right_boundary),
+        lane_id_(lane_id),
+        lane_width_(lane_width),
         left_lane_(left_lane),
         right_lane_(right_lane) {}
 
   // copy constructor
   Lane(const Lane& other)
-      : lane_id_(other.lane_id_),
-        wp_(other.wp_),
-        lane_width_(other.lane_width_),
+      : wp_(other.wp_),
         left_boundary_(other.left_boundary_),
         right_boundary_(other.right_boundary_),
+        lane_id_(other.lane_id_),
+        lane_width_(other.lane_width_),
         left_lane_(other.left_lane_),
         right_lane_(other.right_lane_) {}
 
   // copy assignment operator
   Lane& operator=(const Lane& other) {
     if (this != &other) {
-      lane_id_ = other.lane_id_;
       wp_ = other.wp_;
-      lane_width_ = other.lane_width_;
       left_boundary_ = other.left_boundary_;
       right_boundary_ = other.right_boundary_;
+      lane_id_ = other.lane_id_;
+      lane_width_ = other.lane_width_;
       left_lane_ = other.left_lane_;
       right_lane_ = other.right_lane_;
     }
@@ -87,10 +87,10 @@ class Lane {
   WayPoints left_boundary_;
   WayPoints right_boundary_;
 
+  int lane_id_;
   double lane_width_;
   Lane* left_lane_ = nullptr;  // or change to left_lane_id
   Lane* right_lane_ = nullptr;
-  int lane_id_;
 };
 
 #endif  // FRENETOPTIMALTRAJECTORY_LANE_H

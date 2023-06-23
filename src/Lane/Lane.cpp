@@ -52,7 +52,7 @@ void Lane::CalculateLaneBoundariesFromWaypoints() {
 
   CubicSpline2D csp(wp_[0], wp_[1]);
 
-  for (int i = 0; i < wp_[0].size(); ++i) {
+  for (std::size_t i = 0; i < wp_[0].size(); ++i) {
     double s = csp.find_s(wp_[0][i], wp_[1][i]);
     double x = csp.calc_x(s);
     double y = csp.calc_y(s);
