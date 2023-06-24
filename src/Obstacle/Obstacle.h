@@ -93,6 +93,7 @@ class Obstacle {
   Pose getPredictPoseAtTimestamp(double timestamp);
 
   const vector<Box> &getPredictBoxes() const { return predict_boxes_; }
+  void UpdatePredictBoxes();
 
   // private: // set public for convenience to use msgpack
   double length_;  // parallel with yaw
@@ -109,8 +110,6 @@ class Obstacle {
                  predict_boxes_);
 
  private:
-  void UpdatePredictBoxes();
-
   // for use under Frenet frame
   unique_ptr<LookupTable1D> tbl_time_to_speed_ = nullptr;
 };
