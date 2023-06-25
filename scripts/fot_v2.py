@@ -45,8 +45,15 @@ def run_cpp_executable(args):
     subprocess.run(command)
 
 def post_process(args):
-    # visualization
     if args.store_data:
+        if args.save_frame or args.save_gif:
+            Path("img/frames").mkdir(parents=True, exist_ok=True)
+            # remove all files in img/frames
+            frames_dir = os.path.join(PROJECT_DIR, "img/frames")
+            for file in os.listdir(frames_dir):
+                os.remove(os.path.join(frames_dir, file))
+
+        # visualization
         area = 20
         data_frames = load_data(args.data_path)
         # visualize data
@@ -77,8 +84,8 @@ def post_process(args):
             # plot frenet paths
             plt.plot(frame.best_frenet_path.x, frame.best_frenet_path.y, "-or")
             print("frame.frenet_paths number: ", len(frame.frenet_paths))
-            # for frenet_path in frame.frenet_paths:
-            #     plt.plot(frenet_path.x, frenet_path.y, "-")
+            for frenet_path in frame.frenet_paths:
+                plt.plot(frenet_path.x, frenet_path.y, "-")
 
             plt.axis('equal')
             plt.xlim(ego_x - 0.5*area, ego_x + 1.5*area)
@@ -89,7 +96,6 @@ def post_process(args):
                       str(np.linalg.norm((frame.ego_car.twist.vx)))[:4])
             plt.grid(True)
             if args.save_frame or args.save_gif:
-                Path("img/frames").mkdir(parents=True, exist_ok=True)
                 plt.savefig("img/frames/{}.jpg".format(i))
             plt.pause(0.1)
 
