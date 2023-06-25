@@ -2,6 +2,7 @@
 #define FRENETOPTIMALTRAJECTORY_LANE_H
 
 #include <cmath>
+#include <msgpack.hpp>
 #include <vector>
 
 #include "CubicSpline/CubicSpline2D.h"
@@ -12,6 +13,7 @@ using namespace utils;
 
 class Lane {
  public:
+  Lane() = default;
   Lane(int lane_id, const WayPoints& wp, double lane_width = 4.0,
        Lane* left_lane = nullptr, Lane* right_lane = nullptr)
       : wp_(wp),
@@ -80,15 +82,18 @@ class Lane {
   bool GetRightLane(Lane* right_lane);
   Lane* MutableRightLane() { return right_lane_; }  // check nullptr before use
 
- private:
-  void CalculateLaneBoundariesFromWaypoints();
-
   WayPoints wp_;
   WayPoints left_boundary_;
   WayPoints right_boundary_;
 
   int lane_id_;
   double lane_width_;
+
+  MSGPACK_DEFINE(wp_, left_boundary_, right_boundary_, lane_id_, lane_width_);
+
+ private:
+  void CalculateLaneBoundariesFromWaypoints();
+
   Lane* left_lane_ = nullptr;  // or change to left_lane_id
   Lane* right_lane_ = nullptr;
 };

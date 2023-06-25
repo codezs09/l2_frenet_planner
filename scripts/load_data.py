@@ -20,8 +20,9 @@ FrenetPath = namedtuple('FrenetPath', ['t', 'd', 'd_d', 'd_dd', 'd_ddd', 's', 's
                                         'c_lateral_jerk', 'c_lateral', 'c_longitudinal_acceleration',
                                         'c_longitudinal_jerk', 'c_time_taken', 'c_end_speed_deviation',
                                         'c_longitudinal', 'c_inv_dist_to_obstacles', 'cf'])
+Lane = namedtuple('Lane', ['wp', 'left_boundary', 'right_boundary', 'lane_id', 'lane_width'])
 DataFrame = namedtuple('DataFrame', ['timestamp', 'ego_car', 'best_frenet_path',
-                                     'wx', 'wy', 'obstacles', 'frenet_paths'])
+                                     'lanes', 'obstacles', 'frenet_paths'])
 
 def load_data(file_name): 
     with open(file_name, 'rb') as f:
@@ -37,7 +38,7 @@ def load_data(file_name):
     # conver the unpacked data into python classes
     data_frames = []
     for frame_data in data_frames_data:
-        timestamp, ego_car_data, best_frenet_path_data, wx, wy, obstacles_data, frenet_paths_data = frame_data
+        timestamp, ego_car_data, best_frenet_path_data, lanes_data, obstacles_data, frenet_paths_data = frame_data
         ego_car_pose_data, ego_car_twist_data, ego_car_accel_data, ego_car_length, ego_car_width = ego_car_data
         ego_car_pose = Pose(*ego_car_pose_data)
         ego_car_twist = Twist(*ego_car_twist_data)
@@ -61,7 +62,12 @@ def load_data(file_name):
             frenet_path = FrenetPath(*frenet_path_data)
             frenet_paths.append(frenet_path)
 
-        data_frame = DataFrame(timestamp, ego_car, best_frenet_path, wx, wy, obstacles, frenet_paths)
+        lanes = []
+        for lane_data in lanes_data:
+            lane = Lane(*lane_data)
+            lanes.append(lane)
+
+        data_frame = DataFrame(timestamp, ego_car, best_frenet_path, lanes, obstacles, frenet_paths)
         data_frames.append(data_frame)
     
     return data_frames

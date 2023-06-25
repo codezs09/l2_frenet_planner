@@ -21,7 +21,7 @@ using namespace std;
 using namespace utils;
 using json = nlohmann::json;
 
-const std::string REPO_DIR = "/home/deeproute/l2_frenet_planner/";
+const std::string REPO_DIR = "/home/sheng/Projects/l2_frenet_planner/";
 
 DEFINE_string(scene_path, REPO_DIR + "config/scenes/one_lane_slow_down.json",
               "Path to scene config file");
@@ -324,8 +324,7 @@ int main(int argc, char** argv) {
       df.timestamp = timestamp;
       df.ego_car = ego_car;
       df.best_frenet_path = *best_frenet_path;
-      // df.wx = wp[0];
-      // df.wy = wp[1];
+      df.lanes = lanes;
       df.obstacles = obstacles;
       df.frenet_paths = best_frenet_paths;
       data_frames.push_back(std::move(df));

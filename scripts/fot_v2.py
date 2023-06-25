@@ -59,7 +59,13 @@ def post_process(args):
         # visualize data
         for i, frame in enumerate(data_frames):
             plt.cla()
-            plt.plot(frame.wx, frame.wy)
+            # plot lanes
+            for lane in frame.lanes:
+                wp = lane.wp
+                left_boundary = lane.left_boundary
+                right_boundary = lane.right_boundary
+                plt.plot(left_boundary[0], left_boundary[1], "-k")
+                plt.plot(right_boundary[0], right_boundary[1], "-k")
             ax = plt.gca()
 
             # plot obstacles
