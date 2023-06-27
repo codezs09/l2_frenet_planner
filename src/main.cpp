@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
 
     // Loop each lane here and may initialize fot_ic for each lane
     best_frenet_paths.clear();
-    for (auto& lane : lanes) {
+    for (const auto& lane : lanes) {
       WayPoints wp = lane.GetWayPoints();
 
       // break if near goal

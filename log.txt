@@ -64,9 +64,9 @@
 
 06.25
 - Log and Visualize each lane and path
-    - Every lane
+    - Every lane boundary (cubis spline representation)
     - Every selected trajectories in each Lane
-    
+
 
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空

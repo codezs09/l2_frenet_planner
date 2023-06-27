@@ -32,7 +32,9 @@ class Lane {
         lane_id_(lane_id),
         lane_width_(lane_width),
         left_lane_(left_lane),
-        right_lane_(right_lane) {}
+        right_lane_(right_lane) {
+    CalculateDenseLaneBoundaries();
+  }
 
   // copy constructor
   Lane(const Lane& other)
@@ -41,6 +43,8 @@ class Lane {
         right_boundary_(other.right_boundary_),
         lane_id_(other.lane_id_),
         lane_width_(other.lane_width_),
+        left_boundary_dense_(other.left_boundary_dense_),
+        right_boundary_dense_(other.right_boundary_dense_),
         left_lane_(other.left_lane_),
         right_lane_(other.right_lane_) {}
 
@@ -52,6 +56,8 @@ class Lane {
       right_boundary_ = other.right_boundary_;
       lane_id_ = other.lane_id_;
       lane_width_ = other.lane_width_;
+      left_boundary_dense_ = other.left_boundary_dense_;
+      right_boundary_dense_ = other.right_boundary_dense_;
       left_lane_ = other.left_lane_;
       right_lane_ = other.right_lane_;
     }
@@ -89,10 +95,18 @@ class Lane {
   int lane_id_;
   double lane_width_;
 
-  MSGPACK_DEFINE(wp_, left_boundary_, right_boundary_, lane_id_, lane_width_);
+  // debug purposes
+  WayPoints left_boundary_dense_;
+  WayPoints right_boundary_dense_;
+
+  MSGPACK_DEFINE(wp_, left_boundary_dense_, right_boundary_dense_, lane_id_,
+                 lane_width_);
 
  private:
   void CalculateLaneBoundariesFromWaypoints();
+  void CalculateDenseLaneBoundaries();
+  void CalculateDenseLaneBoundaries(const WayPoints& boundary,
+                                    WayPoints* dense_boundary);
 
   Lane* left_lane_ = nullptr;  // or change to left_lane_id
   Lane* right_lane_ = nullptr;

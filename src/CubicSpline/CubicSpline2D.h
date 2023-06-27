@@ -22,6 +22,9 @@ class CubicSpline2D {
   double calc_dx_over_ds(double t);
   double calc_dy_over_ds(double t);
 
+  double s_lo() { return s.front(); }
+  double s_hi() { return s.back(); }
+
  private:
   vector<double> s;
   CubicSpline1D sx, sy;
