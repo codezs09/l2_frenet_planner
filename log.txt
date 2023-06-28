@@ -61,12 +61,15 @@
 06.23
 - Loop paths for each lane
 - Debug
+- Trajectory selection for each lane
 
 06.25
 - Log and Visualize each lane and path
     - Every lane boundary (cubis spline representation)
     - Every selected trajectories in each Lane
 
+06.28
+- Fix bug: ego car not in lane
 
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空
