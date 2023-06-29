@@ -1,4 +1,5 @@
 #include "coordinate_utils.h"
+#include <stdexcept>
 #include <utility>
 
 namespace utils {
@@ -165,6 +166,64 @@ void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
     (*predict_poses_c)[predict_pose_f.first] = predict_pose_c;
   }
   ob_c->UpdatePredictBoxes();
+}
+
+void ToLocal(const Pose& pose_g, const Pose& pose_ref, Pose* pose_l) {
+  if (pose_ref == nullptr) {
+    throw std::invalid_argument("pose_ref is nullptr");
+  }
+  double dx = pose_g.x - pose_ref.x;
+  double dy = pose_g.y - pose_ref.y;
+  double cos_theta = cos(pose_ref.yaw);
+  double sin_theta = sin(pose_ref.yaw);
+  pose_l->x = dx * cos_theta + dy * sin_theta;
+  pose_l->y = -dx * sin_theta + dy * cos_theta;
+  pose_l->theta = utils::wrap_angle(pose_g.theta - pose_ref.theta);
+}
+
+void ToLocal(const Obstacle& ob_g, const Pose& pose_ref, Obstacle* ob_l) {
+  *ob_l = ob_g;
+  ToLocal(ob_g.getPose(), pose_ref, ob_l->mutablePose());
+  // no need to update twist and accel
+
+  // update predict poses
+  auto* predict_poses = ob_l->mutablePredictPoses();
+  for (auto iter = predict_poses->begin(); iter != predict_poses->end();
+       ++iter) {
+    ToLocal(iter->second, pose_ref, &(iter->second));
+  }
+
+  // update predict boxes
+  ob_l->UpdatePredictBoxes();
+}
+
+void ToLocal(const vector<Obstacle>& obs_g, const Pose& pose_ref,
+             vector<Obstacle>* obs_l) {
+  if (obs_l == nullptr) {
+    throw std::invalid_argument("obs_l is nullptr");
+  }
+  obs_l->clear();
+  for (const auto& ob_g : obs_g) {
+    Obstacle ob_l;
+    ToLocal(ob_g, pose_ref, &ob_l);
+    obs_l->push_back(ob_l);
+  }
+}
+
+void ToLocal(const WayPoints& wp_g, const Pose& pose_ref, WayPoints* wp_l) {
+  if (wp_l == nullptr) {
+    throw std::invalid_argument("wp_l is nullptr");
+  }
+  wp_l->at(0).clear();
+  wp_l->at(1).clear();
+
+  size_t wp_len = wp_g[0].size();
+  for (size_t i = 0; i < wp_len; ++i) {
+    Pose pose_l;
+    ToLocal({wp_g[0][i], wp_g[1][i], 0.0}, pose_ref, &pose_l);
+    wp_l->at(0)->push_back(pose_l.x);
+    wp_l->at(1)->push_back(pose_l.y);
+  }
 }
 
 void ShiftWaypoints(const WayPoints& ref_wp, double offset, WayPoints* wp) {

@@ -250,6 +250,13 @@ int main(int argc, char** argv) {
   for (; i < sim_loop; ++i) {
     auto start = std::chrono::high_resolution_clock::now();
 
+    // estimation of state change
+    Pose pose_change_est = EstimateChangeOfPose();
+
+    // update Initial Planning Point in local frame
+    planning_init_point_local =
+        planning_init_point_wrt_last_frame - pose_change_est;
+
     // Loop each lane here and may initialize fot_ic for each lane
     best_frenet_paths.clear();
     for (const auto& lane : lanes) {
@@ -262,11 +269,6 @@ int main(int argc, char** argv) {
         break;
       }
 
-      FrenetInitialConditions fot_ic(wp, obstacles);
-      fot_ic.target_speed = target_speed;
-
-      // update Frenet coordinate of ego car
-      UpdateFrenetCoordinates(ego_car, wp, &fot_ic);
       // prediction on obstacles
       for (auto& ob : obstacles) {
         std::unique_ptr<Obstacle> ob_f = nullptr;
@@ -281,7 +283,20 @@ int main(int argc, char** argv) {
         ob = std::move(*ob_c);
       }
 
+      // convert obstacles to local coordinate w.r.t. ego car
+      std::vector<Obstacle> obstacles_local;
+      ToLocal(obstacles, ego_car.getPose(), &obstacles_local);
+      ToLocal(wp, ego_car.getPose(), &wp_local);
+
       // run frenet optimal trajectory
+      FrenetInitialConditions fot_ic(
+          wp_local,
+          obstacles_local);  // TO-DO: wp to local too
+      fot_ic.target_speed = target_speed;
+
+      // update Frenet coordinate of ego car
+      UpdateFrenetCoordinates(planning_init_point_local, wp_local, &fot_ic);
+
       FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
       FrenetPath* best_frenet_path_per_lane = fot.getBestPath();
       if (!best_frenet_path_per_lane || best_frenet_path_per_lane->x.empty()) {
@@ -302,7 +317,6 @@ int main(int argc, char** argv) {
       break;
     }
 
-    // update cost for each frenet path based on lane
     // choose from best trajectory along each lane based on cost
     FrenetPath* best_frenet_path = nullptr;
     for (auto& fp : best_frenet_paths) {

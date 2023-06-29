@@ -12,6 +12,9 @@
 
 namespace utils {
 
+/**
+ * Utils functions to convert between Cartesian and Frenet coordinates
+ */
 void ToFrenet(const Pose& pose_c, const Twist& twist_c, const Accel& accel_c,
               WayPoints wp, Pose* pose_f, Twist* twist_f, Accel* accel_f);
 
@@ -25,6 +28,16 @@ void ToFrenet(const Obstacle& ob_c, const WayPoints& wp,
               std::unique_ptr<Obstacle>& ob_f);
 void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
                  std::unique_ptr<Obstacle>& ob_c);
+
+/**
+ * Utils functions to convert between global and local coordinates
+ * w.r.t. reference point pose_ref
+ */
+void ToLocal(const Pose& pose_g, const Pose& pose_ref, Pose* pose_l);
+void ToLocal(const Obstacle& ob_g, const Pose& pose_ref, Obstacle* ob_l);
+void ToLocal(const vector<Obstacle>& obs_g, const Pose& pose_ref,
+             vector<Obstacle>* obs_l);
+void ToLocal(const WayPoints& wp_g, const Pose& pose_ref, WayPoints* wp_l);
 
 /**
  * @brief Shift waypoints by offset
