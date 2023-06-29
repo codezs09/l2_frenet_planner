@@ -1,7 +1,10 @@
 {
 	"s0": 0,
 	"target_speed": 20.0,
-	"wp": [[0,0], [50, 10], [150, 30]],
+	"wp": [[0,0], [50, 10], [100, 10], [150, 20]],
+	"lane_width": 4.0,
+	"num_lanes_left": 1,
+	"num_lanes_right": 1, 
 	"obs": [
 		{
 			"pose_coord": "Frenet",

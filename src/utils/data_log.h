@@ -9,6 +9,7 @@
 
 #include "Car/Car.h"
 #include "FrenetOptimalTrajectory/FrenetPath.h"
+#include "Lane/Lane.h"
 #include "Obstacle/Obstacle.h"
 
 using namespace std;
@@ -17,12 +18,11 @@ struct DataFrame {
   double timestamp;
   Car ego_car;
   FrenetPath best_frenet_path;
-  vector<double> wx;
-  vector<double> wy;
+  vector<Lane> lanes;
   vector<Obstacle> obstacles;
   vector<FrenetPath> frenet_paths;
 
-  MSGPACK_DEFINE(timestamp, ego_car, best_frenet_path, wx, wy, obstacles,
+  MSGPACK_DEFINE(timestamp, ego_car, best_frenet_path, lanes, obstacles,
                  frenet_paths);
 };
 

@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/FrenetOptimalTrajectoryTest",
-            "args": [],
+            "args": ["--store_data=true"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -26,5 +26,14 @@ void ToFrenet(const Obstacle& ob_c, const WayPoints& wp,
 void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
                  std::unique_ptr<Obstacle>& ob_c);
 
+/**
+ * @brief Shift waypoints by offset
+ *        offset is signed, positive for left side and negative for right side
+ * @param ref_wp
+ * @param offset
+ * @param wp
+ */
+void ShiftWaypoints(const WayPoints& ref_wp, double offset, WayPoints* wp);
+
 }  // namespace utils
 #endif

@@ -99,7 +99,7 @@ void CubicSpline1D::vector_b(vector<double> &deltas, VectorXd &result) {
 
 // Search the spline for index closest to t
 int CubicSpline1D::search_index(double t) {
-  if (t - x.back() < 1.0e-6) {
+  if (std::fabs(t - x.back()) < 1.0e-6) {
     return x.size() - 2;  // special case for last element
   }
   return std::upper_bound(x.begin(), x.end(), t) - x.begin() - 1;

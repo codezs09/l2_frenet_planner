@@ -24,6 +24,8 @@ struct FrenetInitialConditions {
   double d_d;
   double d_dd;
   double target_speed;
+
+  // TO-DO: 以下两个fields特别是 obstacles_c 感觉可以单独拉出作为输入
   WayPoints& wp;                  // Cartesian coordinates
   vector<Obstacle>& obstacles_c;  // Cartesian coordinates
 
@@ -74,6 +76,7 @@ struct FrenetHyperparameters {
   double ko;
   double klat;
   double klon;
+  double klane;
   int num_threads;
 
   void Init(json j) {
@@ -97,6 +100,7 @@ struct FrenetHyperparameters {
     ko = j["ko"];
     klat = j["klat"];
     klon = j["klon"];
+    klane = j["klane"];
     num_threads = j["num_threads"];
   }
 

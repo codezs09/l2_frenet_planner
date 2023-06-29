@@ -136,7 +136,8 @@ void ToFrenet(const Obstacle& ob_c, const WayPoints& wp,
   ob_f = std::make_unique<Obstacle>(pose_f, twist_f, ob_c.getLength(),
                                     ob_c.getWidth(), ob_c.getClearence());
   ob_f->setSpeedLookupTable(ob_c.getSpeedLookupTable());
-  // sheng: conversion of predict poses is not implemented here
+  ob_f->setLaneIds(ob_c.getLaneIds());
+  // note(sheng): conversion of predict poses is not implemented here
 }
 
 void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
@@ -149,6 +150,7 @@ void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
   ob_c = std::make_unique<Obstacle>(pose_c, twist_c, ob_f.getLength(),
                                     ob_f.getWidth(), ob_f.getClearence());
   ob_c->setSpeedLookupTable(ob_f.getSpeedLookupTable());
+  ob_c->setLaneIds(ob_f.getLaneIds());
 
   // conversion of predict poses to Cartesian
   const auto& predict_poses_f = ob_f.getPredictPoses();
@@ -161,6 +163,31 @@ void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
     ToCartesian(predict_pose_f.second, {0, 0, 0}, {0, 0, 0}, wp,
                 &predict_pose_c, &dummy_twist, &dummy_accel);
     (*predict_poses_c)[predict_pose_f.first] = predict_pose_c;
+  }
+  ob_c->UpdatePredictBoxes();
+}
+
+void ShiftWaypoints(const WayPoints& ref_wp, double offset, WayPoints* wp) {
+  if (wp == nullptr) {
+    throw std::invalid_argument("wp is nullptr");
+  }
+
+  (*wp)[0].clear();
+  (*wp)[1].clear();
+
+  const int wp_size = ref_wp[0].size();
+  CubicSpline2D csp = CubicSpline2D(ref_wp[0], ref_wp[1]);
+  for (int i = 0; i < wp_size; ++i) {
+    double s = csp.find_s(ref_wp[0][i], ref_wp[1][i]);
+
+    double x = csp.calc_x(s);
+    double y = csp.calc_y(s);
+    double yaw = csp.calc_yaw(s);
+
+    double x_shift = x - offset * sin(yaw);
+    double y_shift = y + offset * cos(yaw);
+    (*wp)[0].push_back(x_shift);
+    (*wp)[1].push_back(y_shift);
   }
 }
 

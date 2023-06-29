@@ -59,8 +59,13 @@ class FrenetPath {
   // obstacle costs
   double c_inv_dist_to_obstacles = 0.0;
 
+  // lane change costs
+  double c_lane_change = 0.0;
+
   // final cost
   double cf = 0.0;
+
+  int lane_id = -1;
 
   FrenetPath() = default;
   bool to_global_path(CubicSpline2D* csp);

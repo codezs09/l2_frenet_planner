@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(FrenetOptimalTrajectory)
 
-set(CMAKE_BUILD_TYPE Release) # Release, Debug
+# set(CMAKE_BUILD_TYPE Debug) # Release, Debug
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -64,7 +64,8 @@ add_library(FrenetOptimalTrajectory SHARED
             src/Obstacle/Obstacle.cpp
             src/Obstacle/Obstacle.h
             src/Car/Car.cpp
-            src/Car/Car.h)
+            src/Car/Car.h
+            src/Lane/Lane.cpp)
 
 add_library(PackageFrenetOptimalTrajectory STATIC
             src/utils/utils.cpp
@@ -91,7 +92,8 @@ add_library(PackageFrenetOptimalTrajectory STATIC
             src/Obstacle/Obstacle.cpp
             src/Obstacle/Obstacle.h
             src/Car/Car.cpp
-            src/Car/Car.h)
+            src/Car/Car.h
+            src/Lane/Lane.cpp)
 
 # add_executable(AnytimeFrenetOptimalTrajectoryTest
 #             src/anytime.cpp
@@ -141,7 +143,8 @@ add_executable(FrenetOptimalTrajectoryTest
                src/Obstacle/Obstacle.cpp
                src/Obstacle/Obstacle.h
                src/Car/Car.cpp
-               src/Car/Car.h)
+               src/Car/Car.h
+               src/Lane/Lane.cpp)
 target_link_libraries(FrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui
                       gflags ${MSGPACK_LIBRARIES})
 target_link_libraries(PackageFrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets Qt5::Gui
