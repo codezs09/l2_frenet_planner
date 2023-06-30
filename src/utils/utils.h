@@ -6,6 +6,7 @@
 #include <iostream>
 #include <msgpack.hpp>
 #include <nlohmann/json.hpp>
+#include <random>
 #include <tuple>
 #include <vector>
 
@@ -20,6 +21,14 @@ struct Pose {
   double x;    // [m]
   double y;    // [m]
   double yaw;  // [rad]
+
+  Pose operator+(const Pose& p) const {
+    return Pose{x + p.x, y + p.y, yaw + p.yaw};
+  }
+
+  Pose operator-(const Pose& p) const {
+    return Pose{x - p.x, y - p.y, yaw - p.yaw};
+  }
 
   MSGPACK_DEFINE(x, y, yaw);
 };
@@ -68,6 +77,8 @@ bool LoadJsonFile(string scene_path, json* j);
 inline double deg2rad(double deg) { return deg * M_PI / 180.0; }
 inline double rad2deg(double rad) { return rad * 180.0 / M_PI; }
 double wrap_angle(double angle);  // [-pi, pi]
+
+double genGaussianNoise(double mean, double std_dev);
 
 }  // namespace utils
 

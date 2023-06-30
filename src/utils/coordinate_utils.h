@@ -39,6 +39,9 @@ void ToLocal(const vector<Obstacle>& obs_g, const Pose& pose_ref,
              vector<Obstacle>* obs_l);
 void ToLocal(const WayPoints& wp_g, const Pose& pose_ref, WayPoints* wp_l);
 
+void ToGlobal(const Pose& pose_l, const Pose& pose_ref, Pose* pose_g);
+void ToGlobal(const Car& car_l, const Pose& pose_ref, Car* car_g);
+
 /**
  * @brief Shift waypoints by offset
  *        offset is signed, positive for left side and negative for right side

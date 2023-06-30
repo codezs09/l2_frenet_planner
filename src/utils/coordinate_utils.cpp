@@ -169,7 +169,7 @@ void ToCartesian(const Obstacle& ob_f, const WayPoints& wp,
 }
 
 void ToLocal(const Pose& pose_g, const Pose& pose_ref, Pose* pose_l) {
-  if (pose_ref == nullptr) {
+  if (pose_l == nullptr) {
     throw std::invalid_argument("pose_ref is nullptr");
   }
   double dx = pose_g.x - pose_ref.x;
@@ -182,6 +182,9 @@ void ToLocal(const Pose& pose_g, const Pose& pose_ref, Pose* pose_l) {
 }
 
 void ToLocal(const Obstacle& ob_g, const Pose& pose_ref, Obstacle* ob_l) {
+  if (ob_l == nullptr) {
+    throw std::invalid_argument("ob_l is nullptr");
+  }
   *ob_l = ob_g;
   ToLocal(ob_g.getPose(), pose_ref, ob_l->mutablePose());
   // no need to update twist and accel
@@ -224,6 +227,27 @@ void ToLocal(const WayPoints& wp_g, const Pose& pose_ref, WayPoints* wp_l) {
     wp_l->at(0)->push_back(pose_l.x);
     wp_l->at(1)->push_back(pose_l.y);
   }
+}
+
+void ToGlobal(const Pose& pose_l, const Pose& pose_ref, Pose* pose_g) {
+  if (pose_g == nullptr) {
+    throw std::invalid_argument("pose_g is nullptr");
+  }
+  double cos_theta = cos(pose_ref.yaw);
+  double sin_theta = sin(pose_ref.yaw);
+  pose_g->x = pose_l.x * cos_theta - pose_l.y * sin_theta + pose_ref.x;
+  pose_g->y = pose_l.x * sin_theta + pose_l.y * cos_theta + pose_ref.y;
+  pose_g->theta = utils::wrap_angle(pose_l.theta + pose_ref.theta);
+}
+
+void ToGlobal(const Car& car_l, const Pose& pose_ref, Car* car_g) {
+  if (car_g == nullptr) {
+    throw std::invalid_argument("car_g is nullptr");
+  }
+  *car_g = car_l;
+  ToGlobal(car_l.getPose(), pose_ref, car_g->mutablePose());
+
+  // no need to update twist and accel
 }
 
 void ShiftWaypoints(const WayPoints& ref_wp, double offset, WayPoints* wp) {

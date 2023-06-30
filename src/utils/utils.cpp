@@ -38,4 +38,11 @@ double wrap_angle(double angle) {
   return angle;
 }
 
+double genGaussianNoise(double mean, double std_dev) {
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  std::normal_distribution<double> d(mean, std_dev);
+  return d(gen);
+}
+
 }  // namespace utils

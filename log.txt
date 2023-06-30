@@ -73,8 +73,12 @@
 
 06.29
 - Refactor to local planning
-    - Add ego car state change estimation
     - Convert to local frame w.r.t. ego car
+
+06.30
+    - Add ego car state change estimation
+    - Add initial planning point at local frame, planning_init_point_local
+
 
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空
