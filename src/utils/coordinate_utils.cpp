@@ -178,7 +178,7 @@ void ToLocal(const Pose& pose_g, const Pose& pose_ref, Pose* pose_l) {
   double sin_theta = sin(pose_ref.yaw);
   pose_l->x = dx * cos_theta + dy * sin_theta;
   pose_l->y = -dx * sin_theta + dy * cos_theta;
-  pose_l->theta = utils::wrap_angle(pose_g.theta - pose_ref.theta);
+  pose_l->yaw = utils::wrap_angle(pose_g.yaw - pose_ref.yaw);
 }
 
 void ToLocal(const Obstacle& ob_g, const Pose& pose_ref, Obstacle* ob_l) {
@@ -224,8 +224,8 @@ void ToLocal(const WayPoints& wp_g, const Pose& pose_ref, WayPoints* wp_l) {
   for (size_t i = 0; i < wp_len; ++i) {
     Pose pose_l;
     ToLocal({wp_g[0][i], wp_g[1][i], 0.0}, pose_ref, &pose_l);
-    wp_l->at(0)->push_back(pose_l.x);
-    wp_l->at(1)->push_back(pose_l.y);
+    wp_l->at(0).push_back(pose_l.x);
+    wp_l->at(1).push_back(pose_l.y);
   }
 }
 
@@ -237,7 +237,7 @@ void ToGlobal(const Pose& pose_l, const Pose& pose_ref, Pose* pose_g) {
   double sin_theta = sin(pose_ref.yaw);
   pose_g->x = pose_l.x * cos_theta - pose_l.y * sin_theta + pose_ref.x;
   pose_g->y = pose_l.x * sin_theta + pose_l.y * cos_theta + pose_ref.y;
-  pose_g->theta = utils::wrap_angle(pose_l.theta + pose_ref.theta);
+  pose_g->yaw = utils::wrap_angle(pose_l.yaw + pose_ref.yaw);
 }
 
 void ToGlobal(const Car& car_l, const Pose& pose_ref, Car* car_g) {

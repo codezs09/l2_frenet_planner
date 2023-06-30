@@ -79,6 +79,11 @@ struct FrenetHyperparameters {
   double klane;
   int num_threads;
 
+  int sensor_speed_offset;
+  int sensor_speed_noise_std;
+  int sensor_yaw_rate_offset;
+  int sensor_yaw_rate_noise_std;
+
   void Init(json j) {
     max_speed = j["max_speed"];
     max_accel = j["max_accel"];
@@ -102,6 +107,10 @@ struct FrenetHyperparameters {
     klon = j["klon"];
     klane = j["klane"];
     num_threads = j["num_threads"];
+    sensor_speed_offset = j["sensor_speed_offset"];
+    sensor_speed_noise_std = j["sensor_speed_noise_std"];
+    sensor_yaw_rate_offset = j["sensor_yaw_rate_offset"];
+    sensor_yaw_rate_noise_std = j["sensor_yaw_rate_noise_std"];
   }
 
   static FrenetHyperparameters& getInstance() {

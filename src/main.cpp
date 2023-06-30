@@ -385,7 +385,7 @@ int main(int argc, char** argv) {
     for (auto& fp : best_frenet_paths_global) {
       std::size_t fp_size = fp.x.size();
       for (std::size_t i = 0; i < fp_size; ++i) {
-        Pose pose_l(fp.x[i], fp.y[i], fp.yaw[i]);
+        Pose pose_l({fp.x[i], fp.y[i], fp.yaw[i]});
         Pose pose_g;
         ToGlobal(pose_l, ego_car.getPose(), &pose_g);
         fp.x[i] = pose_g.x;

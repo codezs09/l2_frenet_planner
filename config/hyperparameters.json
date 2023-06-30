@@ -20,9 +20,10 @@
     "klat": 1.0,
     "klon": 1.0,
     "klane": 0.1,
+    "num_threads": 7,
+
     "sensor_speed_offset": 0.2,
     "sensor_speed_noise_std": 0.1,
     "sensor_yaw_rate_offset": -0.01,
     "sensor_yaw_rate_noise_std": 0.005,
-    "num_threads": 7
 }
