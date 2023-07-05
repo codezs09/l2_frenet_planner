@@ -22,8 +22,16 @@ struct DataFrame {
   vector<Obstacle> obstacles;
   vector<FrenetPath> frenet_paths;
 
+  std::vector<Obstacle> obstacles_local;
+  unordered_map<int, WayPoints> wp_lanes_local;
+  Car planning_init_point_local;
+  FrenetPath best_frenet_path_local;
+  vector<FrenetPath> frenet_paths_local;
+
   MSGPACK_DEFINE(timestamp, ego_car, best_frenet_path, lanes, obstacles,
-                 frenet_paths);
+                 frenet_paths, obstacles_local, wp_lanes_local,
+                 planning_init_point_local, best_frenet_path_local,
+                 frenet_paths_local);
 };
 
 bool save_data(const std::string& filename,

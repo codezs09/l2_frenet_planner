@@ -22,7 +22,10 @@ FrenetPath = namedtuple('FrenetPath', ['t', 'd', 'd_d', 'd_dd', 'd_ddd', 's', 's
                                         'c_longitudinal', 'c_inv_dist_to_obstacles', 'cf'])
 Lane = namedtuple('Lane', ['wp', 'left_boundary', 'right_boundary', 'lane_id', 'lane_width'])
 DataFrame = namedtuple('DataFrame', ['timestamp', 'ego_car', 'best_frenet_path',
-                                     'lanes', 'obstacles', 'frenet_paths'])
+                                     'lanes', 'obstacles', 'frenet_paths', 
+                                     'obstacles_local', 'wp_lanes_local',
+                                     'planning_init_point_local', 
+                                     'best_frenet_path_local','frenet_paths_local'])
 
 def load_data(file_name): 
     with open(file_name, 'rb') as f:
@@ -38,7 +41,11 @@ def load_data(file_name):
     # conver the unpacked data into python classes
     data_frames = []
     for frame_data in data_frames_data:
-        timestamp, ego_car_data, best_frenet_path_data, lanes_data, obstacles_data, frenet_paths_data = frame_data
+        timestamp, ego_car_data, best_frenet_path_data, lanes_data, \
+            obstacles_data, frenet_paths_data, obstacles_local_data, \
+            wp_lanes_local_data, planning_init_point_local_data, \
+            best_frenet_path_local_data, frenet_paths_local_data = frame_data
+        
         ego_car_pose_data, ego_car_twist_data, ego_car_accel_data, ego_car_length, ego_car_width = ego_car_data
         ego_car_pose = Pose(*ego_car_pose_data)
         ego_car_twist = Twist(*ego_car_twist_data)
@@ -46,6 +53,7 @@ def load_data(file_name):
         ego_car = Car(ego_car_pose, ego_car_twist, ego_car_accel, ego_car_length, ego_car_width)
 
         best_frenet_path = FrenetPath(*best_frenet_path_data)
+        best_frenet_path_local = FrenetPath(*best_frenet_path_local_data)
 
         obstacles = []
         for obstacle_data in obstacles_data:
@@ -62,12 +70,37 @@ def load_data(file_name):
             frenet_path = FrenetPath(*frenet_path_data)
             frenet_paths.append(frenet_path)
 
+        frenet_paths_local = []
+        for frenet_path_local_data in frenet_paths_local_data:
+            frenet_path_local = FrenetPath(*frenet_path_local_data)
+            frenet_paths_local.append(frenet_path_local)
+
         lanes = []
         for lane_data in lanes_data:
             lane = Lane(*lane_data)
             lanes.append(lane)
 
-        data_frame = DataFrame(timestamp, ego_car, best_frenet_path, lanes, obstacles, frenet_paths)
+        obstacles_local = []
+        for obstacle_data in obstacles_local_data:
+            obstacle_length, obstacle_width, obstacle_clearance, obstacle_pose_data, obstacle_twist_data, obstacle_predict_boxes_data = obstacle_data
+            obstacle_pose = Pose(*obstacle_pose_data)
+            obstacle_twist = Twist(*obstacle_twist_data)            
+            # print(obstacle_predict_boxes_data[0][0])  # debug
+            obstacle_predict_boxes = [Box([Point(*corner) for corner in box[0]]) for box in obstacle_predict_boxes_data]
+            obstacle = Obstacle(obstacle_length, obstacle_width, obstacle_clearance, obstacle_pose, obstacle_twist, obstacle_predict_boxes)
+            obstacles_local.append(obstacle)
+
+        wp_lanes_local = wp_lanes_local_data
+
+        planning_init_point_local_pose_data, planning_init_point_local_twist_data, planning_init_point_local_accel_data, planning_init_point_local_length, planning_init_point_local_width = planning_init_point_local_data
+        planning_init_point_local_pose = Pose(*planning_init_point_local_pose_data)
+        planning_init_point_local_twist = Twist(*planning_init_point_local_twist_data)
+        planning_init_point_local_accel = Accel(*planning_init_point_local_accel_data)
+        planning_init_point_local = Car(planning_init_point_local_pose, planning_init_point_local_twist, planning_init_point_local_accel, planning_init_point_local_length, planning_init_point_local_width)
+
+        data_frame = DataFrame(timestamp, ego_car, best_frenet_path, lanes, obstacles, frenet_paths,
+                               obstacles_local, wp_lanes_local, planning_init_point_local, 
+                               best_frenet_path_local, frenet_paths_local)
         data_frames.append(data_frame)
     
     return data_frames

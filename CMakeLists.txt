@@ -152,3 +152,9 @@ target_link_libraries(PackageFrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets 
 target_link_libraries(FrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui
                       gflags ${MSGPACK_LIBRARIES})
 # target_link_libraries(AnytimeFrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui)
+
+
+add_executable(coordinate_utils_test
+               src/utils/coordinate_utils_test.cpp
+               )
+target_link_libraries(coordinate_utils_test FrenetOptimalTrajectory)

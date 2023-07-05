@@ -283,7 +283,7 @@ int main(int argc, char** argv) {
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
-  int sim_loop = 200;
+  int sim_loop = 50;
   double total_runtime = 0.0;  // [ms]
   double timestamp = 0.0;      // [s], simulation timestamp
   int i = 0;
@@ -298,6 +298,7 @@ int main(int argc, char** argv) {
   double yaw_rate_meas = 0.0;
   double speed_meas = 0.0;
   unordered_map<int, WayPoints> wp_lanes_local;
+  std::vector<Obstacle> obstacles_local;
 
   for (; i < sim_loop; ++i) {
     auto start = std::chrono::high_resolution_clock::now();
@@ -329,7 +330,7 @@ int main(int argc, char** argv) {
       }
 
       // convert obstacles to local coordinate w.r.t. ego car
-      std::vector<Obstacle> obstacles_local;
+      obstacles_local.clear();
       ToLocal(obstacles, ego_car.getPose(), &obstacles_local);
       WayPoints wp_local;
       ToLocal(wp, ego_car.getPose(), &wp_local);
@@ -414,6 +415,11 @@ int main(int argc, char** argv) {
       df.lanes = lanes;
       df.obstacles = obstacles;
       df.frenet_paths = best_frenet_paths_global;
+      df.obstacles_local = obstacles_local;
+      df.wp_lanes_local = wp_lanes_local;
+      df.planning_init_point_local = planning_init_point_local;
+      df.best_frenet_path_local = *best_frenet_path_local;
+      df.frenet_paths_local = best_frenet_paths_local;
       data_frames.push_back(std::move(df));
     }
 
