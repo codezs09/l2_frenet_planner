@@ -79,6 +79,13 @@
     - Add ego car state change estimation
     - Add initial planning point at local frame, planning_init_point_local
 
+07.03
+    - Pipeline for local planning able to run but trajectory selected around 3.5s not expected. 
+    - Add unit test for coordinate conversion between global and local pose
+
+07.04
+    - Add plots for local planning. Nothing wrong from the local planning results
+    - 
 
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空

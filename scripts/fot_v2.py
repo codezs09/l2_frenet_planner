@@ -116,7 +116,7 @@ def post_process(args):
             plt.ylim(ego_y - 0.5*area, ego_y + 2.5*area)
             plt.xlabel("X [m]")
             plt.ylabel("Y [m]")
-            plt.title(f"Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
+            plt.title(f"Global: Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
                       str(np.linalg.norm((frame.ego_car.twist.vx)))[:4])
             plt.grid(True)
             if args.save_frame or args.save_gif:
@@ -163,7 +163,7 @@ def post_process(args):
             plt.ylim(ego_y - 0.5*area, ego_y + 2.5*area)
             plt.xlabel("X [m]")
             plt.ylabel("Y [m]")
-            plt.title(f"Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
+            plt.title(f"Local: Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
                       str(np.linalg.norm((frame.ego_car.twist.vx)))[:4])
             plt.grid(True)
             if args.save_frame or args.save_gif:
