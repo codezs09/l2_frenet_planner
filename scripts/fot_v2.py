@@ -32,7 +32,7 @@ def parse_arguments():
                         default=True)
     parser.add_argument('--save_gif', action='store_true',
                         default=True)
-    parser.add_argument('--skip_fot', action='store_true', default=True,
+    parser.add_argument('--skip_fot', action='store_true', default=False,
                         help='skip running FOT and only do post-processing on data.bin')
     parser.add_argument('--cost_frame', type=int, default=None, 
                         help='print path costs of a specific frame if provided')
@@ -210,7 +210,7 @@ def post_process(args):
     if args.store_data:
         data_frames = load_data(args.data_path)
 
-        plot_frames(data_frames, args)
+        # plot_frames(data_frames, args)
 
         if args.cost_frame is not None:
             print_frame_cost(data_frames, args.cost_frame)
