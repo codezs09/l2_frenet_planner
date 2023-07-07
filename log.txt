@@ -85,7 +85,10 @@
 
 07.04
     - Add plots for local planning. Nothing wrong from the local planning results
-    - 
+    - Add gtest and unit tests for coordinate conversion between Cartesian and Frenet frame
+
+07.06
+    - Print cost to debug why path selection jumps.
 
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空
