@@ -28,7 +28,7 @@ bool LoadJsonFile(string scene_path, json* j) {
   return true;
 }
 
-double warp_angle(double angle) {
+double wrap_angle(double angle) {
   while (angle > M_PI) {
     angle -= 2 * M_PI;
   }
@@ -36,6 +36,13 @@ double warp_angle(double angle) {
     angle += 2 * M_PI;
   }
   return angle;
+}
+
+double genGaussianNoise(double mean, double std_dev) {
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  std::normal_distribution<double> d(mean, std_dev);
+  return d(gen);
 }
 
 }  // namespace utils

@@ -71,13 +71,42 @@
 06.28
 - Fix bug: ego car not in lane
 
+06.29
+- Refactor to local planning
+    - Convert to local frame w.r.t. ego car
+
+06.30
+    - Add ego car state change estimation
+    - Add initial planning point at local frame, planning_init_point_local
+
+07.03
+    - Pipeline for local planning able to run but trajectory selected around 3.5s not expected. 
+    - Add unit test for coordinate conversion between global and local pose
+
+07.04
+    - Add plots for local planning. Nothing wrong from the local planning results
+    - Add gtest and unit tests for coordinate conversion between Cartesian and Frenet frame
+
+07.06
+    - Print cost to debug why path selection jumps.
+
+07.24
+    - add flag to choose between local vs global planning: FLAGS_local_planning, global fine
+    - TODO: Single frame debug mode? (Nahh..)
+
+07.25
+    - Add mode to: Need to output trajectories for each lane; plot all cadidate trajectories on each d; and costs
+    - Problem identified. Wrong output of collision check results. Add unit test.
+    - Found the bug: numeric_limits<double>::min() caution to use (representing the minimum POSITIVE double value)
+    
+07.26
+    - TODO: refactor the lane width: moving from hyperparameter to bind to json definition.
+    - TODO: Add following mode.
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空
-- 外层对每条lane的 wp 分别 loop 下，在外层最终选择哪条lane执行
 
 CHANGES: 
 - may use pybind11 instead of ctypes. Tried but vector size change not supported.
-
 - update methods w.r.t obstables: isCollision, etc. 
 - change obstacle representation to four corners
 - Add moving cars  ->  Needs fake Prediction module

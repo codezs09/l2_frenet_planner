@@ -13,6 +13,11 @@ Other apt package dependencies:
 sudo apt-get install -y libeigen3-dev clang cmake libgflags-dev libmsgpack-dev
 ```
 
+
+
+
+## Run
+
 ```
 python scripts/fot_v2.py
 ```

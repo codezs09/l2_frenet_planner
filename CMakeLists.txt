@@ -16,6 +16,9 @@ find_package(Qt5Gui REQUIRED)
 find_package(Eigen3)
 find_package(gflags REQUIRED)
 
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
 find_package(msgpack REQUIRED)
 include_directories(${MSGPACK_INCLUDE_DIRS})
 
@@ -152,3 +155,15 @@ target_link_libraries(PackageFrenetOptimalTrajectory Eigen3::Eigen Qt5::Widgets 
 target_link_libraries(FrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui
                       gflags ${MSGPACK_LIBRARIES})
 # target_link_libraries(AnytimeFrenetOptimalTrajectoryTest Eigen3::Eigen Qt5::Widgets Qt5::Gui)
+
+enable_testing()
+
+add_executable(coordinate_utils_test
+               src/utils/coordinate_utils_test.cpp
+               )
+target_link_libraries(coordinate_utils_test FrenetOptimalTrajectory ${GTEST_LIBRARIES})
+
+add_executable(geometry_test
+               src/utils/geometry_test.cpp
+               )
+target_link_libraries(geometry_test FrenetOptimalTrajectory ${GTEST_LIBRARIES})

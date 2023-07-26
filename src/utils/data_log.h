@@ -20,10 +20,21 @@ struct DataFrame {
   FrenetPath best_frenet_path;
   vector<Lane> lanes;
   vector<Obstacle> obstacles;
-  vector<FrenetPath> frenet_paths;
+  vector<FrenetPath> frenet_paths;  // best frenet path for each lane
+
+  std::vector<Obstacle> obstacles_local;
+  unordered_map<int, WayPoints> wp_lanes_local;
+  Car planning_init_point_local;
+  FrenetPath best_frenet_path_local;
+  vector<FrenetPath> frenet_paths_local;  // best frenet path for each lane
+  vector<vector<FrenetPath>>
+      frenet_paths_local_all;  // all candidate trajectories at each lane and
+                               // each d offset
 
   MSGPACK_DEFINE(timestamp, ego_car, best_frenet_path, lanes, obstacles,
-                 frenet_paths);
+                 frenet_paths, obstacles_local, wp_lanes_local,
+                 planning_init_point_local, best_frenet_path_local,
+                 frenet_paths_local, frenet_paths_local_all);
 };
 
 bool save_data(const std::string& filename,

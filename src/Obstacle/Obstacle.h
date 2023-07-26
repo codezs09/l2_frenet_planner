@@ -67,6 +67,9 @@ class Obstacle {
   const Pose &getPose() const { return pose_; }
   const Twist &getTwist() const { return twist_; }
 
+  Pose *mutablePose() { return &pose_; }
+  Twist *mutableTwist() { return &twist_; }
+
   void setSpeedLookupTable(const map<double, double> &spd_profile);
   void setSpeedLookupTable(const utils::LookupTable1D &tbl_time_to_speed);
   const utils::LookupTable1D &getSpeedLookupTable() const;

@@ -78,7 +78,7 @@ class FrenetPath {
                  c_lateral_acceleration, c_lateral_jerk, c_lateral,
                  c_longitudinal_acceleration, c_longitudinal_jerk, c_time_taken,
                  c_end_speed_deviation, c_longitudinal, c_inv_dist_to_obstacles,
-                 cf);
+                 c_lane_change, cf, lane_id);
 };
 
 #endif  // FRENET_OPTIMAL_TRAJECTORY_FRENETPATH_H
