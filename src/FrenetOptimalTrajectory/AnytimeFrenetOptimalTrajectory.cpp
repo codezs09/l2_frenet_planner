@@ -1,9 +1,10 @@
+#include "AnytimeFrenetOptimalTrajectory.h"
+
 #include <chrono>
 #include <iostream>
 #include <mutex>
 #include <thread>
 
-#include "AnytimeFrenetOptimalTrajectory.h"
 #include "QuarticPolynomial.h"
 #include "QuinticPolynomial.h"
 #include "utils/utils.h"
@@ -62,8 +63,7 @@ void AnytimeFrenetOptimalTrajectory::asyncPlan() {
   run_workers = true;  // set run_worker flag
 
   // calculate how to split computation across threads
-  int num_di_iter = static_cast<int>(
-      (fot_hp->max_road_width_l + fot_hp->max_road_width_r) / fot_hp->d_road_w);
+  int num_di_iter = static_cast<int>(fot_ic->lane_width / fot_hp->d_road_w);
   num_di_iter = num_di_iter + 1;  // account for the last index
 
   // in this setup, everything must be run in a thread pool, thus replace 0
@@ -140,14 +140,14 @@ void AnytimeFrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
   // double valid_path_time = 0;
 
   // initialize di, with start_di_index
-  double di = -fot_hp->max_road_width_l + start_di_index * fot_hp->d_road_w;
+  double half_lane_width = fot_ic->lane_width / 2.0;
+  double di = -half_lane_width + start_di_index * fot_hp->d_road_w;
 
   // generate path to each offset goal
   // note di goes up to but not including end_di_index*fot_hp->d_road_w
   while (run_workers &&
-         (di < -fot_hp->max_road_width_l + end_di_index * fot_hp->d_road_w) &&
-         (di <=
-          fot_hp->max_road_width_r)) {  // TODO: better sol to detect run worker
+         (di < -half_lane_width + end_di_index * fot_hp->d_road_w) &&
+         (di <= half_lane_width)) {  // TODO: better sol to detect run worker
     ti = fot_hp->mint;
 
     // lateral motion planning

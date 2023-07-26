@@ -1,9 +1,10 @@
+#include "FrenetOptimalTrajectory.h"
+
 #include <chrono>
 #include <iostream>
 #include <mutex>
 #include <thread>
 
-#include "FrenetOptimalTrajectory.h"
 #include "QuarticPolynomial.h"
 #include "QuinticPolynomial.h"
 #include "utils/utils.h"
@@ -35,10 +36,8 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
   if (fot_hp.num_threads == 0) {
     // calculate how to split computation across threads
 
-    int total_di_iter =
-        static_cast<int>((fot_hp.max_road_width_l + fot_hp.max_road_width_r) /
-                         fot_hp.d_road_w) +
-        1;  // account for the last index
+    int total_di_iter = static_cast<int>(fot_ic.lane_width / fot_hp.d_road_w) +
+                        1;  // account for the last index
 
     calc_frenet_paths(0, total_di_iter, false);
 
@@ -80,8 +79,7 @@ void FrenetOptimalTrajectory::threaded_calc_all_frenet_paths() {
   vector<thread> threads;
 
   // calculate how to split computation across threads
-  int num_di_iter = static_cast<int>(
-      (fot_hp.max_road_width_l + fot_hp.max_road_width_r) / fot_hp.d_road_w);
+  int num_di_iter = static_cast<int>(fot_ic.lane_width / fot_hp.d_road_w);
   num_di_iter = num_di_iter + 1;  // account for the last index
 
   int iter_di_index_range = static_cast<int>(num_di_iter / fot_hp.num_threads);
@@ -125,12 +123,13 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
   // double valid_path_time = 0;
 
   // initialize di, with start_di_index
-  double di = -fot_hp.max_road_width_l + start_di_index * fot_hp.d_road_w;
+  double half_lane_width = fot_ic.lane_width / 2.0;
+  double di = -half_lane_width + start_di_index * fot_hp.d_road_w;
 
   // generate path to each offset goal
   // note di goes up to but not including end_di_index*fot_hp.d_road_w
-  while ((di < -fot_hp.max_road_width_l + end_di_index * fot_hp.d_road_w) &&
-         (di <= fot_hp.max_road_width_r)) {
+  while ((di < -half_lane_width + end_di_index * fot_hp.d_road_w) &&
+         (di <= half_lane_width)) {
     ti = fot_hp.mint;
     // lateral motion planning
     while (ti <= fot_hp.maxt) {
