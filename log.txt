@@ -92,11 +92,16 @@
 
 07.24
     - add flag to choose between local vs global planning: FLAGS_local_planning, global fine
-    - Single frame debug mode? 
-    - add mode to: Need to output trajectories for each lane; plot all cadidate trajectories on each d; and costs
-    - Problem identified. Wrong output of collision check results. Add unit test. 
-    
+    - TODO: Single frame debug mode? (Nahh..)
 
+07.25
+    - Add mode to: Need to output trajectories for each lane; plot all cadidate trajectories on each d; and costs
+    - Problem identified. Wrong output of collision check results. Add unit test.
+    - Found the bug: numeric_limits<double>::min() caution to use (representing the minimum POSITIVE double value)
+    
+07.26
+    - TODO: refactor the lane width: moving from hyperparameter to bind to json definition.
+    - TODO: Add following mode.
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空
 
