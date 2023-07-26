@@ -1,3 +1,12 @@
+#include <gflags/gflags.h>
+
+#include <chrono>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <nlohmann/json.hpp>
+#include <utility>
+
 #include "FrenetOptimalTrajectory/FrenetOptimalTrajectory.h"
 #include "FrenetOptimalTrajectory/py_cpp_struct.h"
 #include "FrenetPath.h"
@@ -8,14 +17,6 @@
 #include "utils/data_log.h"
 #include "utils/debug.h"
 #include "utils/utils.h"
-
-#include <gflags/gflags.h>
-#include <chrono>
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <nlohmann/json.hpp>
-#include <utility>
 
 using namespace std;
 using namespace utils;
@@ -30,6 +31,7 @@ DEFINE_string(hyper_path, REPO_DIR + "config/hyperparameters.json",
 DEFINE_bool(store_data, false, "turn on flag to store running data.");
 DEFINE_string(data_path, REPO_DIR + "build/data.bin",
               "Path to store running data.");
+DEFINE_bool(local_planning, true, "turn on flag to enable local planning.");
 
 double get_duration_ms(
     std::chrono::time_point<std::chrono::high_resolution_clock> end,
@@ -163,6 +165,14 @@ Car InitEgoCar(const json& scene_j, const vector<Lane>& lanes) {
   ego_car.setCurLaneId(lane_id);
   ego_car.setTargetLaneId(lane_id);
 
+  // align ego heading w.r.t lane heading
+  if (lane_id != -1) {
+    const auto& wp = lanes[lane_id].GetWayPoints();
+    double lane_heading =
+        utils::wrap_angle(std::atan2(wp[1][1] - wp[1][0], wp[0][1] - wp[0][0]));
+    ego_car.setPose({ego_car_pose.x, ego_car_pose.y, lane_heading});
+  }
+
   return ego_car;
 }
 
@@ -293,7 +303,9 @@ int main(int argc, char** argv) {
       best_frenet_paths_local;  // store the best frenet path for each lane
 
   Car planning_init_point_local = ego_car;
-  planning_init_point_local.setPose({0, 0, 0});
+  if (FLAGS_local_planning) {
+    planning_init_point_local.setPose({0, 0, 0});
+  }
 
   double yaw_rate_meas = 0.0;
   double speed_meas = 0.0;
@@ -331,9 +343,14 @@ int main(int argc, char** argv) {
 
       // convert obstacles to local coordinate w.r.t. ego car
       obstacles_local.clear();
-      ToLocal(obstacles, ego_car.getPose(), &obstacles_local);
       WayPoints wp_local;
-      ToLocal(wp, ego_car.getPose(), &wp_local);
+      if (FLAGS_local_planning) {
+        ToLocal(obstacles, ego_car.getPose(), &obstacles_local);
+        ToLocal(wp, ego_car.getPose(), &wp_local);
+      } else {
+        obstacles_local = obstacles;
+        wp_local = wp;
+      }
       wp_lanes_local[lane.GetLaneId()] = wp_local;
 
       // run frenet optimal trajectory
@@ -383,15 +400,17 @@ int main(int argc, char** argv) {
 
     // convert (x,y,yaw) of paths to global for debug purposes
     std::vector<FrenetPath> best_frenet_paths_global = best_frenet_paths_local;
-    for (auto& fp : best_frenet_paths_global) {
-      std::size_t fp_size = fp.x.size();
-      for (std::size_t i = 0; i < fp_size; ++i) {
-        Pose pose_l({fp.x[i], fp.y[i], fp.yaw[i]});
-        Pose pose_g;
-        ToGlobal(pose_l, ego_car.getPose(), &pose_g);
-        fp.x[i] = pose_g.x;
-        fp.y[i] = pose_g.y;
-        fp.yaw[i] = pose_g.yaw;
+    if (FLAGS_local_planning) {
+      for (auto& fp : best_frenet_paths_global) {
+        std::size_t fp_size = fp.x.size();
+        for (std::size_t i = 0; i < fp_size; ++i) {
+          Pose pose_l({fp.x[i], fp.y[i], fp.yaw[i]});
+          Pose pose_g;
+          ToGlobal(pose_l, ego_car.getPose(), &pose_g);
+          fp.x[i] = pose_g.x;
+          fp.y[i] = pose_g.y;
+          fp.yaw[i] = pose_g.yaw;
+        }
       }
     }
 
@@ -437,23 +456,26 @@ int main(int argc, char** argv) {
         best_frenet_path_local, wp_lanes_local[best_frenet_path_local->lane_id],
         &next_planning_state_local);
 
-    //
-    Car next_ego_car;  // set to next_planning_state_global
-    ToGlobal(next_planning_state_local, ego_car.getPose(), &next_ego_car);
-
     // next frame
-    Car planning_init_point_wrt_last_frame = next_planning_state_local;
+    Car next_ego_car =
+        next_planning_state_local;  // set to next_planning_state_global
+    if (FLAGS_local_planning) {
+      ToGlobal(next_planning_state_local, ego_car.getPose(), &next_ego_car);
+    }
     UpdateSensorMeasurements(ego_car, next_ego_car, &speed_meas,
                              &yaw_rate_meas);
     ego_car = next_ego_car;
 
-    // estimation of state change
-    Pose pose_change_est = EstimateChangeOfPose(speed_meas, yaw_rate_meas);
-
-    // TO-DO: update Initial Planning Point in local frame
+    // update planning init point
+    Pose pose_change_est = EstimateChangeOfPose(
+        speed_meas, yaw_rate_meas);  // estimation of state change
+    Car planning_init_point_wrt_last_frame = next_planning_state_local;
+    // TODO: update Initial Planning Point in local frame
     planning_init_point_local = planning_init_point_wrt_last_frame;
-    planning_init_point_local.setPose(
-        planning_init_point_wrt_last_frame.getPose() - pose_change_est);
+    if (FLAGS_local_planning) {
+      planning_init_point_local.setPose(
+          planning_init_point_wrt_last_frame.getPose() - pose_change_est);
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
     double cycle_duration = get_duration_ms(end, start);

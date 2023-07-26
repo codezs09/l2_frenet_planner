@@ -36,7 +36,8 @@ def parse_arguments():
                         help='skip running FOT and only do post-processing on data.bin')
     parser.add_argument('--cost_frame', type=int, default=None, 
                         help='print path costs of a specific frame if provided')
-
+    parser.add_argument('--local_planning', action='store_true', default=False,
+                        help='enable local planning')
     args = parser.parse_args()
     return args 
 
@@ -45,7 +46,8 @@ def run_cpp_executable(args):
                "--scene_path={}".format(args.scene_path),
                "--hyper_path={}".format(args.hyper_path),
                "--store_data={}".format(str(args.store_data).lower()),
-               "--data_path={}".format(args.data_path)]
+               "--data_path={}".format(args.data_path),
+               "--local_planning={}".format(str(args.local_planning).lower())]
     command_str = " ".join(command)
     print("Running command: {}".format(command_str))
     try:
@@ -197,7 +199,7 @@ def print_frame_cost(data_frames, frame_idx):
     # print costs
     def row_str(key):
         # return " ".join(["{:.2f}".format(x) for x in row])
-        return key + "\t" + "\t".join([f"{x}" for x in costs_data[key]]) + "\n"
+        return key + "\t" + "\t".join([f"{x:.1f}" for x in costs_data[key]]) + "\n"
     print("\nCosts at frame {}".format(frame_idx))
     print(row_str('lane_ids') + \
         row_str('costs_total') + \
@@ -210,7 +212,7 @@ def post_process(args):
     if args.store_data:
         data_frames = load_data(args.data_path)
 
-        # plot_frames(data_frames, args)
+        plot_frames(data_frames, args)
 
         if args.cost_frame is not None:
             print_frame_cost(data_frames, args.cost_frame)

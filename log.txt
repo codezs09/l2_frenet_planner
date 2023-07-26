@@ -90,6 +90,12 @@
 07.06
     - Print cost to debug why path selection jumps.
 
+07.24
+    - add flag to choose between local vs global planning: FLAGS_local_planning, global fine
+    - Single frame debug mode? 
+    - add mode to: Need to output trajectories for each lane
+    
+
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空
 

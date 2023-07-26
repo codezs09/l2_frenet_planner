@@ -20,7 +20,7 @@ struct DataFrame {
   FrenetPath best_frenet_path;
   vector<Lane> lanes;
   vector<Obstacle> obstacles;
-  vector<FrenetPath> frenet_paths;
+  vector<FrenetPath> frenet_paths;  // best frenet path for each lane
 
   std::vector<Obstacle> obstacles_local;
   unordered_map<int, WayPoints> wp_lanes_local;
