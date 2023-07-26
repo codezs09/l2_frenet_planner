@@ -94,6 +94,7 @@
     - add flag to choose between local vs global planning: FLAGS_local_planning, global fine
     - Single frame debug mode? 
     - add mode to: Need to output trajectories for each lane; plot all cadidate trajectories on each d; and costs
+    - Problem identified. Wrong output of collision check results. Add unit test. 
     
 
 

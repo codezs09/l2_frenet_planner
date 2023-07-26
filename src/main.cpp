@@ -295,7 +295,7 @@ int main(int argc, char** argv) {
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
-  int sim_loop = 50;
+  int sim_loop = 200;
   double total_runtime = 0.0;  // [ms]
   double timestamp = 0.0;      // [s], simulation timestamp
   int i = 0;
@@ -383,7 +383,7 @@ int main(int argc, char** argv) {
         best_frenet_paths_local.push_back(*best_frenet_path_per_lane);
       }
 
-      // store all frenet paths for each lane
+      // store frenet paths at each d for each lane
       map<double, FrenetPath*> d_to_best_path_local;
       for (auto fp : fot.getFrenetPaths()) {
         double d = round_to_tenth(fp->d.back());

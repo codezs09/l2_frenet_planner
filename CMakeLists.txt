@@ -162,3 +162,8 @@ add_executable(coordinate_utils_test
                src/utils/coordinate_utils_test.cpp
                )
 target_link_libraries(coordinate_utils_test FrenetOptimalTrajectory ${GTEST_LIBRARIES})
+
+add_executable(geometry_test
+               src/utils/geometry_test.cpp
+               )
+target_link_libraries(geometry_test FrenetOptimalTrajectory ${GTEST_LIBRARIES})

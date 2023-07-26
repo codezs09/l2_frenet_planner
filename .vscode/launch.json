@@ -6,7 +6,7 @@
     "configurations": [
         // set configuration for c++ debug
         {
-            "name": "(gdb) Launch",
+            "name": "(gdb) Main",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/FrenetOptimalTrajectoryTest",
@@ -24,6 +24,24 @@
                 }
             ]
             // , "preLaunchTask": "build"    // If you have a build task defined
+        }, 
+        {
+            "name": "(gdb) CollisionTest",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/geometry_test",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

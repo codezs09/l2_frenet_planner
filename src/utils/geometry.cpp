@@ -20,7 +20,7 @@ bool is_collision(const Box& box_a, const Box& box_b) {
   // quick check to avoid unnecessary computation below
   auto get_range_x = [](Box b) -> std::pair<double, double> {
     double min_x = std::numeric_limits<double>::max();
-    double max_x = std::numeric_limits<double>::min();
+    double max_x = std::numeric_limits<double>::lowest();
     for (auto& c : b.corners) {
       min_x = std::min(min_x, c.x);
       max_x = std::max(max_x, c.x);
@@ -36,7 +36,7 @@ bool is_collision(const Box& box_a, const Box& box_b) {
 
   auto get_range_y = [](Box b) -> std::pair<double, double> {
     double min_y = std::numeric_limits<double>::max();
-    double max_y = std::numeric_limits<double>::min();
+    double max_y = std::numeric_limits<double>::lowest();
     for (auto& c : b.corners) {
       min_y = std::min(min_y, c.y);
       max_y = std::max(max_y, c.y);
@@ -62,14 +62,14 @@ bool is_collision(const Box& box_a, const Box& box_b) {
                                         (a.end.y - a.start.y) / a.Length()};
 
     double min1 = std::numeric_limits<double>::max();
-    double max1 = std::numeric_limits<double>::min();
+    double max1 = std::numeric_limits<double>::lowest();
     for (auto& c : box_a.corners) {
       double projection = dot({c.x, c.y}, a_unit_vec);
       min1 = std::min(min1, projection);
       max1 = std::max(max1, projection);
     }
     double min2 = std::numeric_limits<double>::max();
-    double max2 = std::numeric_limits<double>::min();
+    double max2 = std::numeric_limits<double>::lowest();
     for (auto& c : box_b.corners) {
       double projection = dot({c.x, c.y}, a_unit_vec);
       min2 = std::min(min2, projection);
