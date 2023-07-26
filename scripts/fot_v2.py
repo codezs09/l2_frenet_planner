@@ -18,6 +18,9 @@ CONFIG_DIR = os.path.join(PROJECT_DIR, "config")
 CPP_EXECUTABLE_PATH = os.path.join(BUILD_DIR, "FrenetOptimalTrajectoryTest")
 DATA_LOG_PATH = os.path.join(BUILD_DIR, "data.bin")
 
+def round_to_tenth(x):
+    return round(x * 10.0) / 10.0
+
 def parse_arguments(): 
     parser = argparse.ArgumentParser()
     parser.add_argument('--scene_path', type=str, 
@@ -32,12 +35,16 @@ def parse_arguments():
                         default=True)
     parser.add_argument('--save_gif', action='store_true',
                         default=True)
+    # debug fields
     parser.add_argument('--skip_fot', action='store_true', default=False,
                         help='skip running FOT and only do post-processing on data.bin')
-    parser.add_argument('--cost_frame', type=int, default=36, 
+    parser.add_argument('--cost_frame', type=int, default=None,
                         help='print path costs of a specific frame if provided')
+    parser.add_argument('--cost_lane', type=int, default=None,
+                        help='print candidate path costs of a specific lane if provided')
     parser.add_argument('--local_planning', action='store_true', default=True,
                         help='enable local planning')
+    
     args = parser.parse_args()
     return args 
 
@@ -161,6 +168,10 @@ def plot_frames(data_frames, args):
         # print("frame.frenet_paths number: ", len(frame.frenet_paths))
         for frenet_path_local in frame.frenet_paths_local:
             plt.plot(frenet_path_local.x, frenet_path_local.y, "-")
+        # # plot candiate path at d offset as well
+        # for fps_per_lane in frame.frenet_paths_local_all:
+        #     for fp in fps_per_lane:
+        #         plt.plot(fp.x, fp.y, "k--")
 
         plt.axis('equal')
         plt.xlim(ego_x - 0.5*area, ego_x + 2.5*area)
@@ -175,11 +186,16 @@ def plot_frames(data_frames, args):
 
         plt.pause(0.1)
 
-def print_frame_cost(data_frames, frame_idx):
+def print_frame_cost(data_frames, frame_idx, lane_idx = None):
+    '''
+    Compare costs by lane if lane_idx not provided. 
+    Compare costs by paths per d offset if lane_idx provided.
+    '''
     frame = data_frames[frame_idx]
 
     costs_data = {
         'lane_ids': [],
+        'd_offsets': [],
         'costs_total': [],
         'costs_lateral': [],
         'costs_longitudinal': [],
@@ -187,21 +203,33 @@ def print_frame_cost(data_frames, frame_idx):
         'costs_lane_change': []
     }
 
-    for frenet_path in frame.frenet_paths:
-        plt.plot(frenet_path.x, frenet_path.y, "-")
-        costs_data['lane_ids'].append(frenet_path.lane_id)
-        costs_data['costs_total'].append(frenet_path.cf)
-        costs_data['costs_lateral'].append(frenet_path.c_lateral)
-        costs_data['costs_longitudinal'].append(frenet_path.c_longitudinal)
-        costs_data['costs_inv_dist_to_obstacles'].append(frenet_path.c_inv_dist_to_obstacles)
-        costs_data['costs_lane_change'].append(frenet_path.c_lane_change)
+    if lane_idx is None:
+        for frenet_path in frame.frenet_paths:
+            plt.plot(frenet_path.x, frenet_path.y, "-")
+            costs_data['lane_ids'].append(frenet_path.lane_id)
+            costs_data['costs_total'].append(frenet_path.cf)
+            costs_data['costs_lateral'].append(frenet_path.c_lateral)
+            costs_data['costs_longitudinal'].append(frenet_path.c_longitudinal)
+            costs_data['costs_inv_dist_to_obstacles'].append(frenet_path.c_inv_dist_to_obstacles)
+            costs_data['costs_lane_change'].append(frenet_path.c_lane_change)
+    else:
+        for fp in frame.frenet_paths_local_all[lane_idx]:
+            costs_data['lane_ids'].append(fp.lane_id)
+            costs_data['d_offsets'].append(round_to_tenth(fp.d[-1]))
+            costs_data['costs_total'].append(fp.cf)
+            costs_data['costs_lateral'].append(fp.c_lateral)
+            costs_data['costs_longitudinal'].append(fp.c_longitudinal)
+            costs_data['costs_inv_dist_to_obstacles'].append(fp.c_inv_dist_to_obstacles)
+            costs_data['costs_lane_change'].append(fp.c_lane_change)
 
     # print costs
     def row_str(key):
         # return " ".join(["{:.2f}".format(x) for x in row])
         return key + "\t" + "\t".join([f"{x:.1f}" for x in costs_data[key]]) + "\n"
     print("\nCosts at frame {}".format(frame_idx))
+
     print(row_str('lane_ids') + \
+        row_str('d_offsets') + \
         row_str('costs_total') + \
         row_str('costs_lateral') + \
         row_str('costs_longitudinal') + \
@@ -215,7 +243,7 @@ def post_process(args):
         plot_frames(data_frames, args)
 
         if args.cost_frame is not None:
-            print_frame_cost(data_frames, args.cost_frame)
+            print_frame_cost(data_frames, args.cost_frame, args.cost_lane)
         
 
 if __name__=="__main__":

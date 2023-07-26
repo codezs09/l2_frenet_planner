@@ -303,6 +303,7 @@ int main(int argc, char** argv) {
   bool reach_goal = false;
   std::vector<FrenetPath>
       best_frenet_paths_local;  // store the best frenet path for each lane
+  std::vector<std::vector<FrenetPath>> frenet_paths_local_all;
 
   Car planning_init_point_local = ego_car;
   if (FLAGS_local_planning) {
@@ -320,6 +321,7 @@ int main(int argc, char** argv) {
     // Loop each lane here and may initialize fot_ic for each lane
     best_frenet_paths_local.clear();
     frenet_paths_local_all.clear();
+    frenet_paths_local_all.resize(lanes.size());
     for (const auto& lane : lanes) {
       WayPoints wp = lane.GetWayPoints();
 
@@ -378,12 +380,11 @@ int main(int argc, char** argv) {
         best_frenet_path_per_lane->cf +=
             fot_hp.klane * best_frenet_path_per_lane->c_lane_change;
 
-        best_frenet_paths_local.push_back(
-            std::move(*best_frenet_path_per_lane));
+        best_frenet_paths_local.push_back(*best_frenet_path_per_lane);
       }
 
       // store all frenet paths for each lane
-      unordered_map<double, FrenetPath*> d_to_best_path_local;
+      map<double, FrenetPath*> d_to_best_path_local;
       for (auto fp : fot.getFrenetPaths()) {
         double d = round_to_tenth(fp->d.back());
         if (d_to_best_path_local.count(d) == 0) {
@@ -396,7 +397,8 @@ int main(int argc, char** argv) {
       }
 
       for (const auto& d_fp : d_to_best_path_local) {
-        frenet_paths_local_all.push_back(*(d_fp.second));
+        d_fp.second->lane_id = lane.GetLaneId();
+        frenet_paths_local_all[lane.GetLaneId()].push_back(*(d_fp.second));
       }
     }
     if (reach_goal) {

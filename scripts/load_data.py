@@ -26,7 +26,7 @@ DataFrame = namedtuple('DataFrame', ['timestamp', 'ego_car', 'best_frenet_path',
                                      'lanes', 'obstacles', 'frenet_paths', 
                                      'obstacles_local', 'wp_lanes_local',
                                      'planning_init_point_local', 
-                                     'best_frenet_path_local','frenet_paths_local'])
+                                     'best_frenet_path_local','frenet_paths_local', 'frenet_paths_local_all'])
 
 def load_data(file_name): 
     with open(file_name, 'rb') as f:
@@ -45,7 +45,8 @@ def load_data(file_name):
         timestamp, ego_car_data, best_frenet_path_data, lanes_data, \
             obstacles_data, frenet_paths_data, obstacles_local_data, \
             wp_lanes_local_data, planning_init_point_local_data, \
-            best_frenet_path_local_data, frenet_paths_local_data = frame_data
+            best_frenet_path_local_data, frenet_paths_local_data, \
+            frenet_paths_local_all_data = frame_data
         
         ego_car_pose_data, ego_car_twist_data, ego_car_accel_data, ego_car_length, ego_car_width = ego_car_data
         ego_car_pose = Pose(*ego_car_pose_data)
@@ -76,6 +77,13 @@ def load_data(file_name):
             frenet_path_local = FrenetPath(*frenet_path_local_data)
             frenet_paths_local.append(frenet_path_local)
 
+        frenet_paths_local_all = []
+        for frenet_path_per_lane_data in frenet_paths_local_all_data:
+            frenet_path_per_lane = []
+            for frenet_path_data in frenet_path_per_lane_data:
+                frenet_path_per_lane.append(FrenetPath(*frenet_path_data))
+            frenet_paths_local_all.append(frenet_path_per_lane)
+
         lanes = []
         for lane_data in lanes_data:
             lane = Lane(*lane_data)
@@ -101,7 +109,7 @@ def load_data(file_name):
 
         data_frame = DataFrame(timestamp, ego_car, best_frenet_path, lanes, obstacles, frenet_paths,
                                obstacles_local, wp_lanes_local, planning_init_point_local, 
-                               best_frenet_path_local, frenet_paths_local)
+                               best_frenet_path_local, frenet_paths_local, frenet_paths_local_all)
         data_frames.append(data_frame)
     
     return data_frames
