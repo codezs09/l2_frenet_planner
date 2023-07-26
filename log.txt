@@ -93,7 +93,7 @@
 07.24
     - add flag to choose between local vs global planning: FLAGS_local_planning, global fine
     - Single frame debug mode? 
-    - add mode to: Need to output trajectories for each lane
+    - add mode to: Need to output trajectories for each lane; plot all cadidate trajectories on each d; and costs
     
 
 

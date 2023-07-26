@@ -41,6 +41,8 @@ double get_duration_ms(
   return static_cast<double>(duration.count()) / 1000.0;
 }
 
+double round_to_tenth(double x) { return std::round(x * 10.0) / 10.0; }
+
 bool InitFrenetHyperParameters() {
   json hyper_j;
   if (!LoadJsonFile(FLAGS_hyper_path, &hyper_j)) {
@@ -317,6 +319,7 @@ int main(int argc, char** argv) {
 
     // Loop each lane here and may initialize fot_ic for each lane
     best_frenet_paths_local.clear();
+    frenet_paths_local_all.clear();
     for (const auto& lane : lanes) {
       WayPoints wp = lane.GetWayPoints();
 
@@ -377,6 +380,23 @@ int main(int argc, char** argv) {
 
         best_frenet_paths_local.push_back(
             std::move(*best_frenet_path_per_lane));
+      }
+
+      // store all frenet paths for each lane
+      unordered_map<double, FrenetPath*> d_to_best_path_local;
+      for (auto fp : fot.getFrenetPaths()) {
+        double d = round_to_tenth(fp->d.back());
+        if (d_to_best_path_local.count(d) == 0) {
+          d_to_best_path_local[d] = fp;
+        } else {
+          if (fp->cf < d_to_best_path_local[d]->cf) {
+            d_to_best_path_local[d] = fp;
+          }
+        }
+      }
+
+      for (const auto& d_fp : d_to_best_path_local) {
+        frenet_paths_local_all.push_back(*(d_fp.second));
       }
     }
     if (reach_goal) {
@@ -439,6 +459,7 @@ int main(int argc, char** argv) {
       df.planning_init_point_local = planning_init_point_local;
       df.best_frenet_path_local = *best_frenet_path_local;
       df.frenet_paths_local = best_frenet_paths_local;
+      df.frenet_paths_local_all = frenet_paths_local_all;
       data_frames.push_back(std::move(df));
     }
 

@@ -34,9 +34,9 @@ def parse_arguments():
                         default=True)
     parser.add_argument('--skip_fot', action='store_true', default=False,
                         help='skip running FOT and only do post-processing on data.bin')
-    parser.add_argument('--cost_frame', type=int, default=None, 
+    parser.add_argument('--cost_frame', type=int, default=36, 
                         help='print path costs of a specific frame if provided')
-    parser.add_argument('--local_planning', action='store_true', default=False,
+    parser.add_argument('--local_planning', action='store_true', default=True,
                         help='enable local planning')
     args = parser.parse_args()
     return args 
