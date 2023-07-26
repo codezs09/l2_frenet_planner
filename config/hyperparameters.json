@@ -2,8 +2,6 @@
     "max_speed": 25.0,
     "max_accel": 15.0,
     "max_curvature": 15.0,
-    "max_road_width_l": 5.0,
-    "max_road_width_r": 5.0,
     "d_road_w": 0.5,
     "dt": 0.1,
     "maxt": 5.0,

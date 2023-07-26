@@ -361,6 +361,7 @@ int main(int argc, char** argv) {
       // run frenet optimal trajectory
       FrenetInitialConditions fot_ic(wp_local, obstacles_local);
       fot_ic.target_speed = target_speed;
+      fot_ic.lane_width = lane.GetLaneWidth();
 
       // update Frenet coordinate of ego car
       UpdateFrenetCoordinates(planning_init_point_local, wp_local, &fot_ic);

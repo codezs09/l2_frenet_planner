@@ -1,9 +1,11 @@
 #ifndef FRENETOPTIMALTRAJECTORY_PY_CPP_STRUCT_H
 #define FRENETOPTIMALTRAJECTORY_PY_CPP_STRUCT_H
 #include <stddef.h>
+
 #include <eigen3/Eigen/Dense>
 #include <nlohmann/json.hpp>
 #include <vector>
+
 #include "utils/utils.h"
 
 const size_t MAX_PATH_LENGTH = 100;
@@ -24,17 +26,11 @@ struct FrenetInitialConditions {
   double d_d;
   double d_dd;
   double target_speed;
+  double lane_width;
 
-  // TO-DO: 以下两个fields特别是 obstacles_c 感觉可以单独拉出作为输入
+  // TODO: 以下两个fields特别是 obstacles_c 感觉可以单独拉出作为输入
   WayPoints& wp;                  // Cartesian coordinates
   vector<Obstacle>& obstacles_c;  // Cartesian coordinates
-
-  // int nw;
-  // double *o_llx;
-  // double *o_lly;
-  // double *o_urx;
-  // double *o_ury;
-  // int no;
 };
 
 struct FrenetReturnValues {
@@ -59,8 +55,6 @@ struct FrenetHyperparameters {
   double max_speed;
   double max_accel;
   double max_curvature;
-  double max_road_width_l;
-  double max_road_width_r;
   double d_road_w;
   double dt;
   double maxt;
@@ -88,8 +82,6 @@ struct FrenetHyperparameters {
     max_speed = j["max_speed"];
     max_accel = j["max_accel"];
     max_curvature = j["max_curvature"];
-    max_road_width_l = j["max_road_width_l"];
-    max_road_width_r = j["max_road_width_r"];
     d_road_w = j["d_road_w"];
     dt = j["dt"];
     maxt = j["maxt"];
