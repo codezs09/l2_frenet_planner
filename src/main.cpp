@@ -312,6 +312,8 @@ int main(int argc, char** argv) {
 
   double yaw_rate_meas = 0.0;
   double speed_meas = 0.0;
+  Pose pose_change_est = {0.0, 0.0, 0.0};
+
   unordered_map<int, WayPoints> wp_lanes_local;
   std::vector<Obstacle> obstacles_local;
 
@@ -463,6 +465,9 @@ int main(int argc, char** argv) {
       df.best_frenet_path_local = *best_frenet_path_local;
       df.frenet_paths_local = best_frenet_paths_local;
       df.frenet_paths_local_all = frenet_paths_local_all;
+      df.speed_meas = speed_meas;
+      df.yaw_rate_meas = yaw_rate_meas;
+      df.pose_change_est = pose_change_est;
       data_frames.push_back(std::move(df));
     }
 
@@ -491,7 +496,7 @@ int main(int argc, char** argv) {
     ego_car = next_ego_car;
 
     // update planning init point
-    Pose pose_change_est = EstimateChangeOfPose(
+    pose_change_est = EstimateChangeOfPose(
         speed_meas, yaw_rate_meas);  // estimation of state change
     Car planning_init_point_wrt_last_frame = next_planning_state_local;
     // TODO: update Initial Planning Point in local frame
@@ -513,6 +518,11 @@ int main(int argc, char** argv) {
          << ", vy=" << ego_car.getTwist().vy
          << ", w=" << utils::rad2deg(ego_car.getTwist().yaw_rate)
          << "[deg/s]. ax=" << ego_car.getAccel().ax << endl;
+    cout << "speed_meas: " << speed_meas
+         << ", yaw_rate_meas: " << utils::rad2deg(yaw_rate_meas) << endl;
+    cout << "Pose change estimate,  x: " << pose_change_est.x
+         << ", y: " << pose_change_est.y
+         << ", yaw: " << utils::rad2deg(pose_change_est.yaw) << endl;
   }
   cout << "Total runtime: " << total_runtime << " [ms] for # " << i
        << " iterations." << endl;

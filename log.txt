@@ -101,9 +101,13 @@
     
 07.26
     - Refactor the lane width: moving from hyperparameter to bind to json definition.
-    - TODO: Test sensor drift: add noise to ego car pose and obstacle pose.
+    - Test sensor drift: add noise to ego car pose and obstacle pose.
 
-07.27    
+07.27 
+    - Add plots for sensor effects
+    - Fixed a bug of sensor noise generation (wrong data types ints)
+    - Add unit tests for Gaussian noise generation: pass. 
+    - TODO: Dubug why the test failed with drift?. 
     - TODO: Add following/stopping mode. (THIS IS A BIG CHANGE)
 
 

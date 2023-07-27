@@ -236,6 +236,61 @@ def print_frame_cost(data_frames, frame_idx, lane_idx = None):
         row_str('costs_inv_dist_to_obstacles') + \
         row_str('costs_lane_change'))
 
+def plot_states(data_frames):
+    timestamp = [df.timestamp for df in data_frames]
+    speed_meas = [df.speed_meas for df in data_frames]
+    yaw_rate_meas = [df.yaw_rate_meas for df in data_frames]
+    pose_change_est_x = [df.pose_change_est.x for df in data_frames]
+    pose_change_est_y = [df.pose_change_est.y for df in data_frames]
+    pose_change_est_yaw = [df.pose_change_est.yaw for df in data_frames]
+    
+    speed_act = [df.ego_car.twist.vx for df in data_frames]
+    yaw_rate_act = [df.ego_car.twist.yaw_rate for df in data_frames]
+
+    # sensor measurement vs actual states
+    plt.figure()
+    ax1 = plt.subplot(211)
+    plt.plot(timestamp, speed_meas, '-x', label='measure')
+    plt.plot(timestamp, speed_act, label='actual')
+    plt.xlabel('time [s]')
+    plt.ylabel('speed [m/s]')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.subplot(212, sharex=ax1)
+    plt.plot(timestamp, np.rad2deg(yaw_rate_meas), '-x', label='measure')
+    plt.plot(timestamp, np.rad2deg(yaw_rate_act), label='actual')
+    plt.xlabel('time [s]')
+    plt.ylabel('yaw rate [deg/s]')
+    plt.legend()
+    plt.grid(True)
+    
+    # pose change estimation vs changes of actual states
+    plt.figure()
+    ax1 = plt.subplot(311)
+    plt.plot(timestamp, pose_change_est_x, '-x',label='pose_change_est_x')
+    plt.xlabel('time [s]')
+    plt.ylabel('change of x [m]')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(312, sharex=ax1)
+    plt.plot(timestamp, pose_change_est_y, '-x',label='pose_change_est_y')
+    plt.xlabel('time [s]')
+    plt.ylabel('change of y [m]')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(313, sharex=ax1)
+    plt.plot(timestamp, pose_change_est_yaw, '-x',label='pose_change_est_yaw')
+    plt.xlabel('time [s]')
+    plt.ylabel('change of yaw [deg]')
+    plt.legend()
+    plt.grid(True)
+
+    plt.show()
+
+
 def post_process(args):
     if args.store_data:
         data_frames = load_data(args.data_path)
@@ -245,6 +300,7 @@ def post_process(args):
         if args.cost_frame is not None:
             print_frame_cost(data_frames, args.cost_frame, args.cost_lane)
         
+        plot_states(data_frames)
 
 if __name__=="__main__":
     args = parse_arguments()
