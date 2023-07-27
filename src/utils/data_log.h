@@ -31,6 +31,10 @@ struct DataFrame {
       frenet_paths_local_all;  // all candidate trajectories at each lane and
                                // each d offset
 
+  double speed_meas;
+  double yaw_rate_meas;
+  Pose pose_change_est;
+
   MSGPACK_DEFINE(timestamp, ego_car, best_frenet_path, lanes, obstacles,
                  frenet_paths, obstacles_local, wp_lanes_local,
                  planning_init_point_local, best_frenet_path_local,
