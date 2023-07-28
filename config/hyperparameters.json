@@ -22,6 +22,6 @@
 
     "sensor_speed_offset": -0.1,
     "sensor_speed_noise_std": 0.1,
-    "sensor_yaw_rate_offset": 0.02,
+    "sensor_yaw_rate_offset": 0.04,
     "sensor_yaw_rate_noise_std": 0.03
 }

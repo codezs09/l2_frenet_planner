@@ -107,8 +107,11 @@
     - Add plots for sensor effects
     - Fixed a bug of sensor noise generation (wrong data types ints)
     - Add unit tests for Gaussian noise generation: pass. 
-    - TODO: Dubug why the test failed with drift?. 
+    - TODO: Dubug why the test failed with drift? (UNKNOWN) -> FIXED somehow but not sure why. Line 508 main.cpp
     - TODO: Add following/stopping mode. (THIS IS A BIG CHANGE)
+    - TOFIX: 
+        - yaw, yaw_rate, and yaw_accel are not matched. 
+        - Initial yaw jump not reasonable. 
 
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空

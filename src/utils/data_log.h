@@ -33,12 +33,14 @@ struct DataFrame {
   double speed_meas;
   double yaw_rate_meas;
   Pose pose_change_est;
+  Pose planning_init_point_wrt_last_frame;
 
   MSGPACK_DEFINE(timestamp, ego_car, best_frenet_path, lanes, obstacles,
                  frenet_paths, obstacles_local, wp_lanes_local,
                  planning_init_point_local, best_frenet_path_local,
                  frenet_paths_local, frenet_paths_local_all, speed_meas,
-                 yaw_rate_meas, pose_change_est);
+                 yaw_rate_meas, pose_change_est,
+                 planning_init_point_wrt_last_frame);
 };
 
 bool save_data(const std::string& filename,

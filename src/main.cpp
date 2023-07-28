@@ -295,7 +295,7 @@ int main(int argc, char** argv) {
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
-  int sim_loop = 200;
+  int sim_loop = 100;
   double total_runtime = 0.0;  // [ms]
   double timestamp = 0.0;      // [s], simulation timestamp
   int i = 0;
@@ -313,6 +313,7 @@ int main(int argc, char** argv) {
   double yaw_rate_meas = 0.0;
   double speed_meas = 0.0;
   Pose pose_change_est = {0.0, 0.0, 0.0};
+  Car planning_init_point_wrt_last_frame;
 
   unordered_map<int, WayPoints> wp_lanes_local;
   std::vector<Obstacle> obstacles_local;
@@ -468,6 +469,8 @@ int main(int argc, char** argv) {
       df.speed_meas = speed_meas;
       df.yaw_rate_meas = yaw_rate_meas;
       df.pose_change_est = pose_change_est;
+      df.planning_init_point_wrt_last_frame =
+          planning_init_point_wrt_last_frame.getPose();
       data_frames.push_back(std::move(df));
     }
 
@@ -498,12 +501,14 @@ int main(int argc, char** argv) {
     // update planning init point
     pose_change_est = EstimateChangeOfPose(
         speed_meas, yaw_rate_meas);  // estimation of state change
-    Car planning_init_point_wrt_last_frame = next_planning_state_local;
+    planning_init_point_wrt_last_frame = next_planning_state_local;
     // TODO: update Initial Planning Point in local frame
     planning_init_point_local = planning_init_point_wrt_last_frame;
     if (FLAGS_local_planning) {
       planning_init_point_local.setPose(
-          planning_init_point_wrt_last_frame.getPose() - pose_change_est);
+          // planning_init_point_wrt_last_frame.getPose() - pose_change_est);
+          pose_change_est - planning_init_point_wrt_last_frame
+                                .getPose());  // TODO: Why this works?
     }
 
     auto end = std::chrono::high_resolution_clock::now();

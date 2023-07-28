@@ -27,7 +27,8 @@ DataFrame = namedtuple('DataFrame', ['timestamp', 'ego_car', 'best_frenet_path',
                                      'obstacles_local', 'wp_lanes_local',
                                      'planning_init_point_local', 
                                      'best_frenet_path_local','frenet_paths_local', 'frenet_paths_local_all', 
-                                     'speed_meas', 'yaw_rate_meas', 'pose_change_est'])
+                                     'speed_meas', 'yaw_rate_meas', 'pose_change_est', 
+                                     'planning_init_point_wrt_last_frame'])
 
 def load_data(file_name): 
     with open(file_name, 'rb') as f:
@@ -48,7 +49,8 @@ def load_data(file_name):
             wp_lanes_local_data, planning_init_point_local_data, \
             best_frenet_path_local_data, frenet_paths_local_data, \
             frenet_paths_local_all_data, \
-            speed_meas, yaw_rate_meas, pose_change_est_data = frame_data
+            speed_meas, yaw_rate_meas, pose_change_est_data, \
+            planning_init_point_wrt_last_frame_data = frame_data
         
         ego_car_pose_data, ego_car_twist_data, ego_car_accel_data, ego_car_length, ego_car_width = ego_car_data
         ego_car_pose = Pose(*ego_car_pose_data)
@@ -57,6 +59,7 @@ def load_data(file_name):
         ego_car = Car(ego_car_pose, ego_car_twist, ego_car_accel, ego_car_length, ego_car_width)
 
         pose_change_est = Pose(*pose_change_est_data)
+        planning_init_point_wrt_last_frame = Pose(*planning_init_point_wrt_last_frame_data)
 
         best_frenet_path = FrenetPath(*best_frenet_path_data)
         best_frenet_path_local = FrenetPath(*best_frenet_path_local_data)
@@ -114,7 +117,7 @@ def load_data(file_name):
         data_frame = DataFrame(timestamp, ego_car, best_frenet_path, lanes, obstacles, frenet_paths,
                                obstacles_local, wp_lanes_local, planning_init_point_local, 
                                best_frenet_path_local, frenet_paths_local, frenet_paths_local_all, 
-                               speed_meas, yaw_rate_meas, pose_change_est)
+                               speed_meas, yaw_rate_meas, pose_change_est, planning_init_point_wrt_last_frame)
         data_frames.append(data_frame)
     
     return data_frames
