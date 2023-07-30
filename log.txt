@@ -107,7 +107,15 @@
     - Add plots for sensor effects
     - Fixed a bug of sensor noise generation (wrong data types ints)
     - Add unit tests for Gaussian noise generation: pass. 
-    - TODO: Dubug why the test failed with drift? (UNKNOWN) -> FIXED somehow but not sure why. Line 508 main.cpp
+    - Dubug why the test failed with drift? (UNKNOWN) -> FIXED somehow but not sure why. Line 508 main.cpp 
+        - Reason explained in doc: 07/29/2023 Planning Drifting for Local Planning
+        - Revert the change
+    - Identified problem of state change estimation. Temp Fix made. 
+
+07.30 
+    - Refactor temp fix to neat and relate sensor error to add-on state change estimation error. 
+
+
     - TODO: Add following/stopping mode. (THIS IS A BIG CHANGE)
     - TOFIX: 
         - yaw, yaw_rate, and yaw_accel are not matched. 

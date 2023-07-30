@@ -494,21 +494,41 @@ int main(int argc, char** argv) {
     if (FLAGS_local_planning) {
       ToGlobal(next_planning_state_local, ego_car.getPose(), &next_ego_car);
     }
-    UpdateSensorMeasurements(ego_car, next_ego_car, &speed_meas,
-                             &yaw_rate_meas);
+
+    // TODO: remove, update this way not accurate
+    // UpdateSensorMeasurements(ego_car, next_ego_car, &speed_meas,
+    //                          &yaw_rate_meas);
+
     ego_car = next_ego_car;
 
     // update planning init point
-    pose_change_est = EstimateChangeOfPose(
-        speed_meas, yaw_rate_meas);  // estimation of state change
+    // pose_change_est = EstimateChangeOfPose(
+    //     speed_meas, yaw_rate_meas);  // estimation of state change
+    // double speed_noise = utils::genGaussianNoise(fot_hp.sensor_speed_offset,
+    //                                              fot_hp.sensor_speed_noise_std);
+    // TODO: tmp fix until control and vehicle model added to better related
+    // speed/yaw_rate sensor measurements to the estimated state change
+    double yaw_rate_noise = utils::genGaussianNoise(
+        fot_hp.sensor_yaw_rate_offset, fot_hp.sensor_yaw_rate_noise_std);
+    double yaw_noise = yaw_rate_noise * TimeStep;
+    double delta_x_noise = utils::genGaussianNoise(0.1, 0.1);
+    double delta_y_noise = utils::genGaussianNoise(0.04, 0.04);
+    // double delta_y_noise = next_planning_state_local.getTwist().vx *
+    //                        std::sin(yaw_noise) * TimeStep; // a simplicity to
+    //                        relate sensor noise to delta_y estimate
+
+    double delta_x = next_planning_state_local.getPose().x + delta_x_noise;
+    double delta_y = next_planning_state_local.getPose().y + delta_y_noise;
+    double delta_yaw = next_planning_state_local.getPose().yaw + yaw_noise;
+
+    pose_change_est = {delta_x, delta_y, delta_yaw};
+
     planning_init_point_wrt_last_frame = next_planning_state_local;
     // TODO: update Initial Planning Point in local frame
     planning_init_point_local = planning_init_point_wrt_last_frame;
     if (FLAGS_local_planning) {
       planning_init_point_local.setPose(
-          // planning_init_point_wrt_last_frame.getPose() - pose_change_est);
-          pose_change_est - planning_init_point_wrt_last_frame
-                                .getPose());  // TODO: Why this works?
+          planning_init_point_wrt_last_frame.getPose() - pose_change_est);
     }
 
     auto end = std::chrono::high_resolution_clock::now();
