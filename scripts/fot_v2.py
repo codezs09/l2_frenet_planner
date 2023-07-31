@@ -264,7 +264,7 @@ def plot_states(data_frames):
     # sensor measurement vs actual states
     plt.figure()
     plt.suptitle("Sensor measurement vs actual states")
-    ax1 = plt.subplot(211)
+    ax1 = plt.subplot(221)
     plt.plot(timestamp, speed_meas, '-x', label='measure')
     plt.plot(timestamp, speed_act, label='actual')
     plt.xlabel('time [s]')
@@ -272,7 +272,7 @@ def plot_states(data_frames):
     plt.legend()
     plt.grid(True)
     
-    plt.subplot(212, sharex=ax1)
+    plt.subplot(223, sharex=ax1)
     plt.plot(timestamp, np.rad2deg(yaw_rate_meas), '-x', label='measure')
     plt.plot(timestamp, np.rad2deg(yaw_rate_act), label='actual')
     plt.xlabel('time [s]')
@@ -280,14 +280,25 @@ def plot_states(data_frames):
     plt.legend()
     plt.grid(True)
 
+    plt.subplot(222, sharex=ax1)
+    plt.plot(timestamp, np.array(speed_meas) - np.array(speed_act))
+    plt.xlabel('time [s]')
+    plt.ylabel('noise of speed sensor [m/s]')
+    plt.grid(True)
 
+    plt.subplot(224, sharex=ax1)
+    plt.plot(timestamp, np.rad2deg(np.array(yaw_rate_meas) - np.array(yaw_rate_act)))
+    plt.xlabel('time [s]')
+    plt.ylabel('noise of yaw rate sensor [deg/s]')
+    plt.grid(True)
+    
     
     # pose change estimation vs changes of actual states
     plt.figure()
-    plt.suptitle("Pose change estimation vs changes of actual states")
+    plt.suptitle("Pose change estimation vs changes of actual states\nunder local coordinate system")
     ax1 = plt.subplot(321)
     plt.plot(timestamp, pose_change_est_x, '-x',label='estimation')
-    plt.plot(timestamp, planning_init_point_wrt_last_frame_x, label='next')
+    plt.plot(timestamp, planning_init_point_wrt_last_frame_x, label='actual')
     # plt.plot(timestamp, pose_change_act_x, label='actual')  # 不是一个坐标系下的， 不能对比
     plt.xlabel('time [s]')
     plt.ylabel('change of x [m]')
@@ -296,7 +307,7 @@ def plot_states(data_frames):
 
     plt.subplot(323, sharex=ax1)
     plt.plot(timestamp, pose_change_est_y, '-x',label='estimation')
-    plt.plot(timestamp, planning_init_point_wrt_last_frame_y, label='next')
+    plt.plot(timestamp, planning_init_point_wrt_last_frame_y, label='actual')
     # plt.plot(timestamp, pose_change_act_y, label='actual')
     plt.xlabel('time [s]')
     plt.ylabel('change of y [m]')
@@ -305,7 +316,7 @@ def plot_states(data_frames):
 
     plt.subplot(325, sharex=ax1)
     plt.plot(timestamp, np.rad2deg(pose_change_est_yaw), '-x',label='estimation')
-    plt.plot(timestamp, np.rad2deg(planning_init_point_wrt_last_frame_yaw), label='next')
+    plt.plot(timestamp, np.rad2deg(planning_init_point_wrt_last_frame_yaw), label='actual')
     # plt.plot(timestamp, np.rad2deg(pose_change_act_yaw), label='actual')
     plt.xlabel('time [s]')
     plt.ylabel('change of yaw [deg]')
@@ -313,24 +324,24 @@ def plot_states(data_frames):
     plt.grid(True)
 
     plt.subplot(322, sharex=ax1)
-    plt.plot(timestamp, planning_init_point_local_x, label='next')
-    # plt.plot(timestamp, np.array(pose_change_est_x) - np.array(pose_change_act_x), label='error')
+    plt.plot(timestamp, planning_init_point_local_x)
+    # plt.plot(timestamp, np.array(pose_change_est_x) - np.array(pose_change_act_x), label='error') # 不是一个坐标系下的， 不能对比
     plt.xlabel('time [s]')
     plt.ylabel('est. err of x [m]')
     plt.grid(True)
     plt.legend()
 
     plt.subplot(324, sharex=ax1)
-    plt.plot(timestamp, planning_init_point_local_y, label='next')
-    # plt.plot(timestamp, np.array(pose_change_est_y) - np.array(pose_change_act_y), label='error')
+    plt.plot(timestamp, planning_init_point_local_y)
+    # plt.plot(timestamp, np.array(pose_change_est_y) - np.array(pose_change_act_y), label='error') # 不是一个坐标系下的， 不能对比
     plt.xlabel('time [s]')
     plt.ylabel('est. err of y [m]')
     plt.grid(True)
     plt.legend()
 
     plt.subplot(326, sharex=ax1)
-    plt.plot(timestamp, np.rad2deg(planning_init_point_local_yaw), label='next')
-    # plt.plot(timestamp, np.rad2deg(np.array(pose_change_est_yaw) - np.array(pose_change_act_yaw)), label='error')
+    plt.plot(timestamp, np.rad2deg(planning_init_point_local_yaw))
+    # plt.plot(timestamp, np.rad2deg(np.array(pose_change_est_yaw) - np.array(pose_change_act_yaw)), label='error')# 不是一个坐标系下的， 不能对比
     plt.xlabel('time [s]')
     plt.ylabel('est. err of yaw [deg]')
     plt.grid(True)
