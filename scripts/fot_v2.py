@@ -329,7 +329,6 @@ def plot_states(data_frames):
     plt.xlabel('time [s]')
     plt.ylabel('est. err of x [m]')
     plt.grid(True)
-    plt.legend()
 
     plt.subplot(324, sharex=ax1)
     plt.plot(timestamp, planning_init_point_local_y)
@@ -337,7 +336,6 @@ def plot_states(data_frames):
     plt.xlabel('time [s]')
     plt.ylabel('est. err of y [m]')
     plt.grid(True)
-    plt.legend()
 
     plt.subplot(326, sharex=ax1)
     plt.plot(timestamp, np.rad2deg(planning_init_point_local_yaw))
@@ -345,7 +343,8 @@ def plot_states(data_frames):
     plt.xlabel('time [s]')
     plt.ylabel('est. err of yaw [deg]')
     plt.grid(True)
-    plt.legend()
+
+
 
     # ego car state
     plt.figure()
