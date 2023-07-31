@@ -115,11 +115,42 @@
 07.30 
     - Refactor temp fix to neat and relate sensor error to add-on state change estimation error. 
 
+07.31
+    - TODO: Prepare results. 
+        - Discuss how sensor drift and noise affects the estimation error of state change.
+            - Time Plots of yaw rate and speed sensor measurements vs ground truth (indicating drift and std_dev). 
+            - Time plots of state change estimation error (x, y, theta), or 
+            - Plots (like Correlation Matrix) of state change estimation error (x, y, theta) vs sensor noise (speed, yaw_rate). Prefer this. 
+        - Comparison of local planning results vs Global planning results. 
+            - GIF of local planning results. 
+            - GIF of global planning results. 
+            - 连续两帧轨迹的对比。 
+            - 所有轨迹（虚线）都画出来，这部分可以稀疏，更便于观察关系。所有帧规划起始点连线起来。
 
-    - TODO: Add following/stopping mode. (THIS IS A BIG CHANGE)
+        - Discuss at which extent of the sensor noise the planning starts to fail. 
+            - GIF when the planning starts to drift. 
+            - 连续两帧轨迹的对比，看是否侧向偏移的距离已经超出了plan的速度。
+            - Time plot of the lateral planned speed vs drifted speed.
+
+        - Prepare the GIF of planning results under each category.
+        - Rewrite the markdown README and acknowledge the original repo.
+        - Time cost 不是本文核心，不画。也省去了优化工作。
+
     - TOFIX: 
-        - yaw, yaw_rate, and yaw_accel are not matched. 
-        - Initial yaw jump not reasonable. 
+        - Ego car's yaw, yaw_rate, and yaw_accel are not matched. 
+            - Reason: It's because this is planned in local frame. The data in continuous frame are not associated to each other. 
+            - 误差都设为0， 观察是否还有这个问题。或者在global frame下观察是否还有这个问题。
+        - Initial yaw jump not reasonable. This can be smoothened. 
+
+
+- TODO: Add following/stopping mode. (THIS IS A BIG CHANGE. BUT FOR SIMPLE RESULTS, I can do this mode only hard coded just to show the results.) 
+    - Loop obstacles, if its lane_id is same as ego car, convert to Frenet frame. 
+    - Find the closest obstacle same lane ahead. 
+    - If the distance is less than a threshold, generate s(t). 
+    - Combine with d(t) to generate candidate trajectories under this mode. 
+    - Evaluate costs and select the best one under this mode. Do this for ego lane only. 
+    - 评估下这儿的工作量，单lane stop场景仍然是评价最理想的场景。
+
 
 
 - FrenetOptimalTrajectory 输出单条lane下选择的最优路径和相应 costs，可能为空
