@@ -184,7 +184,7 @@ def plot_frames(data_frames, args):
         if args.save_frame or args.save_gif:
             plt.savefig("img/frames_local/{}.jpg".format(i))
 
-        plt.pause(0.1)
+        # plt.pause(0.1)
 
 def print_frame_cost(data_frames, frame_idx, lane_idx = None):
     '''
@@ -236,6 +236,176 @@ def print_frame_cost(data_frames, frame_idx, lane_idx = None):
         row_str('costs_inv_dist_to_obstacles') + \
         row_str('costs_lane_change'))
 
+def plot_states(data_frames):
+    timestamp = [df.timestamp for df in data_frames]
+    speed_meas = [df.speed_meas for df in data_frames]
+    yaw_rate_meas = [df.yaw_rate_meas for df in data_frames]
+    pose_change_est_x = [df.pose_change_est.x for df in data_frames]
+    pose_change_est_y = [df.pose_change_est.y for df in data_frames]
+    pose_change_est_yaw = [df.pose_change_est.yaw for df in data_frames]
+    planning_init_point_wrt_last_frame_x = [df.planning_init_point_wrt_last_frame.x for df in data_frames]
+    planning_init_point_wrt_last_frame_y = [df.planning_init_point_wrt_last_frame.y for df in data_frames]
+    planning_init_point_wrt_last_frame_yaw = [df.planning_init_point_wrt_last_frame.yaw for df in data_frames]
+    planning_init_point_local_x = [df.planning_init_point_local.pose.x for df in data_frames]
+    planning_init_point_local_y = [df.planning_init_point_local.pose.y for df in data_frames]
+    planning_init_point_local_yaw = [df.planning_init_point_local.pose.yaw for df in data_frames]
+    
+    pose_change_act_x = [0]
+    pose_change_act_y = [0]
+    pose_change_act_yaw = [0]
+    for i in range(len(data_frames) - 1):
+        pose_change_act_x.append(data_frames[i+1].ego_car.pose.x - data_frames[i].ego_car.pose.x)
+        pose_change_act_y.append(data_frames[i+1].ego_car.pose.y - data_frames[i].ego_car.pose.y)
+        pose_change_act_yaw.append(data_frames[i+1].ego_car.pose.yaw - data_frames[i].ego_car.pose.yaw)
+
+    speed_act = [df.ego_car.twist.vx for df in data_frames]
+    yaw_rate_act = [df.ego_car.twist.yaw_rate for df in data_frames]
+
+    # sensor measurement vs actual states
+    plt.figure()
+    plt.suptitle("Sensor measurement vs actual states")
+    ax1 = plt.subplot(221)
+    plt.plot(timestamp, speed_meas, '-x', label='measure')
+    plt.plot(timestamp, speed_act, label='actual')
+    plt.xlabel('time [s]')
+    plt.ylabel('speed [m/s]')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.subplot(223, sharex=ax1)
+    plt.plot(timestamp, np.rad2deg(yaw_rate_meas), '-x', label='measure')
+    plt.plot(timestamp, np.rad2deg(yaw_rate_act), label='actual')
+    plt.xlabel('time [s]')
+    plt.ylabel('yaw rate [deg/s]')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(222, sharex=ax1)
+    plt.plot(timestamp, np.array(speed_meas) - np.array(speed_act))
+    plt.xlabel('time [s]')
+    plt.ylabel('noise of speed sensor [m/s]')
+    plt.grid(True)
+
+    plt.subplot(224, sharex=ax1)
+    plt.plot(timestamp, np.rad2deg(np.array(yaw_rate_meas) - np.array(yaw_rate_act)))
+    plt.xlabel('time [s]')
+    plt.ylabel('noise of yaw rate sensor [deg/s]')
+    plt.grid(True)
+    
+    
+    # pose change estimation vs changes of actual states
+    plt.figure()
+    plt.suptitle("Pose change estimation vs changes of actual states\nunder local coordinate system")
+    ax1 = plt.subplot(321)
+    plt.plot(timestamp, pose_change_est_x, '-x',label='estimation')
+    plt.plot(timestamp, planning_init_point_wrt_last_frame_x, label='actual')
+    # plt.plot(timestamp, pose_change_act_x, label='actual')  # 不是一个坐标系下的， 不能对比
+    plt.xlabel('time [s]')
+    plt.ylabel('change of x [m]')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(323, sharex=ax1)
+    plt.plot(timestamp, pose_change_est_y, '-x',label='estimation')
+    plt.plot(timestamp, planning_init_point_wrt_last_frame_y, label='actual')
+    # plt.plot(timestamp, pose_change_act_y, label='actual')
+    plt.xlabel('time [s]')
+    plt.ylabel('change of y [m]')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(325, sharex=ax1)
+    plt.plot(timestamp, np.rad2deg(pose_change_est_yaw), '-x',label='estimation')
+    plt.plot(timestamp, np.rad2deg(planning_init_point_wrt_last_frame_yaw), label='actual')
+    # plt.plot(timestamp, np.rad2deg(pose_change_act_yaw), label='actual')
+    plt.xlabel('time [s]')
+    plt.ylabel('change of yaw [deg]')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(322, sharex=ax1)
+    plt.plot(timestamp, planning_init_point_local_x)
+    # plt.plot(timestamp, np.array(pose_change_est_x) - np.array(pose_change_act_x), label='error') # 不是一个坐标系下的， 不能对比
+    plt.xlabel('time [s]')
+    plt.ylabel('est. err of x [m]')
+    plt.grid(True)
+
+    plt.subplot(324, sharex=ax1)
+    plt.plot(timestamp, planning_init_point_local_y)
+    # plt.plot(timestamp, np.array(pose_change_est_y) - np.array(pose_change_act_y), label='error') # 不是一个坐标系下的， 不能对比
+    plt.xlabel('time [s]')
+    plt.ylabel('est. err of y [m]')
+    plt.grid(True)
+
+    plt.subplot(326, sharex=ax1)
+    plt.plot(timestamp, np.rad2deg(planning_init_point_local_yaw))
+    # plt.plot(timestamp, np.rad2deg(np.array(pose_change_est_yaw) - np.array(pose_change_act_yaw)), label='error')# 不是一个坐标系下的， 不能对比
+    plt.xlabel('time [s]')
+    plt.ylabel('est. err of yaw [deg]')
+    plt.grid(True)
+
+
+
+    # ego car state
+    plt.figure()
+    plt.suptitle("Ego car state")
+    ax1 = plt.subplot(331)
+    plt.plot(timestamp, [df.ego_car.pose.x for df in data_frames])
+    plt.xlabel('time [s]')
+    plt.ylabel('x [m]')
+    plt.grid()
+
+    plt.subplot(332, sharex=ax1)
+    plt.plot(timestamp, [df.ego_car.pose.y for df in data_frames])
+    plt.xlabel('time [s]')
+    plt.ylabel('y [m]')
+    plt.grid()
+
+    plt.subplot(333, sharex=ax1)
+    plt.plot(timestamp, np.rad2deg([df.ego_car.pose.yaw for df in data_frames]))
+    plt.xlabel('time [s]')
+    plt.ylabel('yaw [deg]')
+    plt.grid()
+
+    plt.subplot(334, sharex=ax1)
+    plt.plot(timestamp, [df.ego_car.twist.vx for df in data_frames])
+    plt.xlabel('time [s]')
+    plt.ylabel('vx [m/s]')
+    plt.grid()
+
+    plt.subplot(335, sharex=ax1)
+    plt.plot(timestamp, [df.ego_car.twist.vy for df in data_frames])
+    plt.xlabel('time [s]')
+    plt.ylabel('vy [m/s]')
+    plt.grid()
+
+    plt.subplot(336, sharex=ax1)
+    plt.plot(timestamp, np.rad2deg([df.ego_car.twist.yaw_rate for df in data_frames]))
+    plt.xlabel('time [s]')
+    plt.ylabel('yaw rate [deg/s]')
+    plt.grid()
+
+    plt.subplot(337, sharex=ax1)
+    plt.plot(timestamp, [df.ego_car.accel.ax for df in data_frames])
+    plt.xlabel('time [s]')
+    plt.ylabel('ax [m/s^2]')
+    plt.grid()
+
+    plt.subplot(338, sharex=ax1)
+    plt.plot(timestamp, [df.ego_car.accel.ay for df in data_frames])
+    plt.xlabel('time [s]')
+    plt.ylabel('ay [m/s^2]')
+    plt.grid()
+
+    plt.subplot(339, sharex=ax1)
+    plt.plot(timestamp, np.rad2deg([df.ego_car.accel.yaw_accel for df in data_frames]))
+    plt.xlabel('time [s]')
+    plt.ylabel('yaw accel [deg/s^2]')
+    plt.grid()
+
+    plt.show()
+
+
 def post_process(args):
     if args.store_data:
         data_frames = load_data(args.data_path)
@@ -245,6 +415,7 @@ def post_process(args):
         if args.cost_frame is not None:
             print_frame_cost(data_frames, args.cost_frame, args.cost_lane)
         
+        plot_states(data_frames)
 
 if __name__=="__main__":
     args = parse_arguments()

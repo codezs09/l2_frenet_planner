@@ -250,26 +250,71 @@ Pose EstimateChangeOfPose(double speed_meas, double yaw_rate_meas) {
   return {delta_x, delta_y, delta_yaw};
 }
 
-void UpdateSensorMeasurements(const Car& ego_car, const Car& next_ego_car,
-                              double* speed_meas, double* yaw_rate_meas) {
+/**
+ * @brief Estimate the change of pose by add-on noise
+ * TEMPORARY FIX.
+ * @return Pose
+ */
+Pose EstimateChangeOfPoseV2(const Car& next_planning_state_local,
+                            double* speed_meas, double* yaw_rate_meas) {
+  // TODO: tmp fix until control and vehicle model added to better related
+  // speed/yaw_rate sensor measurements to the estimated state change
+  double delta_x_noise = 0.0;
+  double delta_y_noise = 0.0;
+  double delta_yaw_noise = 0.0;
+
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
-  const double TimeStep = fot_hp.dt;
-  double position_change =
-      utils::norm(next_ego_car.getPose().x - ego_car.getPose().x,
-                  next_ego_car.getPose().y - ego_car.getPose().y);
-  double yaw_change =
-      utils::wrap_angle(next_ego_car.getPose().yaw - ego_car.getPose().yaw);
+  double speed_noise = utils::genGaussianNoise(fot_hp.sensor_speed_offset,
+                                               fot_hp.sensor_speed_noise_std);
+  double yaw_rate_noise = utils::genGaussianNoise(
+      fot_hp.sensor_yaw_rate_offset, fot_hp.sensor_yaw_rate_noise_std);
 
-  *speed_meas = position_change / TimeStep;
-  *yaw_rate_meas = yaw_change / TimeStep;
+  constexpr double kSimuStep = 0.002;  // [s]
+  const int kNumSteps = static_cast<int>(fot_hp.dt / kSimuStep);
+  for (int i = 0; i < kNumSteps; ++i) {
+    delta_x_noise += speed_noise * std::cos(delta_yaw_noise) * kSimuStep;
+    delta_y_noise +=
+        (next_planning_state_local.getTwist().vx * std::sin(delta_yaw_noise) +
+         speed_noise * std::sin(delta_yaw_noise)) *
+        kSimuStep;
+    delta_yaw_noise += yaw_rate_noise * kSimuStep;
+  }
 
-  // add offset and noise
-  *speed_meas += utils::genGaussianNoise(
-      fot_hp.sensor_speed_offset, fot_hp.sensor_speed_noise_std);  // [m/s]
-  *yaw_rate_meas +=
-      utils::genGaussianNoise(fot_hp.sensor_yaw_rate_offset,
-                              fot_hp.sensor_yaw_rate_noise_std);  // [rad/s]
+  // or directly
+  // double delta_x_noise = utils::genGaussianNoise(0.1, 0.1);
+  // double delta_y_noise = utils::genGaussianNoise(0.04, 0.04);
+
+  double delta_x = next_planning_state_local.getPose().x + delta_x_noise;
+  double delta_y = next_planning_state_local.getPose().y + delta_y_noise;
+  double delta_yaw = next_planning_state_local.getPose().yaw + delta_yaw_noise;
+
+  *speed_meas = next_planning_state_local.getTwist().vx + speed_noise;
+  *yaw_rate_meas =
+      next_planning_state_local.getTwist().yaw_rate + yaw_rate_noise;
+
+  return {delta_x, delta_y, delta_yaw};
 }
+
+// void UpdateSensorMeasurements(const Car& ego_car, const Car& next_ego_car,
+//                               double* speed_meas, double* yaw_rate_meas) {
+//   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
+//   const double TimeStep = fot_hp.dt;
+//   double position_change =
+//       utils::norm(next_ego_car.getPose().x - ego_car.getPose().x,
+//                   next_ego_car.getPose().y - ego_car.getPose().y);
+//   double yaw_change =
+//       utils::wrap_angle(next_ego_car.getPose().yaw - ego_car.getPose().yaw);
+
+//   *speed_meas = position_change / TimeStep;
+//   *yaw_rate_meas = yaw_change / TimeStep;
+
+//   // add offset and noise
+//   *speed_meas += utils::genGaussianNoise(
+//       fot_hp.sensor_speed_offset, fot_hp.sensor_speed_noise_std);  // [m/s]
+//   *yaw_rate_meas +=
+//       utils::genGaussianNoise(fot_hp.sensor_yaw_rate_offset,
+//                               fot_hp.sensor_yaw_rate_noise_std);  // [rad/s]
+// }
 
 int main(int argc, char** argv) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -295,7 +340,7 @@ int main(int argc, char** argv) {
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
-  int sim_loop = 200;
+  int sim_loop = 100;
   double total_runtime = 0.0;  // [ms]
   double timestamp = 0.0;      // [s], simulation timestamp
   int i = 0;
@@ -312,6 +357,9 @@ int main(int argc, char** argv) {
 
   double yaw_rate_meas = 0.0;
   double speed_meas = 0.0;
+  Pose pose_change_est = {0.0, 0.0, 0.0};
+  Car planning_init_point_wrt_last_frame;
+
   unordered_map<int, WayPoints> wp_lanes_local;
   std::vector<Obstacle> obstacles_local;
 
@@ -463,6 +511,11 @@ int main(int argc, char** argv) {
       df.best_frenet_path_local = *best_frenet_path_local;
       df.frenet_paths_local = best_frenet_paths_local;
       df.frenet_paths_local_all = frenet_paths_local_all;
+      df.speed_meas = speed_meas;
+      df.yaw_rate_meas = yaw_rate_meas;
+      df.pose_change_est = pose_change_est;
+      df.planning_init_point_wrt_last_frame =
+          planning_init_point_wrt_last_frame.getPose();
       data_frames.push_back(std::move(df));
     }
 
@@ -486,14 +539,22 @@ int main(int argc, char** argv) {
     if (FLAGS_local_planning) {
       ToGlobal(next_planning_state_local, ego_car.getPose(), &next_ego_car);
     }
-    UpdateSensorMeasurements(ego_car, next_ego_car, &speed_meas,
-                             &yaw_rate_meas);
+
+    // TODO: remove, update this way not accurate
+    // Comment (sz): not accurate due to the way we update sensor measurements
+    // UpdateSensorMeasurements(ego_car, next_ego_car, &speed_meas,
+    //                          &yaw_rate_meas);
+    // // update planning init point
+    // pose_change_est = EstimateChangeOfPose(
+    //     speed_meas, yaw_rate_meas);  // estimation of state change
+
     ego_car = next_ego_car;
 
-    // update planning init point
-    Pose pose_change_est = EstimateChangeOfPose(
-        speed_meas, yaw_rate_meas);  // estimation of state change
-    Car planning_init_point_wrt_last_frame = next_planning_state_local;
+    // TEMP FIX: use add-on noise for now.
+    pose_change_est = EstimateChangeOfPoseV2(next_planning_state_local,
+                                             &speed_meas, &yaw_rate_meas);
+
+    planning_init_point_wrt_last_frame = next_planning_state_local;
     // TODO: update Initial Planning Point in local frame
     planning_init_point_local = planning_init_point_wrt_last_frame;
     if (FLAGS_local_planning) {
@@ -513,6 +574,11 @@ int main(int argc, char** argv) {
          << ", vy=" << ego_car.getTwist().vy
          << ", w=" << utils::rad2deg(ego_car.getTwist().yaw_rate)
          << "[deg/s]. ax=" << ego_car.getAccel().ax << endl;
+    cout << "speed_meas: " << speed_meas
+         << ", yaw_rate_meas: " << utils::rad2deg(yaw_rate_meas) << endl;
+    cout << "Pose change estimate,  x: " << pose_change_est.x
+         << ", y: " << pose_change_est.y
+         << ", yaw: " << utils::rad2deg(pose_change_est.yaw) << endl;
   }
   cout << "Total runtime: " << total_runtime << " [ms] for # " << i
        << " iterations." << endl;

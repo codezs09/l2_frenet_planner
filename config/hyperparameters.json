@@ -20,8 +20,8 @@
     "klane": 0.1,
     "num_threads": 7,
 
-    "sensor_speed_offset": 0.0,
-    "sensor_speed_noise_std": 0.0,
-    "sensor_yaw_rate_offset": -0.0,
-    "sensor_yaw_rate_noise_std": 0.00
+    "sensor_speed_offset": -0.1,
+    "sensor_speed_noise_std": 0.1,
+    "sensor_yaw_rate_offset": 0.04,
+    "sensor_yaw_rate_noise_std": 0.03
 }
