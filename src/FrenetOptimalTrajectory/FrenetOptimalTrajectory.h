@@ -20,6 +20,7 @@
 #include "FrenetPath.h"
 #include "Obstacle.h"
 #include "py_cpp_struct.h"
+#include "utils/coordinate_utils.h"
 
 #include <cmath>
 #include <eigen3/Eigen/Dense>
@@ -47,6 +48,8 @@ class FrenetOptimalTrajectory {
   void calc_frenet_paths(int start_di_index, int end_di_index,
                          bool multithreaded);
   void threaded_calc_all_frenet_paths();
+
+  bool has_near_obstacle_front(double *target_s_flw, vector<double> *s_flw_vec);
 };
 
 #endif  // FRENET_OPTIMAL_TRAJECTORY_FRENET_OPTIMAL_TRAJECTORY_H

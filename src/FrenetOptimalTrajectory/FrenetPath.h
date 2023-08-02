@@ -54,6 +54,7 @@ class FrenetPath {
   double c_longitudinal_jerk = 0.0;
   double c_time_taken = 0.0;
   double c_end_speed_deviation = 0.0;
+  double c_end_s_deviation = 0.0;
   double c_longitudinal = 0.0;
 
   // obstacle costs
@@ -66,6 +67,7 @@ class FrenetPath {
   double cf = 0.0;
 
   int lane_id = -1;
+  utils::LonMotionMode lon_mode = utils::LonMotionMode::UNDEFINED;
 
   FrenetPath() = default;
   bool to_global_path(CubicSpline2D* csp);

@@ -16,8 +16,9 @@ using json = nlohmann::json;
 
 struct FrenetInitialConditions {
   FrenetInitialConditions() = delete;
-  FrenetInitialConditions(WayPoints& wp, vector<Obstacle>& obstacles_c)
-      : wp(wp), obstacles_c(obstacles_c) {}
+  FrenetInitialConditions(WayPoints& wp, vector<Obstacle>& obstacles_c,
+                          int lane_id)
+      : wp(wp), obstacles_c(obstacles_c), lane_id(lane_id) {}
 
   double s;
   double s_d;
@@ -31,6 +32,7 @@ struct FrenetInitialConditions {
   // TODO: 以下两个fields特别是 obstacles_c 感觉可以单独拉出作为输入
   WayPoints& wp;                  // Cartesian coordinates
   vector<Obstacle>& obstacles_c;  // Cartesian coordinates
+  int lane_id;
 };
 
 struct FrenetReturnValues {

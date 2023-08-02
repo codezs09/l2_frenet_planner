@@ -52,6 +52,12 @@ enum class CoordinateType {
   FRENET = 1
 };
 
+enum LonMotionMode {
+  UNDEFINED = 0,  //
+  Following = 1,  //
+  VelocityKeeping = 2
+};
+
 inline double norm(double x, double y) { return sqrt(pow(x, 2) + pow(y, 2)); }
 
 inline void as_unit_vector(tuple<double, double>& vec) {

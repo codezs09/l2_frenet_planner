@@ -157,7 +157,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         t += fot_hp.dt;
       }
 
-      // velocity keeping (only support velocity keeping mode)
+      // Lonitudinal motion planning: velocity keeping mode
       tv = fot_ic.target_speed -
            fot_hp.d_t_s * fot_hp.n_s_sample;  // tv: sampling speed
       while (tv <= fot_ic.target_speed + fot_hp.d_t_s * fot_hp.n_s_sample) {
@@ -166,6 +166,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
         // copy frenet path
         tfp = new FrenetPath();
+        tfp->lon_mode = utils::LonMotionMode::VelocityKeeping;
         tfp->t.assign(fp->t.begin(), fp->t.end());
         tfp->d.assign(fp->d.begin(), fp->d.end());
         tfp->d_d.assign(fp->d_d.begin(), fp->d_d.end());
@@ -253,6 +254,97 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
         tv += fot_hp.d_t_s;
       }
+
+      // Lonitudinal motion planning: following/stopping mode
+      double target_s_flw;
+      std::vector<double> s_flw_vec;
+      if (has_near_obstacle_front(&target_s_flw, &s_flw_vec)) {
+        for (double s_flw : s_flw_vec) {
+          // if (s_flw < fot_ic.s) {
+          //   continue;
+          // }
+          longitudinal_acceleration = 0;
+          longitudinal_jerk = 0;
+
+          // copy frenet path
+          tfp = new FrenetPath();
+          tfp->lon_mode = utils::LonMotionMode::Following;
+          tfp->t.assign(fp->t.begin(), fp->t.end());
+          tfp->d.assign(fp->d.begin(), fp->d.end());
+          tfp->d_d.assign(fp->d_d.begin(), fp->d_d.end());
+          tfp->d_dd.assign(fp->d_dd.begin(), fp->d_dd.end());
+          tfp->d_ddd.assign(fp->d_ddd.begin(), fp->d_ddd.end());
+          QuinticPolynomial lon_qp_flw = QuinticPolynomial(
+              fot_ic.s, fot_ic.s_d, fot_ic.s_dd, s_flw, 0.0, 0.0, ti);
+
+          for (double tp : tfp->t) {
+            tfp->s.push_back(lon_qp_flw.calc_point(tp));
+            tfp->s_d.push_back(lon_qp_flw.calc_first_derivative(tp));
+            tfp->s_dd.push_back(lon_qp_flw.calc_second_derivative(tp));
+            tfp->s_ddd.push_back(lon_qp_flw.calc_third_derivative(tp));
+            longitudinal_acceleration +=
+                abs(lon_qp_flw.calc_second_derivative(tp));
+            longitudinal_jerk += abs(lon_qp_flw.calc_third_derivative(tp));
+          }
+
+          num_paths++;
+          // delete if failure or invalid path
+          bool success = tfp->to_global_path(csp);
+          num_viable_paths++;
+          if (!success) {
+            // deallocate memory and continue
+            delete tfp;
+            continue;
+          }
+
+          bool valid_path = tfp->is_valid_path(fot_ic.obstacles_c);
+          if (!valid_path) {
+            delete tfp;
+            continue;
+          }
+
+          // lateral costs
+          tfp->c_lateral_deviation = lateral_deviation;
+          tfp->c_lateral_velocity = lateral_velocity;
+          tfp->c_lateral_acceleration = lateral_acceleration;
+          tfp->c_lateral_jerk = lateral_jerk;
+          tfp->c_lateral = fot_hp.kd * tfp->c_lateral_deviation +
+                           fot_hp.kv * tfp->c_lateral_velocity +
+                           fot_hp.ka * tfp->c_lateral_acceleration +
+                           fot_hp.kj * tfp->c_lateral_jerk;
+
+          // longitudinal costs
+          tfp->c_longitudinal_acceleration = longitudinal_acceleration;
+          tfp->c_longitudinal_jerk = longitudinal_jerk;
+          tfp->c_end_s_deviation = abs(target_s_flw - tfp->s.back());
+
+          tfp->c_time_taken = ti;
+          tfp->c_longitudinal = fot_hp.ka * tfp->c_longitudinal_acceleration +
+                                fot_hp.kj * tfp->c_longitudinal_jerk +
+                                fot_hp.kt * tfp->c_time_taken +
+                                fot_hp.kd * tfp->c_end_s_deviation;
+
+          // obstacle costs
+          tfp->c_inv_dist_to_obstacles =
+              tfp->inverse_distance_to_obstacles(fot_ic.obstacles_c);
+
+          // final cost
+          tfp->cf = fot_hp.klat * tfp->c_lateral +
+                    fot_hp.klon * tfp->c_longitudinal +
+                    fot_hp.ko * tfp->c_inv_dist_to_obstacles;
+
+          if (multithreaded) {
+            // added mutex lock to prevent threads competing to write to
+            // frenet_path
+            mu->lock();
+            frenet_paths.push_back(tfp);
+            mu->unlock();
+          } else {
+            frenet_paths.push_back(tfp);
+          }
+        }
+      }
+
       ti += fot_hp.dt;
       // make sure to deallocate
       delete fp;
@@ -264,4 +356,50 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
   // Thread argument is passed down cout << "Found " << frenet_paths.size() <<
   // " valid paths out of " << num_paths << " paths; Valid path time " <<
   // valid_path_time << "\n";
+}
+
+bool FrenetOptimalTrajectory::has_near_obstacle_front(
+    double *target_s_flw, vector<double> *s_flw_vec) {
+  // si range [2.0:0.5:4.0] * max(v_front_car, 1.0) cost
+  int idx_front_obstacle = -1;
+  double min_s_front_obstacle = 1e9;
+  for (int i = 0; i < fot_ic.obstacles_c.size(); i++) {
+    const auto &ob_c = fot_ic.obstacles_c[i];
+    if (ob_c.isInLane(fot_ic.lane_id)) {
+      continue;  // not same lane, skip
+    }
+    // convert ob_c to frenet frame
+    std::unique_ptr<Obstacle> ob_f = nullptr;
+    utils::ToFrenet(ob_c, fot_ic.wp,
+                    ob_f);  // local planning,
+                            // 下这里得到的s可能是错的。可能要用别的办法。
+    if (ob_f->getPose().x < fot_ic.s) {
+      continue;  // behind ego car, skip
+    }
+
+    constexpr double kTimeGap = 20.0;
+    double dist_threshold = kTimeGap * max(ob_f->getTwist().vx, fot_ic.s_d);
+    if (ob_f->getPose().x - fot_ic.s < dist_threshold) {
+      min_s_front_obstacle = ob_f->getPose().x;
+      idx_front_obstacle = i;
+    }
+  }
+  if (idx_front_obstacle == -1) {
+    return false;
+  }
+  const auto &ob_c = fot_ic.obstacles_c[idx_front_obstacle];
+
+  double time_gap_target = 3.0;  // 3-second driving rule
+  double time_gap_lo = 2.0;
+  double time_gap_hi = 4.0;
+  double v_front_capped = max(ob_c.getTwist().vx, 1.0);
+  *target_s_flw = min_s_front_obstacle - time_gap_target * v_front_capped;
+
+  double t = time_gap_lo;
+  while (t <= time_gap_hi) {
+    double s_flw = min_s_front_obstacle - t * v_front_capped;
+    s_flw_vec->push_back(s_flw);
+    t += fot_hp.d_t_s;
+  }
+  return true;
 }

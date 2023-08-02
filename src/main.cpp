@@ -407,7 +407,8 @@ int main(int argc, char** argv) {
       wp_lanes_local[lane.GetLaneId()] = wp_local;
 
       // run frenet optimal trajectory
-      FrenetInitialConditions fot_ic(wp_local, obstacles_local);
+      FrenetInitialConditions fot_ic(wp_local, obstacles_local,
+                                     lane.GetLaneId());
       fot_ic.target_speed = target_speed;
       fot_ic.lane_width = lane.GetLaneWidth();
 
