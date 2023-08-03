@@ -123,8 +123,8 @@ def plot_frames(data_frames, args):
             plt.plot(frenet_path.x, frenet_path.y, "-")
 
         plt.axis('equal')
-        plt.xlim(ego_x - 0.5*area, ego_x + 2.5*area)
-        plt.ylim(ego_y - 0.5*area, ego_y + 2.5*area)
+        plt.xlim(ego_x - 0.5*area, ego_x + 1.0*area)
+        plt.ylim(ego_y - 0.5*area, ego_y + 1.0*area)
         plt.xlabel("X [m]")
         plt.ylabel("Y [m]")
         plt.title(f"Global: Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
@@ -168,14 +168,14 @@ def plot_frames(data_frames, args):
         # print("frame.frenet_paths number: ", len(frame.frenet_paths))
         for frenet_path_local in frame.frenet_paths_local:
             plt.plot(frenet_path_local.x, frenet_path_local.y, "-")
-        # # plot candiate path at d offset as well
-        # for fps_per_lane in frame.frenet_paths_local_all:
-        #     for fp in fps_per_lane:
-        #         plt.plot(fp.x, fp.y, "k--")
+        # plot candiate path at d offset as well
+        for fps_per_lane in frame.frenet_paths_local_all:
+            for fp in fps_per_lane:
+                plt.plot(fp.x, fp.y, "b--")
 
         plt.axis('equal')
-        plt.xlim(ego_x - 0.5*area, ego_x + 2.5*area)
-        plt.ylim(ego_y - 0.5*area, ego_y + 2.5*area)
+        plt.xlim(ego_x - 0.5*area, ego_x + 1.0*area)
+        plt.ylim(ego_y - 0.5*area, ego_y + 1.0*area)
         plt.xlabel("X [m]")
         plt.ylabel("Y [m]")
         plt.title(f"Local: Timestamp {frame.timestamp: .1f}, v[m/s]:" + \

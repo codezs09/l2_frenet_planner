@@ -401,5 +401,8 @@ bool FrenetOptimalTrajectory::has_near_obstacle_front(
     s_flw_vec->push_back(s_flw);
     t += fot_hp.d_t_s;
   }
+  if (*target_s_flw < fot_ic.s) {
+    s_flw_vec->push_back(fot_ic.s + 1e-6);
+  }
   return true;
 }

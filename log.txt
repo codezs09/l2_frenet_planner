@@ -115,7 +115,12 @@
 07.30 
     - Refactor temp fix to neat and relate sensor error to add-on state change estimation error. 
 
-07.31
+08.02
+    - Add following mode.
+        - Bug 1: as the vehicle near stop, the path starts to wave? 仔细放大看，path线硬折来折去，有问题。
+          即使把sensor noise去掉了仍然有同样的问题。
+        - Bug 2: 刹车太急，意味着 VelocityKeeping 和 Following 模式切换不平顺，可能obstacle cost weights太小。
+
     - TODO: Prepare results. 
         - Discuss how sensor drift and noise affects the estimation error of state change.
             - Time Plots of yaw rate and speed sensor measurements vs ground truth (indicating drift and std_dev). 

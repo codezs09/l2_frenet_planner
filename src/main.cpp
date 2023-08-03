@@ -455,6 +455,12 @@ int main(int argc, char** argv) {
       break;
     }
 
+    if (best_frenet_paths_local.empty()) {
+      cerr << "Fail to find a feasible path at timestamp: " << timestamp
+           << endl;
+      break;
+    }
+
     // choose from best trajectory along each lane based on cost
     FrenetPath* best_frenet_path_local = nullptr;
     for (auto& fp : best_frenet_paths_local) {
