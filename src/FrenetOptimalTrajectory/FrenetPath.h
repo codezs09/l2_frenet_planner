@@ -6,6 +6,7 @@
 #include "Obstacle.h"
 #include "py_cpp_struct.h"
 #include "utils/geometry.h"
+#include "utils/utils.h"
 
 #include <eigen3/Eigen/Dense>
 #include <msgpack.hpp>
@@ -68,6 +69,7 @@ class FrenetPath {
 
   int lane_id = -1;
   utils::LonMotionMode lon_mode = utils::LonMotionMode::UNDEFINED;
+  int lon_mode_int = 0;  // dummy, for convenience of MSGPACK_DEFINE enum type
 
   FrenetPath() = default;
   bool to_global_path(CubicSpline2D* csp);
@@ -75,12 +77,18 @@ class FrenetPath {
   bool is_collision(const vector<Obstacle>& obstacles);
   double inverse_distance_to_obstacles(const vector<Obstacle>& obstacles);
 
+  int set_lon_mode(utils::LonMotionMode mode) {
+    lon_mode = mode;
+    lon_mode_int = static_cast<int>(mode);
+  }
+
   MSGPACK_DEFINE(t, d, d_d, d_dd, d_ddd, s, s_d, s_dd, s_ddd, x, y, yaw, ds, c,
                  c_lateral_deviation, c_lateral_velocity,
                  c_lateral_acceleration, c_lateral_jerk, c_lateral,
                  c_longitudinal_acceleration, c_longitudinal_jerk, c_time_taken,
-                 c_end_speed_deviation, c_longitudinal, c_inv_dist_to_obstacles,
-                 c_lane_change, cf, lane_id);
+                 c_end_speed_deviation, c_end_s_deviation, c_longitudinal,
+                 c_inv_dist_to_obstacles, c_lane_change, cf, lane_id,
+                 lon_mode_int);
 };
 
 #endif  // FRENET_OPTIMAL_TRAJECTORY_FRENETPATH_H

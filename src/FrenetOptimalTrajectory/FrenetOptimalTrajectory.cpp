@@ -113,7 +113,8 @@ void FrenetOptimalTrajectory::threaded_calc_all_frenet_paths() {
 void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
                                                 int end_di_index,
                                                 bool multithreaded) {
-  double t, ti, tv;
+  constexpr double kHorizon = 5.0;
+  double ti, tv;
   double lateral_deviation, lateral_velocity, lateral_acceleration,
       lateral_jerk;
   double longitudinal_acceleration, longitudinal_jerk;
@@ -143,17 +144,27 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
           fot_ic.d, fot_ic.d_d, fot_ic.d_dd, di, 0.0, 0.0, ti);
 
       // construct frenet path
-      t = 0;
-      while (t <= ti) {
+      double t = 0;
+      while (t <= kHorizon) {
         fp->t.push_back(t);
-        fp->d.push_back(lat_qp.calc_point(t));
-        fp->d_d.push_back(lat_qp.calc_first_derivative(t));
-        fp->d_dd.push_back(lat_qp.calc_second_derivative(t));
-        fp->d_ddd.push_back(lat_qp.calc_third_derivative(t));
-        lateral_deviation += abs(lat_qp.calc_point(t));
-        lateral_velocity += abs(lat_qp.calc_first_derivative(t));
-        lateral_acceleration += abs(lat_qp.calc_second_derivative(t));
-        lateral_jerk += abs(lat_qp.calc_third_derivative(t));
+        if (t <= ti) {
+          fp->d.push_back(lat_qp.calc_point(t));
+          fp->d_d.push_back(lat_qp.calc_first_derivative(t));
+          fp->d_dd.push_back(lat_qp.calc_second_derivative(t));
+          fp->d_ddd.push_back(lat_qp.calc_third_derivative(t));
+          lateral_deviation += abs(lat_qp.calc_point(t));
+          lateral_velocity += abs(lat_qp.calc_first_derivative(t));
+          lateral_acceleration += abs(lat_qp.calc_second_derivative(t));
+          lateral_jerk += abs(lat_qp.calc_third_derivative(t));
+        } else {
+          fp->d.push_back(di);  // end point
+          fp->d_d.push_back(0.0);
+          fp->d_dd.push_back(0.0);
+          fp->d_ddd.push_back(0.0);
+          lateral_deviation += abs(di);
+          lateral_velocity += abs(0);
+          lateral_acceleration += abs(0);
+        }
         t += fot_hp.dt;
       }
 
@@ -166,7 +177,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
         // copy frenet path
         tfp = new FrenetPath();
-        tfp->lon_mode = utils::LonMotionMode::VelocityKeeping;
+        tfp->set_lon_mode(utils::LonMotionMode::VelocityKeeping);
         tfp->t.assign(fp->t.begin(), fp->t.end());
         tfp->d.assign(fp->d.begin(), fp->d.end());
         tfp->d_d.assign(fp->d_d.begin(), fp->d_d.end());
@@ -179,14 +190,21 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
         // longitudinal motion
         for (double tp : tfp->t) {
-          tfp->s.push_back(lon_qp.calc_point(tp));
-          tfp->s_d.push_back(lon_qp.calc_first_derivative(tp));
-          tfp->s_dd.push_back(lon_qp.calc_second_derivative(tp));
-          tfp->s_ddd.push_back(lon_qp.calc_third_derivative(tp));
-          longitudinal_acceleration += abs(lon_qp.calc_second_derivative(
-              tp));  // if accumulated, then not fair under different ti
-                     // sampling.
-          longitudinal_jerk += abs(lon_qp.calc_third_derivative(tp));
+          if (tp <= ti) {
+            tfp->s.push_back(lon_qp.calc_point(tp));
+            tfp->s_d.push_back(lon_qp.calc_first_derivative(tp));
+            tfp->s_dd.push_back(lon_qp.calc_second_derivative(tp));
+            tfp->s_ddd.push_back(lon_qp.calc_third_derivative(tp));
+            longitudinal_acceleration += abs(lon_qp.calc_second_derivative(tp));
+            longitudinal_jerk += abs(lon_qp.calc_third_derivative(tp));
+          } else {
+            tfp->s.push_back(tfp->s.back() + tv * fot_hp.dt);
+            tfp->s_d.push_back(tv);
+            tfp->s_dd.push_back(0.0);
+            tfp->s_ddd.push_back(0.0);
+            longitudinal_acceleration += abs(0);
+            longitudinal_jerk += abs(0);
+          }
         }
 
         num_paths++;
@@ -231,7 +249,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         tfp->c_longitudinal = fot_hp.ka * tfp->c_longitudinal_acceleration +
                               fot_hp.kj * tfp->c_longitudinal_jerk +
                               fot_hp.kt * tfp->c_time_taken +
-                              fot_hp.kd * tfp->c_end_speed_deviation;
+                              fot_hp.k_ev * tfp->c_end_speed_deviation;
 
         // obstacle costs
         tfp->c_inv_dist_to_obstacles =
@@ -268,7 +286,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
           // copy frenet path
           tfp = new FrenetPath();
-          tfp->lon_mode = utils::LonMotionMode::Following;
+          tfp->set_lon_mode(utils::LonMotionMode::Following);
           tfp->t.assign(fp->t.begin(), fp->t.end());
           tfp->d.assign(fp->d.begin(), fp->d.end());
           tfp->d_d.assign(fp->d_d.begin(), fp->d_d.end());
@@ -278,13 +296,22 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
               fot_ic.s, fot_ic.s_d, fot_ic.s_dd, s_flw, 0.0, 0.0, ti);
 
           for (double tp : tfp->t) {
-            tfp->s.push_back(lon_qp_flw.calc_point(tp));
-            tfp->s_d.push_back(lon_qp_flw.calc_first_derivative(tp));
-            tfp->s_dd.push_back(lon_qp_flw.calc_second_derivative(tp));
-            tfp->s_ddd.push_back(lon_qp_flw.calc_third_derivative(tp));
-            longitudinal_acceleration +=
-                abs(lon_qp_flw.calc_second_derivative(tp));
-            longitudinal_jerk += abs(lon_qp_flw.calc_third_derivative(tp));
+            if (tp <= ti) {
+              tfp->s.push_back(lon_qp_flw.calc_point(tp));
+              tfp->s_d.push_back(lon_qp_flw.calc_first_derivative(tp));
+              tfp->s_dd.push_back(lon_qp_flw.calc_second_derivative(tp));
+              tfp->s_ddd.push_back(lon_qp_flw.calc_third_derivative(tp));
+              longitudinal_acceleration +=
+                  abs(lon_qp_flw.calc_second_derivative(tp));
+              longitudinal_jerk += abs(lon_qp_flw.calc_third_derivative(tp));
+            } else {
+              tfp->s.push_back(s_flw);
+              tfp->s_d.push_back(0.0);
+              tfp->s_dd.push_back(0.0);
+              tfp->s_ddd.push_back(0.0);
+              longitudinal_acceleration += 0.0;
+              longitudinal_jerk += 0.0;
+            }
           }
 
           num_paths++;
@@ -322,7 +349,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
           tfp->c_longitudinal = fot_hp.ka * tfp->c_longitudinal_acceleration +
                                 fot_hp.kj * tfp->c_longitudinal_jerk +
                                 fot_hp.kt * tfp->c_time_taken +
-                                fot_hp.kd * tfp->c_end_s_deviation;
+                                fot_hp.k_es * tfp->c_end_s_deviation;
 
           // obstacle costs
           tfp->c_inv_dist_to_obstacles =
@@ -398,10 +425,12 @@ bool FrenetOptimalTrajectory::has_near_obstacle_front(
   double t = time_gap_lo;
   while (t <= time_gap_hi) {
     double s_flw = min_s_front_obstacle - t * v_front_capped;
-    s_flw_vec->push_back(s_flw);
+    if (s_flw > fot_ic.s) {
+      s_flw_vec->push_back(s_flw);
+    }
     t += fot_hp.d_t_s;
   }
-  if (*target_s_flw < fot_ic.s) {
+  if (s_flw_vec->empty() || *target_s_flw < fot_ic.s) {
     s_flw_vec->push_back(fot_ic.s + 1e-6);
   }
   return true;

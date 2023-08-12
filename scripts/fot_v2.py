@@ -7,6 +7,8 @@ import argparse
 import os 
 import sys
 import subprocess
+import json
+from collections import defaultdict
 
 from load_data import load_data
 from utils.geometry import rotate, pose_to_box
@@ -18,8 +20,13 @@ CONFIG_DIR = os.path.join(PROJECT_DIR, "config")
 CPP_EXECUTABLE_PATH = os.path.join(BUILD_DIR, "FrenetOptimalTrajectoryTest")
 DATA_LOG_PATH = os.path.join(BUILD_DIR, "data.bin")
 
+LONMODE = ["", "Following", "VelocityKeeping"]
+
 def round_to_tenth(x):
     return round(x * 10.0) / 10.0
+
+def wrap_angle(angle):
+    return (angle + np.pi) % (2 * np.pi) - np.pi
 
 def parse_arguments(): 
     parser = argparse.ArgumentParser()
@@ -123,12 +130,13 @@ def plot_frames(data_frames, args):
             plt.plot(frenet_path.x, frenet_path.y, "-")
 
         plt.axis('equal')
-        plt.xlim(ego_x - 0.5*area, ego_x + 1.0*area)
-        plt.ylim(ego_y - 0.5*area, ego_y + 1.0*area)
+        plt.xlim(ego_x - 0.5*area, ego_x + 2.5*area)
+        plt.ylim(ego_y - 0.5*area, ego_y + 2.5*area)
         plt.xlabel("X [m]")
         plt.ylabel("Y [m]")
         plt.title(f"Global: Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
-                    str(np.linalg.norm((frame.ego_car.twist.vx)))[:4])
+                    str(np.linalg.norm((frame.ego_car.twist.vx)))[:4] + \
+                    " " + LONMODE[int(frame.best_frenet_path.lon_mode)])
         plt.grid(True)
         if args.save_frame or args.save_gif:
             plt.savefig("img/frames/{}.jpg".format(i))
@@ -174,12 +182,13 @@ def plot_frames(data_frames, args):
                 plt.plot(fp.x, fp.y, "b--")
 
         plt.axis('equal')
-        plt.xlim(ego_x - 0.5*area, ego_x + 1.0*area)
+        plt.xlim(ego_x - 0.5*area, ego_x + 2.5*area)
         plt.ylim(ego_y - 0.5*area, ego_y + 1.0*area)
         plt.xlabel("X [m]")
         plt.ylabel("Y [m]")
         plt.title(f"Local: Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
-                    str(np.linalg.norm((frame.ego_car.twist.vx)))[:4])
+                    str(np.linalg.norm((frame.ego_car.twist.vx)))[:4] + \
+                    " " + LONMODE[int(frame.best_frenet_path.lon_mode)])
         plt.grid(True)
         if args.save_frame or args.save_gif:
             plt.savefig("img/frames_local/{}.jpg".format(i))
@@ -193,15 +202,7 @@ def print_frame_cost(data_frames, frame_idx, lane_idx = None):
     '''
     frame = data_frames[frame_idx]
 
-    costs_data = {
-        'lane_ids': [],
-        'd_offsets': [],
-        'costs_total': [],
-        'costs_lateral': [],
-        'costs_longitudinal': [],
-        'costs_inv_dist_to_obstacles': [],
-        'costs_lane_change': []
-    }
+    costs_data = defaultdict(list)
 
     if lane_idx is None:
         for frenet_path in frame.frenet_paths:
@@ -213,6 +214,13 @@ def print_frame_cost(data_frames, frame_idx, lane_idx = None):
             costs_data['costs_inv_dist_to_obstacles'].append(frenet_path.c_inv_dist_to_obstacles)
             costs_data['costs_lane_change'].append(frenet_path.c_lane_change)
     else:
+        plt.figure()
+        plt.suptitle('frenet sd plot @ frame=' + str(frame_idx) + ' lane=' + str(lane_idx))
+
+        # load json file args.hyper_path
+        with open(args.hyper_path) as f:
+            hp = json.load(f)
+
         for fp in frame.frenet_paths_local_all[lane_idx]:
             costs_data['lane_ids'].append(fp.lane_id)
             costs_data['d_offsets'].append(round_to_tenth(fp.d[-1]))
@@ -222,19 +230,132 @@ def print_frame_cost(data_frames, frame_idx, lane_idx = None):
             costs_data['costs_inv_dist_to_obstacles'].append(fp.c_inv_dist_to_obstacles)
             costs_data['costs_lane_change'].append(fp.c_lane_change)
 
+            # lon costs
+            costs_data["costs_lon_a"].append(hp['ka'] * fp.c_longitudinal_acceleration)
+            costs_data["costs_lon_j"].append(hp['kj'] * fp.c_longitudinal_jerk)
+            costs_data["costs_lon_t"].append(hp['kt'] * fp.c_time_taken)
+            costs_data["costs_end_v"].append(hp['k_es'] * fp.c_end_speed_deviation)
+            costs_data["costs_end_s"].append(hp['k_es'] * fp.c_end_s_deviation)
+
+            # lat costs
+            costs_data["costs_lat_dev"].append(hp['kd'] * fp.c_lateral_deviation)
+            costs_data["costs_lat_v"].append(hp['kv'] * fp.c_lateral_velocity)
+            costs_data["costs_lat_a"].append(hp['ka'] * fp.c_lateral_acceleration)
+            costs_data["costs_lat_j"].append(hp['kj'] * fp.c_lateral_jerk)
+    
+            ax1 = plt.subplot(331)
+            plt.plot(fp.t, fp.s)
+            plt.xlabel('t')
+            plt.ylabel('s')
+            plt.grid(True)
+
+            plt.subplot(334, sharex=ax1)
+            plt.plot(fp.t, fp.s_d)
+            plt.xlabel('t')
+            plt.ylabel('s_d')
+            plt.grid(True)
+
+            plt.subplot(337, sharex=ax1)
+            plt.plot(fp.t, fp.s_dd)
+            plt.xlabel('t')
+            plt.ylabel('s_dd')
+            plt.grid(True)
+            
+            plt.subplot(332, sharex=ax1)
+            plt.plot(fp.t, fp.d)
+            plt.xlabel('t')
+            plt.ylabel('d')
+            plt.grid(True)
+
+            plt.subplot(335, sharex=ax1)
+            plt.plot(fp.t, fp.d_d)
+            plt.xlabel('t')
+            plt.ylabel('d_d')
+            plt.grid(True)
+
+            plt.subplot(338, sharex=ax1)
+            plt.plot(fp.t, fp.d_dd)
+            plt.xlabel('t')
+            plt.ylabel('d_dd')
+            plt.grid(True)
+
+            plt.subplot(333)
+            plt.plot(fp.s, fp.d)
+            plt.xlabel('s')
+            plt.ylabel('d')
+            plt.grid(True)
+
+            yaw = wrap_angle(np.arctan2(fp.d_d, fp.s_d))
+            plt.subplot(336)
+            plt.plot(fp.t, yaw)
+            plt.xlabel('t')
+            plt.ylabel('yaw')
+            plt.grid(True)
+
+        bf = frame.best_frenet_path
+        ax1 = plt.subplot(331)
+        plt.plot(bf.t, bf.s, 'b--')
+        plt.subplot(334, sharex=ax1)
+        plt.plot(bf.t, bf.s_d, 'b--')
+        plt.subplot(337, sharex=ax1)
+        plt.plot(bf.t, bf.s_dd, 'b--')
+        plt.subplot(332, sharex=ax1)
+        plt.plot(bf.t, bf.d, 'b--')
+        plt.subplot(335, sharex=ax1)
+        plt.plot(bf.t, bf.d_d, 'b--')
+        plt.subplot(338, sharex=ax1)
+        plt.plot(bf.t, bf.d_dd, 'b--')
+        plt.subplot(333)
+        plt.plot(bf.s, bf.d, 'b--')
+        plt.subplot(336)
+        plt.plot(bf.t, np.arctan2(bf.d_d, bf.s_d), 'b--')
+
+
     # print costs
     def row_str(key):
         # return " ".join(["{:.2f}".format(x) for x in row])
         return key + "\t" + "\t".join([f"{x:.1f}" for x in costs_data[key]]) + "\n"
-    print("\nCosts at frame {}".format(frame_idx))
 
-    print(row_str('lane_ids') + \
-        row_str('d_offsets') + \
-        row_str('costs_total') + \
-        row_str('costs_lateral') + \
-        row_str('costs_longitudinal') + \
-        row_str('costs_inv_dist_to_obstacles') + \
-        row_str('costs_lane_change'))
+    def print_cost_in_seq(cost_seq):
+        s = ""
+        for cost_name in cost_seq:
+            if cost_name in costs_data:
+                s += row_str(cost_name)
+            else:
+                s += cost_name + "\t" + "\t".join(["-"] * len(costs_data['lane_ids'])) + "\n"
+        print(s)
+
+
+    total_cost_seq = [
+        'lane_ids', 
+        'd_offsets',
+        'costs_total',
+        'costs_lateral',
+        'costs_longitudinal',
+        'costs_inv_dist_to_obstacles',
+        'costs_lane_change'
+    ]
+    print("\nCosts at frame {}".format(frame_idx))
+    print_cost_in_seq(total_cost_seq)
+
+    lon_cost_seq = [
+        "costs_lon_a", 
+        "costs_lon_j",
+        "costs_lon_t",
+        "costs_end_v",
+        "costs_end_s"
+    ]
+    print("\nLongitudinal costs at frame {}".format(frame_idx))
+    print_cost_in_seq(lon_cost_seq)
+
+    lat_cost_seq = [
+        "costs_lat_dev",
+        "costs_lat_v",
+        "costs_lat_a",
+        "costs_lat_j"
+    ]
+    print_cost_in_seq(lat_cost_seq)
+
 
 def plot_states(data_frames):
     timestamp = [df.timestamp for df in data_frames]
@@ -403,19 +524,19 @@ def plot_states(data_frames):
     plt.ylabel('yaw accel [deg/s^2]')
     plt.grid()
 
-    plt.show()
-
 
 def post_process(args):
     if args.store_data:
         data_frames = load_data(args.data_path)
 
-        plot_frames(data_frames, args)
+        if not args.skip_fot:
+            plot_frames(data_frames, args)
 
         if args.cost_frame is not None:
             print_frame_cost(data_frames, args.cost_frame, args.cost_lane)
         
         plot_states(data_frames)
+        plt.show()
 
 if __name__=="__main__":
     args = parse_arguments()

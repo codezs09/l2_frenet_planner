@@ -46,8 +46,11 @@ bool FrenetPath::to_global_path(CubicSpline2D *csp) {
     } else if (dyaw < -M_PI_2) {
       dyaw += M_PI;
     }
-    c.push_back(dyaw / ds[i]);
-    // c.push_back(dyaw / fot_hp->dt);
+    if (ds[i] > 0.1) {
+      c.push_back(dyaw / ds[i]);
+    } else {
+      c.push_back(0.0);
+    }
   }
 
   return true;
@@ -57,6 +60,17 @@ bool FrenetPath::to_global_path(CubicSpline2D *csp) {
 // curvature and collision checks
 bool FrenetPath::is_valid_path(const vector<Obstacle> &obstacles) {
   const auto &fot_hp = FrenetHyperparameters::getConstInstance();
+
+  auto is_yaw_rate_violate = [this, &fot_hp]() {
+    for (int i = 0; i < this->yaw.size(); ++i) {
+      double yaw_rate =
+          utils::wrap_angle(this->yaw[i + 1] - this->yaw[i]) / fot_hp.dt;
+      if (abs(yaw_rate) > fot_hp.max_yaw_rate) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   if (any_of(s_d.begin(), s_d.end(),
              [this, &fot_hp](int i) { return abs(i) > fot_hp.max_speed; })) {
@@ -74,6 +88,10 @@ bool FrenetPath::is_valid_path(const vector<Obstacle> &obstacles) {
            })) {
     return false;
   }
+  // // max yaw rate check
+  // else if (is_yaw_rate_violate()) {
+  //   return false;
+  // }
   // collision check
   else if (is_collision(obstacles)) {
     return false;

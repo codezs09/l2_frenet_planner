@@ -340,7 +340,7 @@ int main(int argc, char** argv) {
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
-  int sim_loop = 100;
+  int sim_loop = 200;
   double total_runtime = 0.0;  // [ms]
   double timestamp = 0.0;      // [s], simulation timestamp
   int i = 0;

@@ -57,6 +57,7 @@ struct FrenetHyperparameters {
   double max_speed;
   double max_accel;
   double max_curvature;
+  double max_yaw_rate;
   double d_road_w;
   double dt;
   double maxt;
@@ -65,6 +66,8 @@ struct FrenetHyperparameters {
   double n_s_sample;
   double obstacle_clearance;
   double kd;
+  double k_ev;
+  double k_es;
   double kv;
   double ka;
   double kj;
@@ -84,6 +87,7 @@ struct FrenetHyperparameters {
     max_speed = j["max_speed"];
     max_accel = j["max_accel"];
     max_curvature = j["max_curvature"];
+    max_yaw_rate = j["max_yaw_rate"];
     d_road_w = j["d_road_w"];
     dt = j["dt"];
     maxt = j["maxt"];
@@ -92,6 +96,8 @@ struct FrenetHyperparameters {
     n_s_sample = j["n_s_sample"];
     obstacle_clearance = j["obstacle_clearance"];
     kd = j["kd"];
+    k_ev = j["k_ev"];
+    k_es = j["k_es"];
     kv = j["kv"];
     ka = j["ka"];
     kj = j["kj"];

@@ -18,9 +18,9 @@ FrenetPath = namedtuple('FrenetPath', ['t', 'd', 'd_d', 'd_dd', 'd_ddd', 's', 's
                                         'x', 'y', 'yaw', 'ds', 'c', 'c_lateral_deviation',
                                         'c_lateral_velocity', 'c_lateral_acceleration',
                                         'c_lateral_jerk', 'c_lateral', 'c_longitudinal_acceleration',
-                                        'c_longitudinal_jerk', 'c_time_taken', 'c_end_speed_deviation',
+                                        'c_longitudinal_jerk', 'c_time_taken', 'c_end_speed_deviation', 'c_end_s_deviation',
                                         'c_longitudinal', 'c_inv_dist_to_obstacles', 'c_lane_change', 
-                                        'cf', 'lane_id'])
+                                        'cf', 'lane_id', 'lon_mode'])
 Lane = namedtuple('Lane', ['wp', 'left_boundary', 'right_boundary', 'lane_id', 'lane_width'])
 DataFrame = namedtuple('DataFrame', ['timestamp', 'ego_car', 'best_frenet_path',
                                      'lanes', 'obstacles', 'frenet_paths', 
