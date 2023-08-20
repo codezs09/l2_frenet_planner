@@ -74,18 +74,22 @@ bool FrenetPath::is_valid_path(const vector<Obstacle> &obstacles) {
 
   if (any_of(s_d.begin(), s_d.end(),
              [this, &fot_hp](int i) { return abs(i) > fot_hp.max_speed; })) {
+    // std::cout << "max speed check failed. Max speed = "
+    //           << *(std::max_element(s_d.begin(), s_d.end())) << std::endl;
     return false;
   }
   // max accel check
   else if (any_of(s_dd.begin(), s_dd.end(), [this, &fot_hp](int i) {
              return abs(i) > fot_hp.max_accel;
            })) {
+    // std::cout << "max accel check failed" << std::endl;
     return false;
   }
   // max curvature check
   else if (any_of(c.begin(), c.end(), [this, &fot_hp](int i) {
              return abs(i) > fot_hp.max_curvature;
            })) {
+    // std::cout << "max curvature check failed" << std::endl;
     return false;
   }
   // // max yaw rate check
@@ -94,8 +98,10 @@ bool FrenetPath::is_valid_path(const vector<Obstacle> &obstacles) {
   // }
   // collision check
   else if (is_collision(obstacles)) {
+    // std::cout << "collision check failed\n";
     return false;
   } else {
+    // std::cout << "passed all checks\n";
     return true;
   }
 }
@@ -116,6 +122,20 @@ bool FrenetPath::is_collision(const vector<Obstacle> &obstacles) {
       Box ego_box_i = ego_car_i.getBox();
       // check collision for every time step
       if (utils::is_collision(ob_box_i, ego_box_i)) {
+        // std::cout << "collide with obstacle at time step " << i << std::endl;
+        // std::cout << "\tbox corners are: (" << ob_box_i.corners[0].x << ", "
+        //           << ob_box_i.corners[0].y << "), (" << ob_box_i.corners[1].x
+        //           << ", " << ob_box_i.corners[1].y << "), ("
+        //           << ob_box_i.corners[2].x << ", " << ob_box_i.corners[2].y
+        //           << "), (" << ob_box_i.corners[3].x << ", "
+        //           << ob_box_i.corners[3].y << ")\n";
+        // std::cout << "\tego box corners are: (" << ego_box_i.corners[0].x
+        //           << ", " << ego_box_i.corners[0].y << "), ("
+        //           << ego_box_i.corners[1].x << ", " << ego_box_i.corners[1].y
+        //           << "), (" << ego_box_i.corners[2].x << ", "
+        //           << ego_box_i.corners[2].y << "), (" <<
+        //           ego_box_i.corners[3].x
+        //           << ", " << ego_box_i.corners[3].y << ")\n";
         return true;
       }
     }

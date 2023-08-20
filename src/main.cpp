@@ -143,6 +143,11 @@ void UpdateNextPlanningStateLocal(const FrenetPath* best_frenet_path_local,
   ToCartesian({next_s, next_d, next_yaw_f}, {next_s_d, next_d_d, next_yaw_d_f},
               {next_s_dd, next_d_dd, 0.0}, wp_local, &pose_c, &twist_c,
               &accel_c);
+
+  if (std::fabs(wrap_angle(next_planning_state_local->getPose().yaw -
+                           pose_c.yaw)) > M_PI / 2) {
+    pose_c.yaw = wrap_angle(pose_c.yaw + M_PI);
+  }
   next_planning_state_local->setPose(pose_c);
   next_planning_state_local->setTwist(twist_c);
   next_planning_state_local->setAccel(accel_c);
@@ -457,7 +462,7 @@ int main(int argc, char** argv) {
 
     if (best_frenet_paths_local.empty()) {
       cerr << "Fail to find a feasible path at timestamp: " << timestamp
-           << endl;
+           << " for all lanes. Terminate!" << endl;
       break;
     }
 

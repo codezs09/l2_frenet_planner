@@ -116,10 +116,17 @@
     - Refactor temp fix to neat and relate sensor error to add-on state change estimation error. 
 
 08.02
-    - Add following mode.
+    - Add Following mode.
         - Bug 1: as the vehicle near stop, the path starts to wave? 仔细放大看，path线硬折来折去，有问题。
           即使把sensor noise去掉了仍然有同样的问题。
         - Bug 2: 刹车太急，意味着 VelocityKeeping 和 Following 模式切换不平顺，可能obstacle cost weights太小。
+
+08.03
+    - Extend all frenet paths to the same lengths to calculate costs
+    - 异常轨迹排查再筛掉一些。
+
+08.13
+    - TODO： 修复无sensor error时 轨迹停下来的时候也会偏； 可以只用一个 d 轨迹：  首要先解决的是能停住车。
 
     - TODO: Prepare results. 
         - Discuss how sensor drift and noise affects the estimation error of state change.

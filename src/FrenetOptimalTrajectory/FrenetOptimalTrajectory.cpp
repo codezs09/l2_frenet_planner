@@ -124,13 +124,14 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
   // double valid_path_time = 0;
 
   // initialize di, with start_di_index
-  double half_lane_width = fot_ic.lane_width / 2.0;
-  double di = -half_lane_width + start_di_index * fot_hp.d_road_w;
+  const double VEHICLE_WIDTH = 1.86;
+  double half_d_width = (fot_ic.lane_width - VEHICLE_WIDTH) / 2.0;
+  double di = -half_d_width + start_di_index * fot_hp.d_road_w;
 
   // generate path to each offset goal
   // note di goes up to but not including end_di_index*fot_hp.d_road_w
-  while ((di < -half_lane_width + end_di_index * fot_hp.d_road_w) &&
-         (di <= half_lane_width)) {
+  while ((di < -half_d_width + end_di_index * fot_hp.d_road_w) &&
+         (di <= half_d_width)) {
     ti = fot_hp.mint;
     // lateral motion planning
     while (ti <= fot_hp.maxt) {
@@ -170,8 +171,9 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
       // Lonitudinal motion planning: velocity keeping mode
       tv = fot_ic.target_speed -
-           fot_hp.d_t_s * fot_hp.n_s_sample;  // tv: sampling speed
-      while (tv <= fot_ic.target_speed + fot_hp.d_t_s * fot_hp.n_s_sample) {
+           fot_hp.v_sample_step * fot_hp.n_s_sample;  // tv: sampling speed
+      while (tv <=
+             fot_ic.target_speed + fot_hp.v_sample_step * fot_hp.n_s_sample) {
         longitudinal_acceleration = 0;
         longitudinal_jerk = 0;
 
@@ -214,7 +216,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         if (!success) {
           // deallocate memory and continue
           delete tfp;
-          tv += fot_hp.d_t_s;
+          tv += fot_hp.v_sample_step;
           continue;
         }
 
@@ -227,7 +229,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         if (!valid_path) {
           // deallocate memory and continue
           delete tfp;
-          tv += fot_hp.d_t_s;
+          tv += fot_hp.v_sample_step;
           continue;
         }
 
@@ -270,10 +272,10 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
           frenet_paths.push_back(tfp);
         }
 
-        tv += fot_hp.d_t_s;
+        tv += fot_hp.v_sample_step;
       }
 
-      // Lonitudinal motion planning: following/stopping mode
+      // Lonitudinal motion planning: FOLLOWING/STOP mode
       double target_s_flw;
       std::vector<double> s_flw_vec;
       if (has_near_obstacle_front(&target_s_flw, &s_flw_vec)) {
@@ -372,7 +374,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         }
       }
 
-      ti += fot_hp.dt;
+      ti += fot_hp.t_sample_step;
       // make sure to deallocate
       delete fp;
     }
@@ -392,20 +394,19 @@ bool FrenetOptimalTrajectory::has_near_obstacle_front(
   double min_s_front_obstacle = 1e9;
   for (int i = 0; i < fot_ic.obstacles_c.size(); i++) {
     const auto &ob_c = fot_ic.obstacles_c[i];
-    if (ob_c.isInLane(fot_ic.lane_id)) {
+    if (!ob_c.isInLane(fot_ic.lane_id)) {
       continue;  // not same lane, skip
     }
     // convert ob_c to frenet frame
     std::unique_ptr<Obstacle> ob_f = nullptr;
-    utils::ToFrenet(ob_c, fot_ic.wp,
-                    ob_f);  // local planning,
-                            // 下这里得到的s可能是错的。可能要用别的办法。
+    utils::ToFrenet(ob_c, fot_ic.wp, ob_f);
     if (ob_f->getPose().x < fot_ic.s) {
       continue;  // behind ego car, skip
     }
 
     constexpr double kTimeGap = 20.0;
-    double dist_threshold = kTimeGap * max(ob_f->getTwist().vx, fot_ic.s_d);
+    double dist_threshold =
+        kTimeGap * max({ob_f->getTwist().vx, fot_ic.s_d, 1.0});
     if (ob_f->getPose().x - fot_ic.s < dist_threshold) {
       min_s_front_obstacle = ob_f->getPose().x;
       idx_front_obstacle = i;
@@ -419,16 +420,17 @@ bool FrenetOptimalTrajectory::has_near_obstacle_front(
   double time_gap_target = 3.0;  // 3-second driving rule
   double time_gap_lo = 2.0;
   double time_gap_hi = 4.0;
-  double v_front_capped = max(ob_c.getTwist().vx, 1.0);
+  double v_front_capped = max(ob_c.getTwist().vx, 3.0);
   *target_s_flw = min_s_front_obstacle - time_gap_target * v_front_capped;
 
   double t = time_gap_lo;
+  constexpr double kTimeGapStep = 0.5;
   while (t <= time_gap_hi) {
     double s_flw = min_s_front_obstacle - t * v_front_capped;
     if (s_flw > fot_ic.s) {
       s_flw_vec->push_back(s_flw);
     }
-    t += fot_hp.d_t_s;
+    t += kTimeGapStep;
   }
   if (s_flw_vec->empty() || *target_s_flw < fot_ic.s) {
     s_flw_vec->push_back(fot_ic.s + 1e-6);

@@ -9,7 +9,9 @@
 #include "utils/utils.h"
 
 #include <eigen3/Eigen/Dense>
+#include <iostream>
 #include <msgpack.hpp>
+#include <string>
 #include <tuple>
 #include <vector>
 

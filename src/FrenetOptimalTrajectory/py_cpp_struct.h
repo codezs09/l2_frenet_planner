@@ -62,7 +62,8 @@ struct FrenetHyperparameters {
   double dt;
   double maxt;
   double mint;
-  double d_t_s;
+  double t_sample_step;
+  double v_sample_step;
   double n_s_sample;
   double obstacle_clearance;
   double kd;
@@ -92,7 +93,8 @@ struct FrenetHyperparameters {
     dt = j["dt"];
     maxt = j["maxt"];
     mint = j["mint"];
-    d_t_s = j["d_t_s"];
+    t_sample_step = j["t_sample_step"];
+    v_sample_step = j["v_sample_step"];
     n_s_sample = j["n_s_sample"];
     obstacle_clearance = j["obstacle_clearance"];
     kd = j["kd"];

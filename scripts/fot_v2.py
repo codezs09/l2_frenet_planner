@@ -31,7 +31,7 @@ def wrap_angle(angle):
 def parse_arguments(): 
     parser = argparse.ArgumentParser()
     parser.add_argument('--scene_path', type=str, 
-                        default=os.path.join(CONFIG_DIR, "scenes/one_lane_slow_down.json"))
+                        default=os.path.join(CONFIG_DIR, "scenes/multi_lanes.json"))
     parser.add_argument('--hyper_path', type=str, 
                         default=os.path.join(CONFIG_DIR, "hyperparameters.json"))
     parser.add_argument('--store_data', action='store_true', 
@@ -45,9 +45,9 @@ def parse_arguments():
     # debug fields
     parser.add_argument('--skip_fot', action='store_true', default=False,
                         help='skip running FOT and only do post-processing on data.bin')
-    parser.add_argument('--cost_frame', type=int, default=None,
+    parser.add_argument('--cost_frame', type=int, default=50,
                         help='print path costs of a specific frame if provided')
-    parser.add_argument('--cost_lane', type=int, default=None,
+    parser.add_argument('--cost_lane', type=int, default=1,
                         help='print candidate path costs of a specific lane if provided')
     parser.add_argument('--local_planning', action='store_true', default=True,
                         help='enable local planning')
@@ -308,7 +308,7 @@ def print_frame_cost(data_frames, frame_idx, lane_idx = None):
         plt.subplot(333)
         plt.plot(bf.s, bf.d, 'b--')
         plt.subplot(336)
-        plt.plot(bf.t, np.arctan2(bf.d_d, bf.s_d), 'b--')
+        plt.plot(bf.t, wrap_angle(np.arctan2(bf.d_d, bf.s_d)), 'b--')
 
 
     # print costs

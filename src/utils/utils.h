@@ -82,7 +82,7 @@ bool LoadJsonFile(string scene_path, json* j);
 
 inline double deg2rad(double deg) { return deg * M_PI / 180.0; }
 inline double rad2deg(double rad) { return rad * 180.0 / M_PI; }
-double wrap_angle(double angle);  // [-pi, pi]
+double wrap_angle(double angle);  // (-pi, pi]
 
 double genGaussianNoise(double mean, double std_dev);
 
