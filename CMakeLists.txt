@@ -48,6 +48,8 @@ add_library(FrenetOptimalTrajectory SHARED
             src/utils/lookup_table_1d.h
             src/utils/coordinate_utils.cpp
             src/utils/data_log.cpp
+            src/Polynomials/CubicPolynomial.cpp
+            src/Polynomials/CubicPolynomial.h
             src/Polynomials/QuarticPolynomial.cpp
             src/Polynomials/QuarticPolynomial.h
             src/Polynomials/QuinticPolynomial.cpp
@@ -76,6 +78,8 @@ add_library(PackageFrenetOptimalTrajectory STATIC
             src/utils/lookup_table_1d.h
             src/utils/coordinate_utils.cpp
             src/utils/data_log.cpp
+            src/Polynomials/CubicPolynomial.cpp
+            src/Polynomials/CubicPolynomial.h
             src/Polynomials/QuarticPolynomial.cpp
             src/Polynomials/QuarticPolynomial.h
             src/Polynomials/QuinticPolynomial.cpp
@@ -129,6 +133,8 @@ add_executable(FrenetOptimalTrajectoryTest
                src/utils/lookup_table_1d.h
                src/utils/coordinate_utils.cpp
                src/utils/data_log.cpp
+               src/Polynomials/CubicPolynomial.cpp
+               src/Polynomials/CubicPolynomial.h
                src/Polynomials/QuarticPolynomial.cpp
                src/Polynomials/QuarticPolynomial.h
                src/Polynomials/QuinticPolynomial.cpp
