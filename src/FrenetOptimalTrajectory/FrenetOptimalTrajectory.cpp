@@ -2,9 +2,11 @@
 
 #include <chrono>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <thread>
 
+#include "CubicPolynomial.h"
 #include "QuarticPolynomial.h"
 #include "QuinticPolynomial.h"
 #include "utils/utils.h"
@@ -276,100 +278,109 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
       }
 
       // Lonitudinal motion planning: FOLLOWING/STOP mode
-      double target_s_flw;
-      std::vector<double> s_flw_vec;
-      if (has_near_obstacle_front(&target_s_flw, &s_flw_vec)) {
-        for (double s_flw : s_flw_vec) {
-          // if (s_flw < fot_ic.s) {
-          //   continue;
-          // }
-          longitudinal_acceleration = 0;
-          longitudinal_jerk = 0;
+      if (std::fabs(di) < 1.0e-6) {  // d = 0 under FOLLOWING/STOP mode
+        double target_s_flw;
+        std::vector<double> s_flw_vec;
+        if (has_near_obstacle_front(&target_s_flw, &s_flw_vec)) {
+          for (double s_flw : s_flw_vec) {
+            // if (s_flw < fot_ic.s) {
+            //   continue;
+            // }
+            longitudinal_acceleration = 0;
+            longitudinal_jerk = 0;
 
-          // copy frenet path
-          tfp = new FrenetPath();
-          tfp->set_lon_mode(utils::LonMotionMode::Following);
-          tfp->t.assign(fp->t.begin(), fp->t.end());
-          tfp->d.assign(fp->d.begin(), fp->d.end());
-          tfp->d_d.assign(fp->d_d.begin(), fp->d_d.end());
-          tfp->d_dd.assign(fp->d_dd.begin(), fp->d_dd.end());
-          tfp->d_ddd.assign(fp->d_ddd.begin(), fp->d_ddd.end());
-          QuinticPolynomial lon_qp_flw = QuinticPolynomial(
-              fot_ic.s, fot_ic.s_d, fot_ic.s_dd, s_flw, 0.0, 0.0, ti);
+            // copy frenet path
+            tfp = new FrenetPath();
+            tfp->set_lon_mode(utils::LonMotionMode::Following);
+            tfp->t.assign(fp->t.begin(), fp->t.end());
+            tfp->d.assign(fp->d.begin(), fp->d.end());
+            tfp->d_d.assign(fp->d_d.begin(), fp->d_d.end());
+            tfp->d_dd.assign(fp->d_dd.begin(), fp->d_dd.end());
+            tfp->d_ddd.assign(fp->d_ddd.begin(), fp->d_ddd.end());
 
-          for (double tp : tfp->t) {
-            if (tp <= ti) {
-              tfp->s.push_back(lon_qp_flw.calc_point(tp));
-              tfp->s_d.push_back(lon_qp_flw.calc_first_derivative(tp));
-              tfp->s_dd.push_back(lon_qp_flw.calc_second_derivative(tp));
-              tfp->s_ddd.push_back(lon_qp_flw.calc_third_derivative(tp));
-              longitudinal_acceleration +=
-                  abs(lon_qp_flw.calc_second_derivative(tp));
-              longitudinal_jerk += abs(lon_qp_flw.calc_third_derivative(tp));
-            } else {
-              tfp->s.push_back(s_flw);
-              tfp->s_d.push_back(0.0);
-              tfp->s_dd.push_back(0.0);
-              tfp->s_ddd.push_back(0.0);
-              longitudinal_acceleration += 0.0;
-              longitudinal_jerk += 0.0;
+            // TODO: fine tuning sampling
+            std::unique_ptr<Polynomial> lon_qp_flw;
+            // if (std::fabs(s_flw - fot_ic.s) < 10.0) {
+            lon_qp_flw = std::make_unique<CubicPolynomial>(fot_ic.s, fot_ic.s_d,
+                                                           s_flw, 0.0, ti);
+            // } else {
+            //   lon_qp_flw = std::make_unique<QuinticPolynomial>(
+            //       fot_ic.s, fot_ic.s_d, fot_ic.s_dd, s_flw, 0.0, 0.0, ti);
+            // }
+            for (double tp : tfp->t) {
+              if (tp <= ti) {
+                tfp->s.push_back(lon_qp_flw->calc_point(tp));
+                tfp->s_d.push_back(lon_qp_flw->calc_first_derivative(tp));
+                tfp->s_dd.push_back(lon_qp_flw->calc_second_derivative(tp));
+                tfp->s_ddd.push_back(lon_qp_flw->calc_third_derivative(tp));
+                longitudinal_acceleration +=
+                    abs(lon_qp_flw->calc_second_derivative(tp));
+                longitudinal_jerk += abs(lon_qp_flw->calc_third_derivative(tp));
+              } else {
+                tfp->s.push_back(s_flw);
+                tfp->s_d.push_back(0.0);
+                tfp->s_dd.push_back(0.0);
+                tfp->s_ddd.push_back(0.0);
+                longitudinal_acceleration += 0.0;
+                longitudinal_jerk += 0.0;
+              }
             }
-          }
 
-          num_paths++;
-          // delete if failure or invalid path
-          bool success = tfp->to_global_path(csp);
-          num_viable_paths++;
-          if (!success) {
-            // deallocate memory and continue
-            delete tfp;
-            continue;
-          }
+            num_paths++;
+            // delete if failure or invalid path
+            bool success = tfp->to_global_path(csp);
+            num_viable_paths++;
+            if (!success) {
+              // deallocate memory and continue
+              delete tfp;
+              continue;
+            }
 
-          bool valid_path = tfp->is_valid_path(fot_ic.obstacles_c);
-          if (!valid_path) {
-            delete tfp;
-            continue;
-          }
+            bool valid_path = tfp->is_valid_path(fot_ic.obstacles_c);
+            if (!valid_path) {
+              delete tfp;
+              continue;
+            }
 
-          // lateral costs
-          tfp->c_lateral_deviation = lateral_deviation;
-          tfp->c_lateral_velocity = lateral_velocity;
-          tfp->c_lateral_acceleration = lateral_acceleration;
-          tfp->c_lateral_jerk = lateral_jerk;
-          tfp->c_lateral = fot_hp.kd * tfp->c_lateral_deviation +
-                           fot_hp.kv * tfp->c_lateral_velocity +
-                           fot_hp.ka * tfp->c_lateral_acceleration +
-                           fot_hp.kj * tfp->c_lateral_jerk;
+            // lateral costs
+            tfp->c_lateral_deviation = lateral_deviation;
+            tfp->c_lateral_velocity = lateral_velocity;
+            tfp->c_lateral_acceleration = lateral_acceleration;
+            tfp->c_lateral_jerk = lateral_jerk;
+            tfp->c_lateral = fot_hp.kd * tfp->c_lateral_deviation +
+                             fot_hp.kv * tfp->c_lateral_velocity +
+                             fot_hp.ka * tfp->c_lateral_acceleration +
+                             fot_hp.kj * tfp->c_lateral_jerk;
 
-          // longitudinal costs
-          tfp->c_longitudinal_acceleration = longitudinal_acceleration;
-          tfp->c_longitudinal_jerk = longitudinal_jerk;
-          tfp->c_end_s_deviation = abs(target_s_flw - tfp->s.back());
+            // longitudinal costs
+            tfp->c_longitudinal_acceleration = longitudinal_acceleration;
+            tfp->c_longitudinal_jerk = longitudinal_jerk;
+            tfp->c_end_s_deviation = abs(target_s_flw - tfp->s.back());
 
-          tfp->c_time_taken = ti;
-          tfp->c_longitudinal = fot_hp.ka * tfp->c_longitudinal_acceleration +
-                                fot_hp.kj * tfp->c_longitudinal_jerk +
-                                fot_hp.kt * tfp->c_time_taken +
-                                fot_hp.k_es * tfp->c_end_s_deviation;
+            tfp->c_time_taken = ti;
+            tfp->c_longitudinal = fot_hp.ka * tfp->c_longitudinal_acceleration +
+                                  fot_hp.kj * tfp->c_longitudinal_jerk +
+                                  fot_hp.kt * tfp->c_time_taken +
+                                  fot_hp.k_es * tfp->c_end_s_deviation;
 
-          // obstacle costs
-          tfp->c_inv_dist_to_obstacles =
-              tfp->inverse_distance_to_obstacles(fot_ic.obstacles_c);
+            // obstacle costs
+            tfp->c_inv_dist_to_obstacles =
+                tfp->inverse_distance_to_obstacles(fot_ic.obstacles_c);
 
-          // final cost
-          tfp->cf = fot_hp.klat * tfp->c_lateral +
-                    fot_hp.klon * tfp->c_longitudinal +
-                    fot_hp.ko * tfp->c_inv_dist_to_obstacles;
+            // final cost
+            tfp->cf = fot_hp.klat * tfp->c_lateral +
+                      fot_hp.klon * tfp->c_longitudinal +
+                      fot_hp.ko * tfp->c_inv_dist_to_obstacles;
 
-          if (multithreaded) {
-            // added mutex lock to prevent threads competing to write to
-            // frenet_path
-            mu->lock();
-            frenet_paths.push_back(tfp);
-            mu->unlock();
-          } else {
-            frenet_paths.push_back(tfp);
+            if (multithreaded) {
+              // added mutex lock to prevent threads competing to write to
+              // frenet_path
+              mu->lock();
+              frenet_paths.push_back(tfp);
+              mu->unlock();
+            } else {
+              frenet_paths.push_back(tfp);
+            }
           }
         }
       }
