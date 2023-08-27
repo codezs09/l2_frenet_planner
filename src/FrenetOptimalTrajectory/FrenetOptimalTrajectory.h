@@ -50,6 +50,9 @@ class FrenetOptimalTrajectory {
   void threaded_calc_all_frenet_paths();
 
   bool has_near_obstacle_front(double *target_s_flw, vector<double> *s_flw_vec);
+
+  void get_sampling_time_flw(double s0, double s0_d, double s1,
+                             std::vector<double> *s_flw_vec);
 };
 
 #endif  // FRENET_OPTIMAL_TRAJECTORY_FRENET_OPTIMAL_TRAJECTORY_H

@@ -54,6 +54,8 @@ bool InitFrenetHyperParameters() {
 
 void UpdateFrenetCoordinates(const Car& car, const utils::WayPoints& wp,
                              FrenetInitialConditions* fot_ic) {
+  fot_ic->yaw_c = car.getPose().yaw;
+
   Car car_f;
   utils::ToFrenet(car, wp, &car_f);
   fot_ic->s = car_f.getPose().x;
@@ -127,6 +129,8 @@ void InitObstacles(const json& scene_j, const vector<Lane>& lanes,
 void UpdateNextPlanningStateLocal(const FrenetPath* best_frenet_path_local,
                                   const WayPoints& wp_local,
                                   Car* next_planning_state_local) {
+  const auto& fot_hp = FrenetHyperparameters::getConstInstance();
+
   // update ego car to next state
   double next_s = best_frenet_path_local->s[1];
   double next_d = best_frenet_path_local->d[1];
@@ -134,7 +138,7 @@ void UpdateNextPlanningStateLocal(const FrenetPath* best_frenet_path_local,
   double next_d_d = best_frenet_path_local->d_d[1];
   double next_s_dd = best_frenet_path_local->s_dd[1];
   double next_d_dd = best_frenet_path_local->d_dd[1];
-  double next_yaw_f = std::atan2(next_d_d, next_s_d);
+  double next_yaw_f = utils::wrap_angle(std::atan2(next_d_d, next_s_d));
   double next_yaw_d_f = (next_s_d * next_d_dd - next_d_d * next_s_dd) /
                         (next_s_d * next_s_d + next_d_d * next_d_d);
   Pose pose_c;
@@ -144,10 +148,26 @@ void UpdateNextPlanningStateLocal(const FrenetPath* best_frenet_path_local,
               {next_s_dd, next_d_dd, 0.0}, wp_local, &pose_c, &twist_c,
               &accel_c);
 
-  if (std::fabs(wrap_angle(next_planning_state_local->getPose().yaw -
-                           pose_c.yaw)) > M_PI / 2) {
-    pose_c.yaw = wrap_angle(pose_c.yaw + M_PI);
+  // PATCH: The yaw and yaw rate will be unexpected if path too short
+  if (std::fabs(best_frenet_path_local->s.back() -
+                best_frenet_path_local->s.front()) < 10.0) {
+    pose_c.yaw = utils::wrap_angle(best_frenet_path_local->yaw[1]);
+    twist_c.yaw_rate = utils::wrap_angle(best_frenet_path_local->yaw[2] -
+                                         best_frenet_path_local->yaw[0]) /
+                       2.0 / fot_hp.dt;
+    twist_c.vx = (best_frenet_path_local->s[2] - best_frenet_path_local->s[0]) /
+                 2.0 / fot_hp.dt;
+    twist_c.vy = 0.0;
+    accel_c.ax =
+        (best_frenet_path_local->s_d[2] - best_frenet_path_local->s_d[0]) /
+        2.0 / fot_hp.dt;
+    accel_c.ay = 0.0;
+    accel_c.yaw_accel = utils::wrap_angle(best_frenet_path_local->yaw[2] -
+                                          2.0 * best_frenet_path_local->yaw[1] +
+                                          best_frenet_path_local->yaw[0]) /
+                        fot_hp.dt / fot_hp.dt;
   }
+
   next_planning_state_local->setPose(pose_c);
   next_planning_state_local->setTwist(twist_c);
   next_planning_state_local->setAccel(accel_c);

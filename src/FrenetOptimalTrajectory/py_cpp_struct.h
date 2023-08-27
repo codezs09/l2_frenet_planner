@@ -33,6 +33,9 @@ struct FrenetInitialConditions {
   WayPoints& wp;                  // Cartesian coordinates
   vector<Obstacle>& obstacles_c;  // Cartesian coordinates
   int lane_id;
+
+  double yaw_c;  // initial yaw of the plannning init point at local Catesian
+                 // coordinates
 };
 
 struct FrenetReturnValues {

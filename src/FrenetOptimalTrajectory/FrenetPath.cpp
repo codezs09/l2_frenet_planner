@@ -32,7 +32,7 @@ bool FrenetPath::to_global_path(CubicSpline2D *csp) {
   for (size_t i = 0; i < x.size() - 1; i++) {
     dx = x[i + 1] - x[i];
     dy = y[i + 1] - y[i];
-    yaw.push_back(atan2(dy, dx));
+    yaw.push_back(utils::wrap_angle(atan2(dy, dx)));
     ds.push_back(hypot(dx, dy));
   }
   yaw.push_back(yaw.back());
