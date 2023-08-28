@@ -7,15 +7,15 @@
     "dt": 0.1,
     "maxt": 5.0,
     "mint": 2.0,
-    "t_sample_step": 0.1,
+    "t_sample_step": 0.5,
     "v_sample_step": 0.5,
     "n_s_sample": 2.0,
     "obstacle_clearance": 0.2,
-    "kd": 0.1,
+    "kd": 1.0,
     "k_ev": 1.0,
     "k_es": 1.0,
     "kv": 0.1,
-    "ka": 0.1,
+    "ka": 1.0,
     "kj": 0.1,
     "kt": 0.1,
     "ko": 0.1,
@@ -26,6 +26,6 @@
 
     "sensor_speed_offset": -0.1,
     "sensor_speed_noise_std": 0.1,
-    "sensor_yaw_rate_offset": 0.04,
+    "sensor_yaw_rate_offset":  0.01,
     "sensor_yaw_rate_noise_std": 0.03
 }

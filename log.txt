@@ -126,7 +126,16 @@
     - 异常轨迹排查再筛掉一些。
 
 08.13
-    - TODO： 修复无sensor error时 轨迹停下来的时候也会偏； 可以只用一个 d 轨迹：  首要先解决的是能停住车。
+    - 修复了无sensor error时 轨迹停下来的时候也会偏； 可以只用一个 d 轨迹：  首要先解决的是能停住车。
+
+08.20
+    - 修复了FOLLOWING mode的bugs: 同道前车判断错误； 采样点错误。
+
+08.28
+    - Fix Following mode car drifting problem. 
+    - Improving plannin speed and following performance by separately sampling s, d and t. 
+
+
 
     - TODO: Prepare results. 
         - Discuss how sensor drift and noise affects the estimation error of state change.

@@ -568,9 +568,22 @@ int main(int argc, char** argv) {
     // next frame
     Car next_ego_car =
         next_planning_state_local;  // set to next_planning_state_global
+
+    // std::cout << "planning_init_point_local: "
+    //           << plannig_init_point_local.getPose()
+    //           << planning_init_point_local.getTwist() << std::endl;
+    // std::cout << "next_planning_local: " <<
+    // next_planning_state_local.getPose()
+    //           << next_planning_state_local.getTwist() << std::endl;
+    // std::cout << "ego_car: " << ego_car.getPose() << ego_car.getTwist()
+    //           << std::endl;
+
     if (FLAGS_local_planning) {
       ToGlobal(next_planning_state_local, ego_car.getPose(), &next_ego_car);
     }
+
+    // std::cout << "next_ego_car: " << next_ego_car.getPose()
+    //           << next_ego_car.getTwist() << std::endl;
 
     // TODO: remove, update this way not accurate
     // Comment (sz): not accurate due to the way we update sensor measurements
@@ -598,7 +611,7 @@ int main(int argc, char** argv) {
     double cycle_duration = get_duration_ms(end, start);
     total_runtime += cycle_duration;
 
-    cout << "#" << i << ", simtime: " << timestamp
+    cout << "\n#" << i << ", simtime: " << timestamp
          << "[s]. Plan: " << plan_duration << "[ms], Cycle: " << cycle_duration
          << "[ms]. x=" << ego_car.getPose().x << ", y=" << ego_car.getPose().y
          << ", yaw=" << utils::rad2deg(ego_car.getPose().yaw)

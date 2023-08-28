@@ -31,7 +31,7 @@ def wrap_angle(angle):
 def parse_arguments(): 
     parser = argparse.ArgumentParser()
     parser.add_argument('--scene_path', type=str, 
-                        default=os.path.join(CONFIG_DIR, "scenes/multi_lanes.json"))
+                        default=os.path.join(CONFIG_DIR, "scenes/one_lane_slow_down.json"))
     parser.add_argument('--hyper_path', type=str, 
                         default=os.path.join(CONFIG_DIR, "hyperparameters.json"))
     parser.add_argument('--store_data', action='store_true', 
@@ -45,9 +45,9 @@ def parse_arguments():
     # debug fields
     parser.add_argument('--skip_fot', action='store_true', default=False,
                         help='skip running FOT and only do post-processing on data.bin')
-    parser.add_argument('--cost_frame', type=int, default=50,
+    parser.add_argument('--cost_frame', type=int, default=None,
                         help='print path costs of a specific frame if provided')
-    parser.add_argument('--cost_lane', type=int, default=1,
+    parser.add_argument('--cost_lane', type=int, default=None,
                         help='print candidate path costs of a specific lane if provided')
     parser.add_argument('--local_planning', action='store_true', default=True,
                         help='enable local planning')
@@ -135,7 +135,7 @@ def plot_frames(data_frames, args):
         plt.xlabel("X [m]")
         plt.ylabel("Y [m]")
         plt.title(f"Global: Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
-                    str(np.linalg.norm((frame.ego_car.twist.vx)))[:4] + \
+                    f"{frame.ego_car.twist.vx:.2f}" + \
                     " " + LONMODE[int(frame.best_frenet_path.lon_mode)])
         plt.grid(True)
         if args.save_frame or args.save_gif:
@@ -187,7 +187,7 @@ def plot_frames(data_frames, args):
         plt.xlabel("X [m]")
         plt.ylabel("Y [m]")
         plt.title(f"Local: Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
-                    str(np.linalg.norm((frame.ego_car.twist.vx)))[:4] + \
+                  f"{frame.ego_car.twist.vx:.2f}" + \
                     " " + LONMODE[int(frame.best_frenet_path.lon_mode)])
         plt.grid(True)
         if args.save_frame or args.save_gif:
@@ -285,6 +285,7 @@ def print_frame_cost(data_frames, frame_idx, lane_idx = None):
             plt.ylabel('d')
             plt.grid(True)
 
+            # this is wrong for short paths
             yaw = wrap_angle(np.arctan2(fp.d_d, fp.s_d))
             plt.subplot(336)
             plt.plot(fp.t, yaw)

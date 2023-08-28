@@ -513,13 +513,27 @@ bool FrenetOptimalTrajectory::has_near_obstacle_front(
   if (s_flw_vec->empty() || *target_s_flw < fot_ic.s) {
     s_flw_vec->push_back(fot_ic.s + 1e-6);
   }
+
+  if (fot_ic.lane_id == 1) {
+    // std::cout << "s_flw_vec: ";
+    // for (auto s_flw : *s_flw_vec) {
+    //   std::cout << s_flw << ", ";
+    // }
+    // std::cout << std::endl;
+
+    // NOTE: hardcode here for slow down scenario to observe if planning
+    // drifting.
+    s_flw_vec->clear();
+    s_flw_vec->push_back(72.5);
+  }
+
   return true;
 }
 
 void FrenetOptimalTrajectory::get_sampling_time_flw(
     double s0, double s0_d, double s1, std::vector<double> *s_flw_vec) {
   s_flw_vec->clear();
-  double t_mid = std::fabs(s1 - s0) / max(std::fabs(s0_d), 0.1);
+  double t_mid = std::fabs(s1 - s0) / max(std::fabs(s0_d), 1.0) * 2.0;
   double t_lo = max(t_mid - 1.0, 0.1);
   double t_hi = t_mid + 1.0;
   double t = t_lo;
