@@ -15,6 +15,10 @@ using json = nlohmann::json;
 
 namespace utils {
 
+inline double deg2rad(double deg) { return deg * M_PI / 180.0; }
+inline double rad2deg(double rad) { return rad * 180.0 / M_PI; }
+double wrap_angle(double angle);  // (-pi, pi]
+
 typedef array<vector<double>, 2> WayPoints;  // [x_vec, y_vec]
 
 struct Pose {
@@ -30,12 +34,24 @@ struct Pose {
     return Pose{x - p.x, y - p.y, yaw - p.yaw};
   }
 
+  friend std::ostream& operator<<(std::ostream& os, const Pose& p) {
+    os << " Pose(" << p.x << ", " << p.y << "," << utils::rad2deg(p.yaw)
+       << "). ";
+    return os;
+  }
+
   MSGPACK_DEFINE(x, y, yaw);
 };
 struct Twist {
   double vx;
   double vy;
   double yaw_rate;
+
+  friend std::ostream& operator<<(std::ostream& os, const Twist& t) {
+    os << " Twist(" << t.vx << ", " << t.vy << "," << utils::rad2deg(t.yaw_rate)
+       << "). ";
+    return os;
+  }
 
   MSGPACK_DEFINE(vx, vy, yaw_rate);
 };
@@ -79,10 +95,6 @@ inline double cross_product(const tuple<double, double>& vec1,
 }
 
 bool LoadJsonFile(string scene_path, json* j);
-
-inline double deg2rad(double deg) { return deg * M_PI / 180.0; }
-inline double rad2deg(double rad) { return rad * 180.0 / M_PI; }
-double wrap_angle(double angle);  // (-pi, pi]
 
 double genGaussianNoise(double mean, double std_dev);
 
