@@ -70,8 +70,10 @@ struct FrenetHyperparameters {
   double n_s_sample;
   double obstacle_clearance;
   double kd;
+  double k_ed;
   double k_ev;
   double k_es;
+  double k_ef;
   double kv;
   double ka;
   double kj;
@@ -101,8 +103,10 @@ struct FrenetHyperparameters {
     n_s_sample = j["n_s_sample"];
     obstacle_clearance = j["obstacle_clearance"];
     kd = j["kd"];
+    k_ed = j["k_ed"];
     k_ev = j["k_ev"];
     k_es = j["k_es"];
+    k_ef = j["k_ef"];
     kv = j["kv"];
     ka = j["ka"];
     kj = j["kj"];

@@ -237,10 +237,12 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
         // lateral costs
         tfp->c_lateral_deviation = lateral_deviation;
+        tfp->c_end_d_deviation = abs(tfp->d.back());
         tfp->c_lateral_velocity = lateral_velocity;
         tfp->c_lateral_acceleration = lateral_acceleration;
         tfp->c_lateral_jerk = lateral_jerk;
         tfp->c_lateral = fot_hp.kd * tfp->c_lateral_deviation +
+                         fot_hp.k_ed * tfp->c_end_d_deviation +
                          fot_hp.kv * tfp->c_lateral_velocity +
                          fot_hp.ka * tfp->c_lateral_acceleration +
                          fot_hp.kj * tfp->c_lateral_jerk;
@@ -250,10 +252,12 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         tfp->c_longitudinal_jerk = longitudinal_jerk;
         tfp->c_end_speed_deviation = abs(fot_ic.target_speed - tfp->s_d.back());
         tfp->c_time_taken = ti;
+        tfp->c_efficiency = 100.0 / max(10.0, tfp->s.back() - tfp->s.front());
         tfp->c_longitudinal = fot_hp.ka * tfp->c_longitudinal_acceleration +
                               fot_hp.kj * tfp->c_longitudinal_jerk +
                               fot_hp.kt * tfp->c_time_taken +
-                              fot_hp.k_ev * tfp->c_end_speed_deviation;
+                              fot_hp.k_ev * tfp->c_end_speed_deviation +
+                              fot_hp.k_ef * tfp->c_efficiency;
 
         // obstacle costs
         tfp->c_inv_dist_to_obstacles =
@@ -415,10 +419,12 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
         // lateral costs
         tfp->c_lateral_deviation = lateral_deviation;
+        tfp->c_end_d_deviation = abs(tfp->d.back());
         tfp->c_lateral_velocity = lateral_velocity;
         tfp->c_lateral_acceleration = lateral_acceleration;
         tfp->c_lateral_jerk = lateral_jerk;
         tfp->c_lateral = fot_hp.kd * tfp->c_lateral_deviation +
+                         fot_hp.k_ed * tfp->c_end_d_deviation +
                          fot_hp.kv * tfp->c_lateral_velocity +
                          fot_hp.ka * tfp->c_lateral_acceleration +
                          fot_hp.kj * tfp->c_lateral_jerk;
@@ -427,12 +433,13 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         tfp->c_longitudinal_acceleration = longitudinal_acceleration;
         tfp->c_longitudinal_jerk = longitudinal_jerk;
         tfp->c_end_s_deviation = abs(target_s_flw - tfp->s.back());
-
         tfp->c_time_taken = ti_flw;
+        tfp->c_efficiency = 100.0 / max(10.0, tfp->s.back() - tfp->s.front());
         tfp->c_longitudinal = fot_hp.ka * tfp->c_longitudinal_acceleration +
                               fot_hp.kj * tfp->c_longitudinal_jerk +
                               fot_hp.kt * tfp->c_time_taken +
-                              fot_hp.k_es * tfp->c_end_s_deviation;
+                              fot_hp.k_es * tfp->c_end_s_deviation +
+                              fot_hp.k_ef * tfp->c_efficiency;
 
         // obstacle costs
         tfp->c_inv_dist_to_obstacles =

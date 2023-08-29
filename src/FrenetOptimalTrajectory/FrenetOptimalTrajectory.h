@@ -22,6 +22,7 @@
 #include "py_cpp_struct.h"
 #include "utils/coordinate_utils.h"
 
+#include <algorithm>
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 #include <mutex>

@@ -31,7 +31,7 @@ def wrap_angle(angle):
 def parse_arguments(): 
     parser = argparse.ArgumentParser()
     parser.add_argument('--scene_path', type=str, 
-                        default=os.path.join(CONFIG_DIR, "scenes/one_lane_slow_down.json"))
+                        default=os.path.join(CONFIG_DIR, "scenes/slow_down.json"))
     parser.add_argument('--hyper_path', type=str, 
                         default=os.path.join(CONFIG_DIR, "hyperparameters.json"))
     parser.add_argument('--store_data', action='store_true', 
@@ -236,9 +236,11 @@ def print_frame_cost(data_frames, frame_idx, lane_idx = None):
             costs_data["costs_lon_t"].append(hp['kt'] * fp.c_time_taken)
             costs_data["costs_end_v"].append(hp['k_es'] * fp.c_end_speed_deviation)
             costs_data["costs_end_s"].append(hp['k_es'] * fp.c_end_s_deviation)
+            costs_data["costs_eff"].append(hp['k_ef'] * fp.c_efficiency)
 
             # lat costs
             costs_data["costs_lat_dev"].append(hp['kd'] * fp.c_lateral_deviation)
+            costs_data["costs_end_d"].append(hp['k_ed'] * fp.c_end_d_deviation)
             costs_data["costs_lat_v"].append(hp['kv'] * fp.c_lateral_velocity)
             costs_data["costs_lat_a"].append(hp['ka'] * fp.c_lateral_acceleration)
             costs_data["costs_lat_j"].append(hp['kj'] * fp.c_lateral_jerk)
@@ -344,13 +346,15 @@ def print_frame_cost(data_frames, frame_idx, lane_idx = None):
         "costs_lon_j",
         "costs_lon_t",
         "costs_end_v",
-        "costs_end_s"
+        "costs_end_s",
+        "costs_eff"
     ]
     print("\nLongitudinal costs at frame {}".format(frame_idx))
     print_cost_in_seq(lon_cost_seq)
 
     lat_cost_seq = [
         "costs_lat_dev",
+        "costs_end_d",
         "costs_lat_v",
         "costs_lat_a",
         "costs_lat_j"

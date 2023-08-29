@@ -400,7 +400,7 @@ int main(int argc, char** argv) {
 
       // break if near goal
       if (utils::norm(ego_car.getPose().x - wp[0].back(),
-                      ego_car.getPose().y - wp[1].back()) < 3.0) {
+                      ego_car.getPose().y - wp[1].back()) < 10.0) {
         reach_goal = true;
         break;
       }
