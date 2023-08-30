@@ -135,6 +135,11 @@
     - Fix Following mode car drifting problem. 
     - Improving plannin speed and following performance by separately sampling s, d and t. 
 
+08.29
+    - For local gifs, replace waypoints with lane boundaries as well. 
+
+08.30
+    - Add local planning, lane boundaries
 
 
     - TODO: Prepare results. 

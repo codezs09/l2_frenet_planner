@@ -9,6 +9,7 @@ import sys
 import subprocess
 import json
 from collections import defaultdict
+import copy
 
 from load_data import load_data
 from utils.geometry import rotate, pose_to_box
@@ -31,7 +32,7 @@ def wrap_angle(angle):
 def parse_arguments(): 
     parser = argparse.ArgumentParser()
     parser.add_argument('--scene_path', type=str, 
-                        default=os.path.join(CONFIG_DIR, "scenes/slow_down.json"))
+                        default=os.path.join(CONFIG_DIR, "scenes/two_lanes.json"))
     parser.add_argument('--hyper_path', type=str, 
                         default=os.path.join(CONFIG_DIR, "hyperparameters.json"))
     parser.add_argument('--store_data', action='store_true', 
@@ -112,12 +113,13 @@ def plot_frames(data_frames, args):
             for j in range(1, len(obstacle.predict_boxes), 10):
                 corners = obstacle.predict_boxes[j].corners
                 polygon = patch.Polygon(corners, linewidth=1, edgecolor='b', facecolor='none',
-                                        linestyle='--')
+                                        linestyle='--', alpha=0.5)
                 ax.add_patch(polygon)
 
         # plot ego car
         ego_x = frame.ego_car.pose.x
         ego_y = frame.ego_car.pose.y
+        ego_yaw = frame.ego_car.pose.yaw
         ego_corners = pose_to_box(frame.ego_car.pose, frame.ego_car.length, frame.ego_car.width)
         ego_polygon = patch.Polygon(ego_corners, linewidth=1, edgecolor='g', facecolor='none')
         ax.add_patch(ego_polygon)
@@ -145,9 +147,25 @@ def plot_frames(data_frames, args):
         plt.figure(2)
         plt.cla()
         # plot lanes
-        for key,value in frame.wp_lanes_local.items():
-            wp = value 
-            plt.plot(wp[0], wp[1], "--k")
+        # for key,value in frame.wp_lanes_local.items():
+        #     wp = value 
+        #     plt.plot(wp[0], wp[1], "--k")
+        for lane in frame.lanes:
+            left_boundary_local = copy.deepcopy(lane.left_boundary)
+            right_boundary_local = copy.deepcopy(lane.right_boundary)
+            # convert w.r.t. ego car
+            for j in range(len(left_boundary_local[0])):
+                pt = [left_boundary_local[0][j] - ego_x, left_boundary_local[1][j] - ego_y]
+                pt_local = rotate(pt, -ego_yaw)
+                left_boundary_local[0][j] = pt_local[0]
+                left_boundary_local[1][j] = pt_local[1]
+            for j in range(len(right_boundary_local[0])):
+                pt = [right_boundary_local[0][j] - ego_x, right_boundary_local[1][j] - ego_y]
+                pt_local = rotate(pt, -ego_yaw)
+                right_boundary_local[0][j] = pt_local[0]
+                right_boundary_local[1][j] = pt_local[1]
+            plt.plot(left_boundary_local[0], left_boundary_local[1], "-k")
+            plt.plot(right_boundary_local[0], right_boundary_local[1], "-k")
         ax = plt.gca()
 
         # plot obstacles
@@ -158,7 +176,7 @@ def plot_frames(data_frames, args):
             for j in range(1, len(obstacle.predict_boxes), 10):
                 corners = obstacle.predict_boxes[j].corners
                 polygon = patch.Polygon(corners, linewidth=1, edgecolor='b', facecolor='none',
-                                        linestyle='--')
+                                        linestyle='--', alpha=0.5)
                 ax.add_patch(polygon)
 
         # plot ego car
