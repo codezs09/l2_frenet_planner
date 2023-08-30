@@ -27,7 +27,7 @@ inline std::string vector_to_str(const std::vector<T>& vec) {
 
 template <typename T>
 inline void print_vector(const std::vector<T>& vec) {
-  cout << vector_to_str(vec) << endl;
+  std::cout << vector_to_str(vec) << std::endl;
 }
 
 }  // namespace utils

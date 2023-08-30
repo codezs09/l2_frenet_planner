@@ -3,6 +3,7 @@ build/
 venv/
 dist/
 ref/
+results/
 *.egg-info/
 .idea/
 cmake-build-debug/

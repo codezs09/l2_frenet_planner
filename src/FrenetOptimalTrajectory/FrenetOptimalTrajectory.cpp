@@ -316,14 +316,15 @@ void FrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
         lateral_jerk = 0;
 
         fp = new FrenetPath();
+        double ti_d_flw = min(ti_flw, kHorizon);
         QuinticPolynomial lat_qp = QuinticPolynomial(
-            fot_ic.d, fot_ic.d_d, fot_ic.d_dd, di, 0.0, 0.0, ti_flw);
+            fot_ic.d, fot_ic.d_d, fot_ic.d_dd, di, 0.0, 0.0, ti_d_flw);
 
         // construct frenet path
         double t = 0;
         while (t <= kHorizon) {
           fp->t.push_back(t);
-          if (t <= ti_flw) {
+          if (t <= ti_d_flw) {
             fp->d.push_back(lat_qp.calc_point(t));
             fp->d_d.push_back(lat_qp.calc_first_derivative(t));
             fp->d_dd.push_back(lat_qp.calc_second_derivative(t));
@@ -528,10 +529,10 @@ bool FrenetOptimalTrajectory::has_near_obstacle_front(
     // }
     // std::cout << std::endl;
 
-    // NOTE: hardcode here for slow down scenario to observe if planning
-    // drifting.
-    s_flw_vec->clear();
-    s_flw_vec->push_back(72.5);
+    // // NOTE: hardcode here for slow down scenario to observe if planning
+    // // drifting at fixed following destination.
+    // s_flw_vec->clear();
+    // s_flw_vec->push_back(72.5);
   }
 
   return true;
