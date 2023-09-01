@@ -441,6 +441,10 @@ def plot_states(data_frames):
     plt.grid(True)
     plt.subplots_adjust(hspace=0.3)
 
+    if args.save_frame or args.save_gif:
+        plt.savefig("img/plots/sensor_err.jpg")
+
+
 
     # correlation plots of estimated pose change between frames
     plt.figure(figsize=(16, 4))
@@ -472,6 +476,9 @@ def plot_states(data_frames):
     # ax3.set_aspect('equal', 'box')
     plt.subplots_adjust(wspace=0.35)
 
+    if args.save_frame or args.save_gif:
+        plt.savefig("img/plots/correlate_plot.jpg")
+
 
     # box plot of sensor reading errors plus estimated pose change errors
     plt.figure(figsize=(8, 6))
@@ -483,6 +490,7 @@ def plot_states(data_frames):
     plt.plot(x, y, 'r.', alpha=0.2)
     plt.ylabel(r'Meas. err  $v$ [m/s]')
     plt.subplots_adjust(wspace=0.8)
+    plt.xticks([])
 
     plt.subplot(232)
     y = np.array(yaw_rate_meas) - np.array(yaw_rate_act)
@@ -491,6 +499,7 @@ def plot_states(data_frames):
     plt.plot(x, y, 'r.', alpha=0.2)
     plt.ylabel(r'Meas. err   $\dot{\theta}$ [deg/s]')
     plt.subplots_adjust(wspace=0.8)
+    plt.xticks([])
     
     plt.subplot(234)
     y = planning_init_point_local_x[1:]
@@ -499,6 +508,7 @@ def plot_states(data_frames):
     plt.plot(x, y, 'r.', alpha=0.2)
     plt.ylabel(r'Est. err  $\Delta x$ [m]')
     plt.subplots_adjust(wspace=0.8)
+    plt.xticks([])
 
     plt.subplot(235)
     y= planning_init_point_local_y
@@ -507,6 +517,7 @@ def plot_states(data_frames):
     plt.plot(x, y, 'r.', alpha=0.2)
     plt.ylabel(r'Est. err   $\Delta y$ [m]')
     plt.subplots_adjust(wspace=0.8)
+    plt.xticks([])
 
     plt.subplot(236)
     y = np.rad2deg(planning_init_point_local_yaw)
@@ -515,6 +526,10 @@ def plot_states(data_frames):
     plt.plot(x, y, 'r.', alpha=0.2)
     plt.ylabel(r'Est. err   $\Delta\theta$ [deg]')
     plt.subplots_adjust(wspace=0.8)
+    plt.xticks([])
+
+    if args.save_frame or args.save_gif:
+        plt.savefig("img/plots/err_box_plot.jpg")
     
 
     # pose change estimation vs changes of actual states
@@ -574,6 +589,8 @@ def plot_states(data_frames):
     plt.grid(True)
     plt.subplots_adjust(hspace=0.3)
 
+    if args.save_frame or args.save_gif:
+        plt.savefig("img/plots/pose_change.jpg")
     
 
     # ego car state
