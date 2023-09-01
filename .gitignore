@@ -9,4 +9,5 @@ results/
 cmake-build-debug/
 *.pyc
 *.jpg
+*.gif
 .clang-format

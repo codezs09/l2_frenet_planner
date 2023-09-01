@@ -139,14 +139,17 @@
     - For local gifs, replace waypoints with lane boundaries as well. 
 
 08.30
-    - Add local planning, lane boundaries
+    - Add local planning, lane boundaries.
+    - Prepare plotting results.
+
 
 
     - TODO: Prepare results. 
         - Discuss how sensor drift and noise affects the estimation error of state change.
             - Time Plots of yaw rate and speed sensor measurements vs ground truth (indicating drift and std_dev). 
             - Time plots of state change estimation error (x, y, theta), or 
-            - Plots (like Correlation Matrix) of state change estimation error (x, y, theta) vs sensor noise (speed, yaw_rate). Prefer this. 
+            - Plots (like Correlation Matrix) of state change estimation error (x, y, theta) vs sensor noise (speed, yaw_rate). Prefer this.
+            - Box plot of pose change estimate errors (x, y, theta), plus sensor reading errors
         - Comparison of local planning results vs Global planning results. 
             - GIF of local planning results. 
             - GIF of global planning results. 
