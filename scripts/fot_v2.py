@@ -133,7 +133,7 @@ def plot_frames(data_frames, args):
 
         plt.axis('equal')
         plt.xlim(ego_x - 0.5*area, ego_x + 2.5*area)
-        plt.ylim(ego_y - 0.5*area, ego_y + 2.5*area)
+        plt.ylim(ego_y - 1.5*area, ego_y + 1.5*area)
         plt.xlabel("X [m]")
         plt.ylabel("Y [m]")
         plt.title(f"Global: Timestamp {frame.timestamp: .1f}, v[m/s]:" + \
@@ -493,7 +493,7 @@ def plot_states(data_frames):
     plt.xticks([])
 
     plt.subplot(232)
-    y = np.array(yaw_rate_meas) - np.array(yaw_rate_act)
+    y = np.rad2deg(np.array(yaw_rate_meas) - np.array(yaw_rate_act))
     plt.boxplot(y,medianprops=dict(color='blue',linewidth=1.5))
     x = np.random.normal(1, 0.04, size=len(y))    
     plt.plot(x, y, 'r.', alpha=0.2)
@@ -655,7 +655,7 @@ def post_process(args):
     if args.store_data:
         data_frames = load_data(args.data_path)
 
-        if not args.skip_fot:
+        if not args.skip_fot or args.save_gif:
             plot_frames(data_frames, args)
 
         if args.cost_frame is not None:
