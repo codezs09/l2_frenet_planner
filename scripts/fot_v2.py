@@ -650,6 +650,9 @@ def plot_states(data_frames):
     plt.ylabel('yaw accel [deg/s^2]')
     plt.grid()
 
+    if args.save_frame or args.save_gif:
+        plt.savefig("img/plots/states.jpg")
+
 
 def post_process(args):
     if args.store_data:

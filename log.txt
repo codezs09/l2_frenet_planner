@@ -142,6 +142,8 @@
     - Add local planning, lane boundaries.
     - Prepare plotting results.
 
+09.02
+    - 发现two lanes的cases加速度太大了，很可能是VKP mode的时间采样不合适，后面有时间再改吧，导致了加速度太大。先把文章给结尾了。
 
 
     - TODO: Prepare results. 
