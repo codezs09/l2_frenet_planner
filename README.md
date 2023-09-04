@@ -1,4 +1,4 @@
-# L2 Local Planning without Absolute Localization using Frenet Optimal Trajectory
+# Local Frenet Plannner
 
 
 | ![Image 1](results/slow_down/yaw_rate_offset_0p01/animation_s.gif) | ![Image 2](results/two_lanes/yaw_rate_offset_0p01/animation_s.gif) | ![Image 3](results/multi_lanes/animation_s.gif) |
