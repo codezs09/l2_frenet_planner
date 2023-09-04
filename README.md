@@ -1,95 +1,84 @@
-# Frenet Optimal Trajectory
-![FrenetOptimalTrajectory Demo](img/fot.gif)
-![FrenetOptimalTrajectory Demo](img/fot2.gif)
-
-## Dependency Requirements
-Install Python dependencies: 
-```
-pip install -r requirements.txt
-```
-
-Other apt package dependencies:
-```
-sudo apt-get install -y libeigen3-dev clang cmake libgflags-dev libmsgpack-dev
-```
+# L2 Local Planning without Absolute Localization using Frenet Optimal Trajectory
 
 
+| ![Image 1](results/slow_down/yaw_rate_offset_0p01/animation.gif) | ![Image 2](results/two_lanes/yaw_rate_offset_0p01/animation.gif) | ![Image 3](results/multi_lanes/animation.gif) |
+|:-------------------------:|:-------------------------:|:-------------------------:|
+| Stop Scene   | Two-lane Moving Traffic  | Three-lane Moving Traffic   |
 
-
-## Run
-
-```
-python scripts/fot_v2.py
-```
-
-
-## Overview
-This repository contains a fast, C++ implementation of the Frenet Optimal
- Trajectory algorithm with a Python wrapper. It is used as one of the motion planning models in 
- [pylot](https://github.com/erdos-project/pylot), an [erdos](https://github.com/erdos-project) project.
- 
-Reference Papers:
-- [Optimal Trajectory Generation for Dynamic Street Scenarios in a Frenet Frame](https://www.researchgate.net/profile/Moritz_Werling/publication/224156269_Optimal_Trajectory_Generation_for_Dynamic_Street_Scenarios_in_a_Frenet_Frame/links/54f749df0cf210398e9277af.pdf)
-- [Optimal trajectory generation for dynamic street scenarios in a Frenet Frame](https://www.youtube.com/watch?v=Cj6tAQe7UCY)
-
-## Profiling
-Some basic profiling of the code (same trajectory as demo, 10 obstacles) 
-indicates the following expected performance:
-```
-Average Time: ~7 ms
-Max Time: ~20 ms
-```
 
 ## Setup
+Install Python dependencies: 
+```
+python3.8 -m pip install -r requirements.txt
+```
+Build the repo:
+
 ```
 git clone https://github.com/fangedward/frenet-optimal-trajectory-planner.git
 ./build.sh
 ```
 
-## Example Usage
-There is a Python wrapper and C++ API. The Python wrapper is located in 
-`FrenetOptimalTrajectory/fot_wrapper.py` and the C++ API is under 
-`src/FrenetOptimalTrajectory/fot_wrapper.cpp`.
-The following command will simulate a simple scenario to run the
- FrenetOptimalTrajectory planning algorithm.
+## Run
 
-Use `fot.py` to run the FrenetOptimalTrajectory planning algorithm.
+Running under vehicle local coordinate system without absolute localization: 
 
 ```
-python3 FrenetOptimalTrajectory/fot.py
+python3.8 scripts/fot_v2.py --local_planning
+```
+
+## Overview
+This repository implements a local planning framework without the availability of global/absolute localization information. Rather, the local planning is done under the vehicle local coordinate system. This approach relies on motion sensors to estimate the pose change of the ego car and to associate with last planning result. The measurements from speed and yaw rate are modeled with an offset error and a Gaussian noise. 
+
+The planning algorithm contains a fast, c++ implementation of the frenet optimal trajectory generation. The repo is partially based on the work,  [frenet_optimal_trajectory_planner](https://github.com/fangedward/frenet_optimal_trajectory_planner.git), but also add representations of car, obstacles, and road lanes to approximate the real world driving scenarios. Besides the velocity keeping mode, the planner also adds a following/stopping mode to allow it to follow the leading car in front. The candiate trajectories are extended to the same length of 5.0 seconds to ensure consisitent cost comparisons and safety check. Collision check is modified to enable the examination of box to box in any directions using the Separating Axis Theorem. And of course, another adds-on is the option to run the planner under the local coordinate system and consider the measurement errors of the motion sensors. 
+
+
+## Example Usage
+
+Use `fot_v2.py` to call the planning algorithm.
+
+```
+python3 FrenetOptimalTrajectory/fot.py --local_planning
 ```
 
 Here are some flags you can pass in:
-* `-d`, `--display`, display animation. Ensure you have X11 forwarding enabled if running on a server.
-* `-v`, `--verbose`, prints detailed states one each iteration.
-* `-s`, `--save`, screenshot each frame and save to `/img/frames`; you can use them to make `.gif`.
-* `-t`, `--thread`, set number of threads. Default will be 0 (no threading). Accepts positive integer arguments.
+* `--scene_path`, specify the path to the scene file. Default is `scenes/two_lanes.json`.
+* `--local_planning`, run the planner under local coordinate system. Default is `False` running under global coordinate system.
 
 
-Use `fot_profile.py` to measure multi-threading speedup of the FrenetOptimalTrajectory planning algorithm.
-To measure speed up with threading:
-```
-python3 FrenetOptimalTrajectory/fot_profile.py -t 4 -p -c
-```
-
-Here are some additional flags you can pass in, on top of the 4 flags listed above:
-* `-c`, `--compare`, compare threaded program with unthreaded baseline for time profiling.
-* `-p`, `--profile`, show a plot of runtime profile across iterations.
-* `-f`, `--full`, generate comparisons of runtime and speed up ratio across running planner on different number of threads.
+### Add Scenes
+Scenes are defined in `scenes/` folder. Three scenes (stop, two-lane, three-lane) are already defined as examples. You can add your own scenes by following the formats.
 
 
-Besides using command line input, you can specify number of threads by going to `fot.py` and editing `num_threads` under `hyperparameters`. To use the non-threaded implementation of the algorithm, set `num_threads` to `0`.
+### Global vs Local View
+
+The view from the vehice local coordinate system is also available with candidate trajecotories in dashed blue lines. Each trajectory has the same planning horizion of 5.0 seconds. 
+
+| ![L2FrenetOptimalTrajectory Demo](results/multi_lanes/animation.gif) | ![L2FrenetOptimalTrajectory Demo](results/multi_lanes/animation_local.gif)  |
+|:-------------------------:|:-------------------------:|
+| Global View   | Local View  | 
+
 
 ### Speed Up Performance
 
-The above flags are mostly used to visualize the effect of threading. To enable threading, pass in `-t NUM_THREADS` and specify the number of threads you want to use. 
+To enable threading, specify the number of threads you want to use for `num_threads` in `hyperparameters.json`. Setting this value to `0` disables the use of multi threading.
 
-Use the `-c` flag to see a speedup comparison between the threaded version and the baseline non-threaded runtime. The `-p` flag gives you a graph of planner runtime across iterations. Below shows an example of comparing runtime per iteration across iterations for using 4 threads vs a single thread.
+### Citation
 
-![Multi-threading Speed Up Performance Comparison](img/profile-comparison.png)
-
-To see the performance across using different number of threads, you can use the `-f` flag. Below shows a comparison of Runtime & Speedup using different number of threads, profiled on a 4-Core CPU with 8 logical processors.
-
-![Multi-threading Speed Up Performance Comparison](img/speed-up-comparison-8-threads.png)
+If you find this repository helpful or use its contents in your work, please consider citing our paper.
 
 
+```
+# BibTex
+
+@article{zhu2023local,
+   author = {Zhu, Sheng and Wang, Jiawei and Yang, Yu and Aksun-Guvenc, Bilin},
+   title = {Feasibility of Local Trajectory Planning for Level-2+ Semi-autonomous Driving without Absolute Localization},
+   journal = {arXiv preprint arXiv:xxxx.xxxxx},
+   year = {2023}
+}
+
+# IEEE format
+S. Zhu, J. Wang, Y. Yang, and B. Aksun-Guvenc, "Feasibility of Local Trajectory Planning for Level-2+ Semi-autonomous Driving without Absolute Localization," arXiv preprint arXiv:xxxx.xxxxx, 2023.
+
+
+```
