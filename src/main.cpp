@@ -11,7 +11,6 @@
 #include "FrenetOptimalTrajectory/py_cpp_struct.h"
 #include "FrenetPath.h"
 #include "Lane/Lane.h"
-#include "fot_wrapper.cpp"
 #include "py_cpp_struct.h"
 #include "utils/coordinate_utils.h"
 #include "utils/data_log.h"

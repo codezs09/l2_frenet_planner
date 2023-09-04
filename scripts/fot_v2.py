@@ -43,6 +43,9 @@ def parse_arguments():
                         default=True)
     parser.add_argument('--save_gif', action='store_true',
                         default=True)
+    parser.add_argument('--local_planning', action='store_true', default=False,
+                        help='enable local planning')
+    
     # debug fields
     parser.add_argument('--skip_fot', action='store_true', default=False,
                         help='skip running FOT and only do post-processing on data.bin')
@@ -50,8 +53,6 @@ def parse_arguments():
                         help='print path costs of a specific frame if provided')
     parser.add_argument('--cost_lane', type=int, default=None,
                         help='print candidate path costs of a specific lane if provided')
-    parser.add_argument('--local_planning', action='store_true', default=True,
-                        help='enable local planning')
     
     args = parser.parse_args()
     return args 
@@ -87,6 +88,12 @@ def plot_frames(data_frames, args):
         Path("img/frames_local").mkdir(parents=True, exist_ok=True)
         # remove all files in img/frames_local
         frames_dir = os.path.join(PROJECT_DIR, "img/frames_local")
+        for file in os.listdir(frames_dir):
+            os.remove(os.path.join(frames_dir, file))
+
+        Path("img/plots").mkdir(parents=True, exist_ok=True)
+        # remove all files in img/plots
+        frames_dir = os.path.join(PROJECT_DIR, "img/plots")
         for file in os.listdir(frames_dir):
             os.remove(os.path.join(frames_dir, file))
 
@@ -591,67 +598,6 @@ def plot_states(data_frames):
 
     if args.save_frame or args.save_gif:
         plt.savefig("img/plots/pose_change.jpg")
-    
-
-    # ego car state
-    plt.figure()
-    plt.suptitle("Ego car state")
-    ax1 = plt.subplot(331)
-    plt.plot(timestamp, [df.ego_car.pose.x for df in data_frames])
-    plt.xlabel('Time [s]')
-    plt.ylabel('x [m]')
-    plt.grid()
-
-    plt.subplot(332, sharex=ax1)
-    plt.plot(timestamp, [df.ego_car.pose.y for df in data_frames])
-    plt.xlabel('Time [s]')
-    plt.ylabel('y [m]')
-    plt.grid()
-
-    plt.subplot(333, sharex=ax1)
-    plt.plot(timestamp, np.rad2deg([df.ego_car.pose.yaw for df in data_frames]))
-    plt.xlabel('Time [s]')
-    plt.ylabel('yaw [deg]')
-    plt.grid()
-
-    plt.subplot(334, sharex=ax1)
-    plt.plot(timestamp, [df.ego_car.twist.vx for df in data_frames])
-    plt.xlabel('Time [s]')
-    plt.ylabel('vx [m/s]')
-    plt.grid()
-
-    plt.subplot(335, sharex=ax1)
-    plt.plot(timestamp, [df.ego_car.twist.vy for df in data_frames])
-    plt.xlabel('Time [s]')
-    plt.ylabel('vy [m/s]')
-    plt.grid()
-
-    plt.subplot(336, sharex=ax1)
-    plt.plot(timestamp, np.rad2deg([df.ego_car.twist.yaw_rate for df in data_frames]))
-    plt.xlabel('Time [s]')
-    plt.ylabel('yaw rate [deg/s]')
-    plt.grid()
-
-    plt.subplot(337, sharex=ax1)
-    plt.plot(timestamp, [df.ego_car.accel.ax for df in data_frames])
-    plt.xlabel('Time [s]')
-    plt.ylabel('ax [m/s^2]')
-    plt.grid()
-
-    plt.subplot(338, sharex=ax1)
-    plt.plot(timestamp, [df.ego_car.accel.ay for df in data_frames])
-    plt.xlabel('Time [s]')
-    plt.ylabel('ay [m/s^2]')
-    plt.grid()
-
-    plt.subplot(339, sharex=ax1)
-    plt.plot(timestamp, np.rad2deg([df.ego_car.accel.yaw_accel for df in data_frames]))
-    plt.xlabel('Time [s]')
-    plt.ylabel('yaw accel [deg/s^2]')
-    plt.grid()
-
-    if args.save_frame or args.save_gif:
-        plt.savefig("img/plots/states.jpg")
 
 
 def post_process(args):
