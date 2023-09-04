@@ -90,6 +90,12 @@ def plot_frames(data_frames, args):
         for file in os.listdir(frames_dir):
             os.remove(os.path.join(frames_dir, file))
 
+        Path("img/plots").mkdir(parents=True, exist_ok=True)
+        # remove all files in img/plots
+        frames_dir = os.path.join(PROJECT_DIR, "img/plots")
+        for file in os.listdir(frames_dir):
+            os.remove(os.path.join(frames_dir, file))
+
     # visualization
     area = 20
     # visualize data
