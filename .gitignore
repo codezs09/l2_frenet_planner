@@ -1,0 +1,15 @@
+__pycache__/
+build/
+venv/
+dist/
+ref/
+img/*.gif
+*.egg-info/
+.idea/
+cmake-build-debug/
+*.pyc
+*.jpg
+*.bin
+.clang-format
+log.txt
+results/README.md

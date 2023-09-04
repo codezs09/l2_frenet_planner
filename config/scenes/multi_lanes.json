@@ -1,0 +1,40 @@
+{
+	"s0": 0,
+	"target_speed": 20.0,
+	"wp": [[0,0], [50, 10], [100, 10], [150, 20]],
+	"lane_width": 4.0,
+	"num_lanes_left": 1,
+	"num_lanes_right": 1, 
+	"obs": [
+		{
+			"pose_coord": "Frenet",
+			"pose": [25, 0, 0], 
+			"length": 5.0,
+			"width": 2.2,
+			"speed_profile": [[0, 1], [10, 3]]
+		},
+		{
+			"pose_coord": "Frenet",
+			"pose": [30, 4.0, 0], 
+			"length": 5.0,
+			"width": 2.2,
+			"speed_profile": [[0, 3], [10, 3]]
+		},
+		{
+			"pose_coord": "Frenet",
+			"pose": [35, 0.0, 0], 
+			"length": 5.0,
+			"width": 2.2,
+			"speed_profile": [[0, 7], [10, 10]]
+		},
+		{
+			"pose_coord": "Frenet",
+			"pose": [40, -4.0, 0], 
+			"length": 5.0,
+			"width": 2.5,
+			"speed_profile": [[0, 8], [10, 5]]
+		}
+	],
+	"pose": [0, 0, 0],
+	"vel": [5, 0, 0]
+}
