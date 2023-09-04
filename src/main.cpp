@@ -54,6 +54,8 @@ bool InitFrenetHyperParameters() {
 
 void UpdateFrenetCoordinates(const Car& car, const utils::WayPoints& wp,
                              FrenetInitialConditions* fot_ic) {
+  fot_ic->yaw_c = car.getPose().yaw;
+
   Car car_f;
   utils::ToFrenet(car, wp, &car_f);
   fot_ic->s = car_f.getPose().x;
@@ -127,6 +129,8 @@ void InitObstacles(const json& scene_j, const vector<Lane>& lanes,
 void UpdateNextPlanningStateLocal(const FrenetPath* best_frenet_path_local,
                                   const WayPoints& wp_local,
                                   Car* next_planning_state_local) {
+  const auto& fot_hp = FrenetHyperparameters::getConstInstance();
+
   // update ego car to next state
   double next_s = best_frenet_path_local->s[1];
   double next_d = best_frenet_path_local->d[1];
@@ -134,7 +138,7 @@ void UpdateNextPlanningStateLocal(const FrenetPath* best_frenet_path_local,
   double next_d_d = best_frenet_path_local->d_d[1];
   double next_s_dd = best_frenet_path_local->s_dd[1];
   double next_d_dd = best_frenet_path_local->d_dd[1];
-  double next_yaw_f = std::atan2(next_d_d, next_s_d);
+  double next_yaw_f = utils::wrap_angle(std::atan2(next_d_d, next_s_d));
   double next_yaw_d_f = (next_s_d * next_d_dd - next_d_d * next_s_dd) /
                         (next_s_d * next_s_d + next_d_d * next_d_d);
   Pose pose_c;
@@ -143,6 +147,27 @@ void UpdateNextPlanningStateLocal(const FrenetPath* best_frenet_path_local,
   ToCartesian({next_s, next_d, next_yaw_f}, {next_s_d, next_d_d, next_yaw_d_f},
               {next_s_dd, next_d_dd, 0.0}, wp_local, &pose_c, &twist_c,
               &accel_c);
+
+  // PATCH: The yaw and yaw rate will be unexpected if path too short
+  if (std::fabs(best_frenet_path_local->s.back() -
+                best_frenet_path_local->s.front()) < 10.0) {
+    pose_c.yaw = utils::wrap_angle(best_frenet_path_local->yaw[1]);
+    twist_c.yaw_rate = utils::wrap_angle(best_frenet_path_local->yaw[2] -
+                                         best_frenet_path_local->yaw[0]) /
+                       2.0 / fot_hp.dt;
+    twist_c.vx = (best_frenet_path_local->s[2] - best_frenet_path_local->s[0]) /
+                 2.0 / fot_hp.dt;
+    twist_c.vy = 0.0;
+    accel_c.ax =
+        (best_frenet_path_local->s_d[2] - best_frenet_path_local->s_d[0]) /
+        2.0 / fot_hp.dt;
+    accel_c.ay = 0.0;
+    accel_c.yaw_accel = utils::wrap_angle(best_frenet_path_local->yaw[2] -
+                                          2.0 * best_frenet_path_local->yaw[1] +
+                                          best_frenet_path_local->yaw[0]) /
+                        fot_hp.dt / fot_hp.dt;
+  }
+
   next_planning_state_local->setPose(pose_c);
   next_planning_state_local->setTwist(twist_c);
   next_planning_state_local->setAccel(accel_c);
@@ -340,7 +365,7 @@ int main(int argc, char** argv) {
 
   const auto& fot_hp = FrenetHyperparameters::getConstInstance();
   const double TimeStep = fot_hp.dt;
-  int sim_loop = 100;
+  int sim_loop = 200;
   double total_runtime = 0.0;  // [ms]
   double timestamp = 0.0;      // [s], simulation timestamp
   int i = 0;
@@ -375,7 +400,7 @@ int main(int argc, char** argv) {
 
       // break if near goal
       if (utils::norm(ego_car.getPose().x - wp[0].back(),
-                      ego_car.getPose().y - wp[1].back()) < 3.0) {
+                      ego_car.getPose().y - wp[1].back()) < 10.0) {
         reach_goal = true;
         break;
       }
@@ -407,7 +432,8 @@ int main(int argc, char** argv) {
       wp_lanes_local[lane.GetLaneId()] = wp_local;
 
       // run frenet optimal trajectory
-      FrenetInitialConditions fot_ic(wp_local, obstacles_local);
+      FrenetInitialConditions fot_ic(wp_local, obstacles_local,
+                                     lane.GetLaneId());
       fot_ic.target_speed = target_speed;
       fot_ic.lane_width = lane.GetLaneWidth();
 
@@ -451,6 +477,12 @@ int main(int argc, char** argv) {
       }
     }
     if (reach_goal) {
+      break;
+    }
+
+    if (best_frenet_paths_local.empty()) {
+      cerr << "Fail to find a feasible path at timestamp: " << timestamp
+           << " for all lanes. Terminate!" << endl;
       break;
     }
 
@@ -536,9 +568,22 @@ int main(int argc, char** argv) {
     // next frame
     Car next_ego_car =
         next_planning_state_local;  // set to next_planning_state_global
+
+    // std::cout << "planning_init_point_local: "
+    //           << plannig_init_point_local.getPose()
+    //           << planning_init_point_local.getTwist() << std::endl;
+    // std::cout << "next_planning_local: " <<
+    // next_planning_state_local.getPose()
+    //           << next_planning_state_local.getTwist() << std::endl;
+    // std::cout << "ego_car: " << ego_car.getPose() << ego_car.getTwist()
+    //           << std::endl;
+
     if (FLAGS_local_planning) {
       ToGlobal(next_planning_state_local, ego_car.getPose(), &next_ego_car);
     }
+
+    // std::cout << "next_ego_car: " << next_ego_car.getPose()
+    //           << next_ego_car.getTwist() << std::endl;
 
     // TODO: remove, update this way not accurate
     // Comment (sz): not accurate due to the way we update sensor measurements
@@ -566,7 +611,7 @@ int main(int argc, char** argv) {
     double cycle_duration = get_duration_ms(end, start);
     total_runtime += cycle_duration;
 
-    cout << "#" << i << ", simtime: " << timestamp
+    cout << "\n#" << i << ", simtime: " << timestamp
          << "[s]. Plan: " << plan_duration << "[ms], Cycle: " << cycle_duration
          << "[ms]. x=" << ego_car.getPose().x << ", y=" << ego_car.getPose().y
          << ", yaw=" << utils::rad2deg(ego_car.getPose().yaw)

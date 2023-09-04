@@ -16,8 +16,9 @@ using json = nlohmann::json;
 
 struct FrenetInitialConditions {
   FrenetInitialConditions() = delete;
-  FrenetInitialConditions(WayPoints& wp, vector<Obstacle>& obstacles_c)
-      : wp(wp), obstacles_c(obstacles_c) {}
+  FrenetInitialConditions(WayPoints& wp, vector<Obstacle>& obstacles_c,
+                          int lane_id)
+      : wp(wp), obstacles_c(obstacles_c), lane_id(lane_id) {}
 
   double s;
   double s_d;
@@ -31,6 +32,10 @@ struct FrenetInitialConditions {
   // TODO: 以下两个fields特别是 obstacles_c 感觉可以单独拉出作为输入
   WayPoints& wp;                  // Cartesian coordinates
   vector<Obstacle>& obstacles_c;  // Cartesian coordinates
+  int lane_id;
+
+  double yaw_c;  // initial yaw of the plannning init point at local Catesian
+                 // coordinates
 };
 
 struct FrenetReturnValues {
@@ -55,14 +60,20 @@ struct FrenetHyperparameters {
   double max_speed;
   double max_accel;
   double max_curvature;
+  double max_yaw_rate;
   double d_road_w;
   double dt;
   double maxt;
   double mint;
-  double d_t_s;
+  double t_sample_step;
+  double v_sample_step;
   double n_s_sample;
   double obstacle_clearance;
   double kd;
+  double k_ed;
+  double k_ev;
+  double k_es;
+  double k_ef;
   double kv;
   double ka;
   double kj;
@@ -82,14 +93,20 @@ struct FrenetHyperparameters {
     max_speed = j["max_speed"];
     max_accel = j["max_accel"];
     max_curvature = j["max_curvature"];
+    max_yaw_rate = j["max_yaw_rate"];
     d_road_w = j["d_road_w"];
     dt = j["dt"];
     maxt = j["maxt"];
     mint = j["mint"];
-    d_t_s = j["d_t_s"];
+    t_sample_step = j["t_sample_step"];
+    v_sample_step = j["v_sample_step"];
     n_s_sample = j["n_s_sample"];
     obstacle_clearance = j["obstacle_clearance"];
     kd = j["kd"];
+    k_ed = j["k_ed"];
+    k_ev = j["k_ev"];
+    k_es = j["k_es"];
+    k_ef = j["k_ef"];
     kv = j["kv"];
     ka = j["ka"];
     kj = j["kj"];

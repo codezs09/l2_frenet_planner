@@ -1,0 +1,26 @@
+{
+	"s0": 0,
+	"target_speed": 10.0,
+	"wp": [[0,0], [50, 20], [100, 40]],
+	"lane_width": 4.0,
+	"num_lanes_left": 1,
+	"num_lanes_right": 0, 
+	"obs": [
+		{
+			"pose_coord": "Frenet",
+			"pose": [80, 0.0, 0], 
+			"length": 4.5,
+			"width": 2.0,
+			"speed_profile": [[0, 0.0], [10, 0.0]]
+		},
+		{
+			"pose_coord": "Frenet",
+			"pose": [75, 4.0, 0], 
+			"length": 21.94,
+			"width": 2.6,
+			"speed_profile": [[0, 0.0], [0, 0.0]]
+		}
+	],
+	"pose": [0, 0, 0],
+	"vel": [10, 0, 0]
+}
