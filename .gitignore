@@ -3,11 +3,13 @@ build/
 venv/
 dist/
 ref/
-results/
+img/
 *.egg-info/
 .idea/
 cmake-build-debug/
 *.pyc
 *.jpg
-*.gif
+*.bin
 .clang-format
+log.txt
+results/README.md

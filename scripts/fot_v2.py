@@ -43,7 +43,7 @@ def parse_arguments():
                         default=True)
     parser.add_argument('--save_gif', action='store_true',
                         default=True)
-    parser.add_argument('--local_planning', action='store_true', default=True,
+    parser.add_argument('--local_planning', action='store_true', default=False,
                         help='enable local planning')
     
     # debug fields
