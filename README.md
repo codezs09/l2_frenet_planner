@@ -1,7 +1,7 @@
 # L2 Local Planning without Absolute Localization using Frenet Optimal Trajectory
 
 
-| ![Image 1](results/slow_down/yaw_rate_offset_0p01/animation.gif) | ![Image 2](results/two_lanes/yaw_rate_offset_0p01/animation.gif) | ![Image 3](results/multi_lanes/animation.gif) |
+| ![Image 1](results/slow_down/yaw_rate_offset_0p01/animation_s.gif) | ![Image 2](results/two_lanes/yaw_rate_offset_0p01/animation_s.gif) | ![Image 3](results/multi_lanes/animation_s.gif) |
 |:-------------------------:|:-------------------------:|:-------------------------:|
 | Stop Scene   | Two-lane Moving Traffic  | Three-lane Moving Traffic   |
 
@@ -53,7 +53,7 @@ Scenes are defined in `scenes/` folder. Three scenes (stop, two-lane, three-lane
 
 The view from the vehice local coordinate system is also available with candidate trajecotories in dashed blue lines. Each trajectory has the same planning horizion of 5.0 seconds. 
 
-| ![L2FrenetOptimalTrajectory Demo](results/multi_lanes/animation.gif) | ![L2FrenetOptimalTrajectory Demo](results/multi_lanes/animation_local.gif)  |
+| ![L2FrenetOptimalTrajectory Demo](results/multi_lanes/animation_s.gif) | ![L2FrenetOptimalTrajectory Demo](results/multi_lanes/animation_local_s.gif)  |
 |:-------------------------:|:-------------------------:|
 | Global View   | Local View  | 
 
