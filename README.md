@@ -64,7 +64,7 @@ To enable threading, specify the number of threads you want to use for `num_thre
 
 ### Citation
 
-If you find this repository helpful or use its contents in your work, please consider citing our paper.
+If you find this repository helpful or use its contents in your work, please consider citing our [paper](https://arxiv.org/abs/2309.03051).
 
 
 ```
@@ -73,12 +73,12 @@ If you find this repository helpful or use its contents in your work, please con
 @article{zhu2023local,
    author = {Zhu, Sheng and Wang, Jiawei and Yang, Yu and Aksun-Guvenc, Bilin},
    title = {Feasibility of Local Trajectory Planning for Level-2+ Semi-autonomous Driving without Absolute Localization},
-   journal = {arXiv preprint arXiv:xxxx.xxxxx},
+   journal = {arXiv preprint arXiv:2309.03051},
    year = {2023}
 }
 
 # IEEE format
-S. Zhu, J. Wang, Y. Yang, and B. Aksun-Guvenc, "Feasibility of Local Trajectory Planning for Level-2+ Semi-autonomous Driving without Absolute Localization," arXiv preprint arXiv:xxxx.xxxxx, 2023.
+S. Zhu, J. Wang, Y. Yang, and B. Aksun-Guvenc, "Feasibility of Local Trajectory Planning for Level-2+ Semi-autonomous Driving without Absolute Localization," arXiv preprint arXiv:2309.03051, 2023.
 
 
 ```
