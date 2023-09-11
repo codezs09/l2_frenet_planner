@@ -14,7 +14,7 @@ python3.8 -m pip install -r requirements.txt
 Build the repo:
 
 ```
-git clone https://github.com/fangedward/frenet-optimal-trajectory-planner.git
+git clone https://github.com/codezs09/l2_frenet_planner.git
 ./build.sh
 ```
 
