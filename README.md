@@ -14,7 +14,6 @@ python3.8 -m pip install -r requirements.txt
 Build the repo:
 
 ```
-git clone https://github.com/codezs09/l2_frenet_planner.git
 ./build.sh
 ```
 
@@ -37,7 +36,7 @@ The planning algorithm contains a fast, c++ implementation of the frenet optimal
 Use `fot_v2.py` to call the planning algorithm.
 
 ```
-python3 FrenetOptimalTrajectory/fot.py --local_planning
+python3 scripts/fot_v2.py --local_planning
 ```
 
 Here are some flags you can pass in:
